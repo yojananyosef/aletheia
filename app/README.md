@@ -1,6 +1,6 @@
 # app — Cliente Flutter (Aletheia)
 
-Aplicación Flutter **desktop** de Aletheia, con catálogo de recursos desacoplado.
+Aplicación Flutter **para escritorio y web** de Aletheia, con catálogo de recursos desacoplado.
 
 - **Estado:** M1 (lector) completado — además de M0 (shell + workspace de tiles/pestañas + omnibox + persistencia con layout adaptativo): lector real de la RV1909 con índice, historial, caja de referencia, notas al pie y cross-refs.
 - **Requisitos:** Flutter 3.47+ (instalado en `~/.local/share/flutter`), y para Linux desktop:
@@ -13,6 +13,23 @@ export PATH="$HOME/.local/share/flutter/bin:$PATH"
 cd app
 flutter run -d linux
 ```
+
+Para navegador:
+
+```bash
+cd app
+flutter run -d chrome
+```
+
+## Web
+
+- **Compilación:** `flutter build web --release --base-href /aletheia/ --no-web-resources-cdn`. El resultado queda en `build/web`.
+- **Despliegue:** el workflow de la raíz, `.github/workflows/pages.yml`, publica el build en GitHub Pages en cada push a `main`.
+- **SQLite:** `web/sqlite3.wasm` (757.984 bytes) procede del release `sqlite3-3.7.1`; no se descarga en tiempo de ejecución.
+- **Persistencia:** workspace y notas en IndexedDB (`aletheia_app`). El índice FTS5 se descomprime en memoria al buscar por primera vez.
+- **Limitación:** la primera búsqueda descarga ~48,8 MB y necesita ~250 MB de heap; el resto de la app funciona sin red.
+
+En web, `auto` se comporta como `local` porque GitHub Pages no puede alojar el servicio de catálogo. El modo `remote` explícito sigue disponible desde Ajustes.
 
 ## Estructura (M1)
 
@@ -69,6 +86,7 @@ evaluados sobre el ancho de **ventana** (no hardware):
   reconstruir con `flutter build linux --debug` para relanzar la app.
 - `flutter test test/reader_screens.dart` — herramienta de desarrollo: capturas PNG del lector
   (inicio, índice, historial) en `/tmp/opencode/reader-*.png` para revisión visual.
+- **Web:** no se usa `flutter test --platform chrome` para este proyecto porque el harness de pruebas no sirve bien los assets del catálogo. La comprobación se hace en Chromium contra `build/web` servido bajo `/aletheia/`: arranque, lector, búsqueda FTS5 (`principio` → 436 resultados), persistencia tras recarga y consola sin errores.
 
 ## Funcionalidad M1 (lector)
 

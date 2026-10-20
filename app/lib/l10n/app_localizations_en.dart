@@ -22,8 +22,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancel => 'Cancel';
 
   @override
-  String get bannerDev =>
-      'Aletheia · development build — public-domain catalog';
+  String get bannerDev => 'Aletheia · public-domain Bible catalog';
 
   @override
   String get bannerOpenLibrary => 'Open Library';

@@ -19,7 +19,9 @@ void main() {
     gateway = CatalogGateway(
       mode: 'local',
       client: CatalogClient(baseUrl: 'http://127.0.0.1:1'),
-      localIndex: LocalCatalogIndex(directoryProvider: () async => directory),
+      localIndex: LocalCatalogIndex(
+        cacheDirectoryProvider: () async => directory.path,
+      ),
     );
   });
 
@@ -363,16 +365,18 @@ void main() {
     expect(health.crossReferences, 376083);
   });
 
-  test('las referencias cruzadas del TSK se consultan en el índice local',
-      () async {
-    final refs = await gateway.crossReferences('JHN.3.16', limit: 20);
-    expect(refs, isNotEmpty);
-    expect(refs.map((ref) => ref.reference), contains('ROM.5.8'));
+  test(
+    'las referencias cruzadas del TSK se consultan en el índice local',
+    () async {
+      final refs = await gateway.crossReferences('JHN.3.16', limit: 20);
+      expect(refs, isNotEmpty);
+      expect(refs.map((ref) => ref.reference), contains('ROM.5.8'));
 
-    final chapter = await gateway.crossReferences('JHN.3', limit: 20);
-    expect(chapter, isNotEmpty);
-    expect(chapter.length, lessThanOrEqualTo(20));
-  });
+      final chapter = await gateway.crossReferences('JHN.3', limit: 20);
+      expect(chapter, isNotEmpty);
+      expect(chapter.length, lessThanOrEqualTo(20));
+    },
+  );
 
   test(
     'en automático cae al índice local si el servicio no responde',
@@ -380,7 +384,9 @@ void main() {
       final automatic = CatalogGateway(
         mode: 'auto',
         client: CatalogClient(baseUrl: 'http://127.0.0.1:1'),
-        localIndex: LocalCatalogIndex(directoryProvider: () async => directory),
+        localIndex: LocalCatalogIndex(
+          cacheDirectoryProvider: () async => directory.path,
+        ),
       );
       addTearDown(automatic.dispose);
 
@@ -428,37 +434,39 @@ void main() {
     expect(await sections.loadSection('factbook.core', 'no-existe'), isNull);
   });
 
-  test('comentario y diccionario se cargan por sección desde los assets',
-      () async {
-    final sections = AssetSectionsRepository();
+  test(
+    'comentario y diccionario se cargan por sección desde los assets',
+    () async {
+      final sections = AssetSectionsRepository();
 
-    final commentary = await sections.loadIndex(
-      'commentary.matthew-henry-concise',
-    );
-    final john3 = await sections.loadSection(
-      'commentary.matthew-henry-concise',
-      'JHN.3',
-    );
-    expect(john3, isNotNull);
-    expect(john3!.blocks.whereType<MapBlock>(), hasLength(1));
-    expect(commentary.length, 1189);
-    final john = await sections.loadSection(
-      'commentary.matthew-henry-concise',
-      'JHN.3',
-    );
-    expect(john, isNotNull);
-    expect(john!.summary.title, 'John 3');
-    expect(john.blocks, isNotEmpty);
+      final commentary = await sections.loadIndex(
+        'commentary.matthew-henry-concise',
+      );
+      final john3 = await sections.loadSection(
+        'commentary.matthew-henry-concise',
+        'JHN.3',
+      );
+      expect(john3, isNotNull);
+      expect(john3!.blocks.whereType<MapBlock>(), hasLength(1));
+      expect(commentary.length, 1189);
+      final john = await sections.loadSection(
+        'commentary.matthew-henry-concise',
+        'JHN.3',
+      );
+      expect(john, isNotNull);
+      expect(john!.summary.title, 'John 3');
+      expect(john.blocks, isNotEmpty);
 
-    final dictionary = await sections.loadIndex('dictionary.easton');
-    expect(dictionary.length, 3961);
-    final grace = await sections.loadSection('dictionary.easton', 'grace');
-    expect(grace, isNotNull);
-    expect(grace!.summary.title, 'Grace');
-    expect(grace.blocks, isNotEmpty);
-    expect(
-      await sections.loadSection('dictionary.easton', 'no-existe'),
-      isNull,
-    );
-  });
+      final dictionary = await sections.loadIndex('dictionary.easton');
+      expect(dictionary.length, 3961);
+      final grace = await sections.loadSection('dictionary.easton', 'grace');
+      expect(grace, isNotNull);
+      expect(grace!.summary.title, 'Grace');
+      expect(grace.blocks, isNotEmpty);
+      expect(
+        await sections.loadSection('dictionary.easton', 'no-existe'),
+        isNull,
+      );
+    },
+  );
 }

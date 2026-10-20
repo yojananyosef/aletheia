@@ -9,6 +9,7 @@ library;
 import 'dart:convert';
 import 'dart:math' show min;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -41,7 +42,10 @@ class CatalogGateway {
   final AssetBundle? bundle;
   final LocalCatalogIndex localIndex;
 
-  bool get localOnly => mode == 'local';
+  /// En web no hay servicio Python local: `auto` equivale a `local` para no
+  /// intentar (y bloquear la UI con) conexiones a `127.0.0.1`. El modo
+  /// `remote` explícito sigue intentando el servicio configurado.
+  bool get localOnly => mode == 'local' || (kIsWeb && mode == 'auto');
 
   /// Estado del catálogo. En modo local, o en automático sin servicio, el
   /// estado corresponde al índice incluido en la app (`CatalogHealth.local`).

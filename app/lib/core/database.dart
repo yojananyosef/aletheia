@@ -1,11 +1,12 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 
 import '../notes/notes_models.dart';
 import '../reading_plans/plan_models.dart';
 import '../workspace/models.dart';
+import 'database_legacy.dart' as legacy;
+import 'database_platform.dart' as platform;
 
 /// Base de datos local de Aletheia (SQLite).
 ///
@@ -26,20 +27,27 @@ import '../workspace/models.dart';
 class AletheiaDatabase {
   AletheiaDatabase._(this.db);
 
-  final Database db;
+  final CommonDatabase db;
 
   /// Versión del esquema. Subir y añadir el paso en [_migrate].
   static const int schemaVersion = 3;
 
   static AletheiaDatabase open(String path) {
-    final instance = AletheiaDatabase._(sqlite3.open(path));
+    final instance = AletheiaDatabase._(platform.openDatabaseFile(path));
     instance._configure();
     return instance;
   }
 
   /// Para pruebas y entornos sin sistema de archivos.
   static AletheiaDatabase memory() {
-    final instance = AletheiaDatabase._(sqlite3.openInMemory());
+    final instance = AletheiaDatabase._(platform.openMemoryDatabase());
+    instance._configure();
+    return instance;
+  }
+
+  /// Envuelve una base ya abierta por la fábrica de la plataforma (web).
+  factory AletheiaDatabase.fromDatabase(CommonDatabase db) {
+    final instance = AletheiaDatabase._(db);
     instance._configure();
     return instance;
   }
@@ -467,46 +475,13 @@ class AletheiaDatabase {
 
   /// Importa una sola vez los `workspace.json` / `notes.json` de M0–M4 y los
   /// archiva como `.imported` (no se borran: son el respaldo del usuario).
+  ///
+  /// [dir] es un `Directory` en plataformas nativas. En web no hay archivos
+  /// heredados y la implementación no hace nada.
   static Future<LegacyImport> importLegacyJson(
     AletheiaDatabase db,
-    Directory dir,
-  ) async {
-    var workspace = false;
-    var notes = false;
-
-    final workspaceFile = File('${dir.path}/workspace.json');
-    if (db.loadWorkspace() == null && await workspaceFile.exists()) {
-      try {
-        final raw = jsonDecode(await workspaceFile.readAsString());
-        if (raw is Map<String, dynamic>) {
-          db.saveWorkspace(WorkspaceState.fromJson(raw));
-          await workspaceFile.rename('${workspaceFile.path}.imported');
-          workspace = true;
-        }
-      } catch (_) {
-        // JSON ilegible: se deja el archivo y se arranca con el estado limpio.
-      }
-    }
-
-    final notesFile = File('${dir.path}/notes.json');
-    final stored = db.loadNotes();
-    if (stored.notes.isEmpty &&
-        stored.notebooks.isEmpty &&
-        await notesFile.exists()) {
-      try {
-        final raw = jsonDecode(await notesFile.readAsString());
-        if (raw is Map<String, dynamic>) {
-          db.saveNotes(NotesState.fromJson(raw));
-          await notesFile.rename('${notesFile.path}.imported');
-          notes = true;
-        }
-      } catch (_) {
-        // Igual que el workspace: se conserva el archivo original.
-      }
-    }
-
-    return LegacyImport(workspace: workspace, notes: notes);
-  }
+    Object dir,
+  ) => legacy.importLegacyJson(db, dir);
 }
 
 /// Resultado de [AletheiaDatabase.importLegacyJson].

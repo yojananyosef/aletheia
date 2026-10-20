@@ -1,12 +1,14 @@
 /// Cliente HTTP del servicio de catálogo (contrato v1).
 ///
-/// Sin dependencias externas (`dart:io`). Lanza [CatalogException] en cualquier
-/// respuesta no-2xx o error de red (los llamadores deciden el respaldo local).
+/// Usa `package:http`, compatible con escritorio y web. Lanza
+/// [CatalogException] en cualquier respuesta no-2xx o error de red (los
+/// llamadores deciden el respaldo local).
 library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+
+import 'package:http/http.dart' as http;
 
 import 'catalog_models.dart';
 
@@ -23,14 +25,12 @@ class CatalogException implements Exception {
 }
 
 class CatalogClient {
-  CatalogClient({required String baseUrl, HttpClient? httpClient})
+  CatalogClient({required String baseUrl, http.Client? httpClient})
     : baseUrl = normalizeBaseUrl(baseUrl),
-      _http = httpClient ?? HttpClient() {
-    _http.connectionTimeout = const Duration(seconds: 3);
-  }
+      _http = httpClient ?? http.Client();
 
   final String baseUrl;
-  final HttpClient _http;
+  final http.Client _http;
 
   static String normalizeBaseUrl(String url) {
     var value = url.trim();
@@ -40,7 +40,7 @@ class CatalogClient {
     return value;
   }
 
-  void close() => _http.close(force: true);
+  void close() => _http.close();
 
   /// Comprueba el servicio; devuelve `null` si no está disponible.
   Future<CatalogHealth?> health() async {
@@ -149,14 +149,11 @@ class CatalogClient {
   }) async {
     final uri = Uri.parse('$baseUrl$path');
     try {
-      final request = await _http.getUrl(uri).timeout(timeout);
-      request.headers.set(HttpHeaders.acceptHeader, 'application/json');
-      final response = await request.close().timeout(timeout);
-      final body = await response
-          .transform(utf8.decoder)
-          .join()
+      final response = await _http
+          .get(uri, headers: const {'Accept': 'application/json'})
           .timeout(timeout);
-      if (response.statusCode != HttpStatus.ok) {
+      final body = utf8.decode(response.bodyBytes, allowMalformed: true);
+      if (response.statusCode != 200) {
         throw CatalogException(
           _errorMessage(body, response.statusCode),
           status: response.statusCode,
@@ -169,18 +166,14 @@ class CatalogClient {
       return decoded;
     } on CatalogException {
       rethrow;
-    } on SocketException catch (error) {
+    } on http.ClientException catch (error) {
       throw CatalogException(
-        'no se pudo conectar con el catálogo en $baseUrl (${error.osError?.message ?? error.message})',
+        'no se pudo conectar con el catálogo en $baseUrl (${error.message})',
       );
-    } on HttpException catch (error) {
-      throw CatalogException('error de red: ${error.message}');
     } on TimeoutException {
       throw CatalogException(
         'tiempo de espera agotado al conectar con $baseUrl',
       );
-    } on IOException catch (error) {
-      throw CatalogException('error de red: $error');
     } on FormatException catch (error) {
       throw CatalogException(
         'respuesta no válida del catálogo: ${error.message}',

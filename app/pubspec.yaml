@@ -45,6 +45,8 @@ dependencies:
   # Pantalla completa de la Vista del panel (M3).
   window_manager: ^0.5.2
   sqlite3: ^3.7.1
+  http: ^1.6.0
+  web: ^1.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

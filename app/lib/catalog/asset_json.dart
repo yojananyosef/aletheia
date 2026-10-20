@@ -8,10 +8,11 @@
 library;
 
 import 'dart:convert';
-import 'dart:io' show gzip;
 
 import 'package:flutter/foundation.dart' show FlutterError;
 import 'package:flutter/services.dart' show AssetBundle;
+
+import 'gzip_platform.dart';
 
 Future<String> loadCatalogAssetText(AssetBundle bundle, String path) async {
   try {
@@ -22,6 +23,6 @@ Future<String> loadCatalogAssetText(AssetBundle bundle, String path) async {
       data.offsetInBytes,
       data.lengthInBytes,
     );
-    return utf8.decode(gzip.decode(bytes));
+    return utf8.decode(await decompressGzip(bytes));
   }
 }

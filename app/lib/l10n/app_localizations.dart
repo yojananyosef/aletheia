@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @bannerDev.
   ///
   /// In es, this message translates to:
-  /// **'Aletheia · build de desarrollo — catálogo de dominio público'**
+  /// **'Aletheia · catálogo bíblico de dominio público'**
   String get bannerDev;
 
   /// No description provided for @bannerOpenLibrary.

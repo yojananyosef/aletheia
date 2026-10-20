@@ -10,18 +10,16 @@
 /// resultados son idénticas en ambos modos.
 library;
 
-import 'dart:convert';
-import 'dart:io';
 import 'dart:math' show max, min;
 
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
-import 'package:path_provider/path_provider.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 
 import '../references/reference_parser.dart'
     show bookCodeForInput, parseReference;
 import 'catalog_client.dart';
 import 'catalog_models.dart';
+import 'local_search_platform.dart';
 import 'local_search_query.dart';
 
 const kLocalSearchUnavailableMessage =
@@ -36,28 +34,30 @@ class LocalSearchUnavailableException extends CatalogException {
 }
 
 class LocalCatalogIndex {
-  LocalCatalogIndex({AssetBundle? bundle, this.directoryProvider})
+  LocalCatalogIndex({AssetBundle? bundle, this.cacheDirectoryProvider})
     : _bundle = bundle ?? rootBundle;
-
-  static const _indexAsset = 'assets/catalog/search.sqlite.gz';
-  static const _metaAsset = 'assets/catalog/search.meta.json';
 
   final AssetBundle _bundle;
 
-  /// Directorio de datos; `null` usa el de la app (`getApplicationSupportDirectory`).
+  /// Directorio de caché en plataformas nativas; `null` usa el directorio de
+  /// datos de la app. En web se ignora (el índice vive en memoria).
   /// Inyectable en pruebas para no depender de los canales de plataforma.
-  final Future<Directory> Function()? directoryProvider;
+  final Future<String> Function()? cacheDirectoryProvider;
 
-  Future<Database>? _opening;
-  Database? _database;
+  Future<CommonDatabase>? _opening;
+  CommonDatabase? _database;
 
-  Future<Database> _db() => _opening ??= _open();
+  Future<CommonDatabase> _db() => _opening ??= _open();
 
-  Future<Database> _open() async {
+  Future<CommonDatabase> _open() async {
     try {
-      final path = await _prepareDatabase();
-      final db = sqlite3.open(path, mode: OpenMode.readOnly);
+      final db = await openLocalSearchDatabase(
+        bundle: _bundle,
+        cacheDirectoryProvider: cacheDirectoryProvider,
+      );
       db.execute('PRAGMA query_only = ON');
+      // El VFS web es de solo lectura y no admite archivos temporales.
+      db.execute('PRAGMA temp_store = MEMORY');
       // Comprueba que el archivo es el índice esperado (y que este SQLite
       // incluye FTS5) antes de exponerlo.
       db.select('SELECT COUNT(*) FROM verses').first;
@@ -68,55 +68,6 @@ class LocalCatalogIndex {
     } catch (error) {
       throw LocalSearchUnavailableException(error);
     }
-  }
-
-  Future<String> _prepareDatabase() async {
-    final meta = await _readMeta();
-    final directory =
-        await (directoryProvider?.call() ?? getApplicationSupportDirectory());
-    await directory.create(recursive: true);
-    final path =
-        '${directory.path}${Platform.pathSeparator}catalog.search.${meta.hash}.sqlite';
-    final file = File(path);
-
-    if (await file.exists() && await file.length() == meta.bytes) {
-      return path;
-    }
-
-    final data = await _bundle.load(_indexAsset);
-    final compressed = data.buffer.asUint8List(
-      data.offsetInBytes,
-      data.lengthInBytes,
-    );
-    final bytes = gzip.decode(compressed);
-    if (bytes.length != meta.bytes) {
-      throw FormatException(
-        'el índice empaquetado tiene ${bytes.length} bytes; '
-        'se esperaban ${meta.bytes}',
-      );
-    }
-
-    // Escritura atómica: si la app se cierra a mitad, no queda un SQLite
-    // truncado con el nombre definitivo.
-    final temp = File('$path.${DateTime.now().microsecondsSinceEpoch}.tmp');
-    await temp.writeAsBytes(bytes, flush: true);
-    if (await file.exists()) await file.delete();
-    await temp.rename(path);
-    return path;
-  }
-
-  Future<_IndexMeta> _readMeta() async {
-    final raw = await _bundle.loadString(_metaAsset);
-    final json = jsonDecode(raw);
-    if (json is! Map) {
-      throw const FormatException('manifiesto del índice no válido');
-    }
-    final hash = json['indexHash'];
-    final bytes = json['bytes'];
-    if (hash is! String || hash.isEmpty || bytes is! int || bytes <= 0) {
-      throw const FormatException('manifiesto del índice incompleto');
-    }
-    return _IndexMeta(hash: hash, bytes: bytes);
   }
 
   /// Número de versículos bíblicos indexados (para el estado de Ajustes).
@@ -140,9 +91,7 @@ class LocalCatalogIndex {
   /// Número de enlaces de referencias cruzadas del índice.
   Future<int> crossReferenceCount() async {
     final db = await _db();
-    return db
-            .select('SELECT COUNT(*) AS n FROM cross_references')
-            .first['n']
+    return db.select('SELECT COUNT(*) AS n FROM cross_references').first['n']
         as int;
   }
 
@@ -392,13 +341,6 @@ class LocalCatalogIndex {
     _opening = null;
     db?.close();
   }
-}
-
-class _IndexMeta {
-  const _IndexMeta({required this.hash, required this.bytes});
-
-  final String hash;
-  final int bytes;
 }
 
 class _SearchCondition {

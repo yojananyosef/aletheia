@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 
-import 'core/database.dart';
+import 'core/app_database.dart';
 import 'core/localization.dart';
 import 'core/theme.dart';
 import 'notes/notes_persistence.dart';
@@ -14,10 +13,9 @@ import 'workspace/workspace_controller.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Persistencia local-first en un único archivo SQLite (M4.3).
-  final dir = await getApplicationSupportDirectory();
-  final database = AletheiaDatabase.open('${dir.path}/aletheia.db');
-  await AletheiaDatabase.importLegacyJson(database, dir);
+  // Persistencia local-first en un único SQLite (archivo nativo o IndexedDB
+  // en web).
+  final database = await openAppDatabase();
 
   final store = WorkspaceStore.onDatabase(database);
   final notes = NotesStore.onDatabase(database);
@@ -58,9 +56,7 @@ class AletheiaApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
         final dark = Theme.of(context).brightness == Brightness.dark;
-        setActivePalette(
-          dark ? AletheiaPalette.dark : AletheiaPalette.light,
-        );
+        setActivePalette(dark ? AletheiaPalette.dark : AletheiaPalette.light);
         // Recrea el subárbol al cambiar de tema para que los widgets `const`
         // que leen la paleta activa vuelvan a construir sus colores.
         return KeyedSubtree(
