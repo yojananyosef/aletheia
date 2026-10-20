@@ -1,0 +1,700 @@
+{
+  "maps": {
+    "jerusalen": {
+      "title": "Jerusalén, Belén y Judea",
+      "caption": "Jesús enseñó y sanó en Jerusalén y sus alrededores; Belén, al sur, es la ciudad de su nacimiento.",
+      "center": [
+        31.8,
+        35.24
+      ],
+      "latSpan": 1.45,
+      "lonSpan": 1.75,
+      "markers": [
+        {
+          "name": "Jerusalén",
+          "lat": 31.776667,
+          "lon": 35.234167,
+          "ref": "JHN.2.13"
+        },
+        {
+          "name": "Belén",
+          "lat": 31.704306,
+          "lon": 35.207639,
+          "ref": "LUK.2.4"
+        },
+        {
+          "name": "Betania",
+          "lat": 31.771661,
+          "lon": 35.255903,
+          "ref": "JHN.11.1"
+        },
+        {
+          "name": "Emaús",
+          "lat": 31.79289,
+          "lon": 35.16419,
+          "ref": "LUK.24.13"
+        },
+        {
+          "name": "Jericó",
+          "lat": 31.871719,
+          "lon": 35.444564,
+          "ref": "LUK.19.1"
+        }
+      ]
+    },
+    "belen": {
+      "title": "Belén y Jerusalén",
+      "caption": "Belén está a unos diez kilómetros al sur de Jerusalén. Allí nació Jesús y allí acudieron los pastores.",
+      "center": [
+        31.75,
+        35.22
+      ],
+      "latSpan": 0.35,
+      "lonSpan": 0.45,
+      "markers": [
+        {
+          "name": "Belén",
+          "lat": 31.704306,
+          "lon": 35.207639,
+          "ref": "LUK.2.4"
+        },
+        {
+          "name": "Jerusalén",
+          "lat": 31.776667,
+          "lon": 35.234167,
+          "ref": "LUK.2.22"
+        },
+        {
+          "name": "Betania",
+          "lat": 31.771661,
+          "lon": 35.255903,
+          "ref": "JHN.11.1"
+        }
+      ]
+    },
+    "galilea": {
+      "title": "Galilea en tiempos de Jesús",
+      "caption": "Jesús creció en Nazaret y estableció su centro de ministerio en Cafarnaún, junto al mar de Galilea.",
+      "center": [
+        32.76,
+        35.45
+      ],
+      "latSpan": 1.4,
+      "lonSpan": 1.7,
+      "markers": [
+        {
+          "name": "Nazaret",
+          "lat": 32.70214,
+          "lon": 35.29769,
+          "ref": "LUK.1.26"
+        },
+        {
+          "name": "Cafarnaún",
+          "lat": 32.881111,
+          "lon": 35.575,
+          "ref": "MAT.4.13"
+        },
+        {
+          "name": "Mar de Galilea",
+          "lat": 32.818906,
+          "lon": 35.590033,
+          "ref": "MAT.4.18"
+        },
+        {
+          "name": "Caná",
+          "lat": 32.8222,
+          "lon": 35.30269,
+          "ref": "JHN.2.1"
+        },
+        {
+          "name": "Naín",
+          "lat": 32.630694,
+          "lon": 35.350139,
+          "ref": "LUK.7.11"
+        },
+        {
+          "name": "Magdala",
+          "lat": 32.827069,
+          "lon": 35.513552,
+          "ref": "MAT.15.39"
+        },
+        {
+          "name": "Tiberias",
+          "lat": 32.773611,
+          "lon": 35.544167,
+          "ref": "JHN.6.23"
+        }
+      ]
+    },
+    "jesus": {
+      "title": "El ministerio de Jesús",
+      "caption": "Desde Belén y Nazaret hasta Jerusalén, el Evangelio sitúa a Jesús en Galilea, Samaria y Judea.",
+      "center": [
+        32.2,
+        35.2
+      ],
+      "latSpan": 3.3,
+      "lonSpan": 3.7,
+      "markers": [
+        {
+          "name": "Belén",
+          "lat": 31.704306,
+          "lon": 35.207639,
+          "ref": "LUK.2.4"
+        },
+        {
+          "name": "Nazaret",
+          "lat": 32.70214,
+          "lon": 35.29769,
+          "ref": "LUK.4.16"
+        },
+        {
+          "name": "Cafarnaún",
+          "lat": 32.881111,
+          "lon": 35.575,
+          "ref": "MAT.4.13"
+        },
+        {
+          "name": "Mar de Galilea",
+          "lat": 32.818906,
+          "lon": 35.590033,
+          "ref": "MAT.4.18"
+        },
+        {
+          "name": "Jerusalén",
+          "lat": 31.776667,
+          "lon": 35.234167,
+          "ref": "LUK.19.28"
+        },
+        {
+          "name": "Betania",
+          "lat": 31.771661,
+          "lon": 35.255903,
+          "ref": "JHN.11.1"
+        }
+      ]
+    },
+    "pablo": {
+      "title": "Los viajes de Pablo",
+      "caption": "Pablo recorrió Siria, Asia Menor, Grecia e Italia. El mapa reúne algunas de las ciudades mencionadas en Hechos y las cartas.",
+      "center": [
+        36.4,
+        25.5
+      ],
+      "latSpan": 12.5,
+      "lonSpan": 22.0,
+      "markers": [
+        {
+          "name": "Jerusalén",
+          "lat": 31.776667,
+          "lon": 35.234167,
+          "ref": "ACT.9.26"
+        },
+        {
+          "name": "Damasco",
+          "lat": 33.511112,
+          "lon": 36.30639,
+          "ref": "ACT.9.3"
+        },
+        {
+          "name": "Antioquía",
+          "lat": 36.226691,
+          "lon": 36.171743,
+          "ref": "ACT.11.26"
+        },
+        {
+          "name": "Tarso",
+          "lat": 36.913028,
+          "lon": 34.892056,
+          "ref": "ACT.9.30"
+        },
+        {
+          "name": "Éfeso",
+          "lat": 37.939125,
+          "lon": 27.3407,
+          "ref": "ACT.19.1"
+        },
+        {
+          "name": "Corinto",
+          "lat": 37.905785,
+          "lon": 22.878741,
+          "ref": "ACT.18.1"
+        },
+        {
+          "name": "Atenas",
+          "lat": 37.971851,
+          "lon": 23.726738,
+          "ref": "ACT.17.16"
+        },
+        {
+          "name": "Roma",
+          "lat": 41.8922,
+          "lon": 12.4852,
+          "ref": "ACT.28.16"
+        },
+        {
+          "name": "Filipos",
+          "lat": 41.012072,
+          "lon": 24.284576,
+          "ref": "ACT.16.12"
+        },
+        {
+          "name": "Tesalónica",
+          "lat": 40.637771,
+          "lon": 22.945767,
+          "ref": "ACT.17.1"
+        },
+        {
+          "name": "Mileto",
+          "lat": 37.531111,
+          "lon": 27.275556,
+          "ref": "ACT.20.15"
+        },
+        {
+          "name": "Cesarea",
+          "lat": 32.5,
+          "lon": 34.891667,
+          "ref": "ACT.21.8"
+        }
+      ]
+    },
+    "exodo": {
+      "title": "Egipto, Sinaí y el éxodo",
+      "caption": "La tradición bíblica sitúa la salida de Egipto, el paso del mar Rojo y la alianza en el monte Sinaí.",
+      "center": [
+        29.4,
+        33.4
+      ],
+      "latSpan": 5.8,
+      "lonSpan": 7.0,
+      "markers": [
+        {
+          "name": "Egipto",
+          "lat": 30.129444,
+          "lon": 31.3075,
+          "ref": "EXO.1.8"
+        },
+        {
+          "name": "Mar Rojo",
+          "lat": 28.75,
+          "lon": 34.75,
+          "ref": "EXO.14.21"
+        },
+        {
+          "name": "Monte Sinaí",
+          "lat": 28.539722,
+          "lon": 33.973333,
+          "ref": "EXO.19.20"
+        }
+      ]
+    },
+    "damasco": {
+      "title": "Damasco y el sur de Siria",
+      "caption": "Damasco es una de las ciudades más antiguas del mundo. Pablo iba hacia ella cuando tuvo su encuentro con Cristo.",
+      "center": [
+        33.4,
+        36.1
+      ],
+      "latSpan": 2.1,
+      "lonSpan": 2.7,
+      "markers": [
+        {
+          "name": "Damasco",
+          "lat": 33.511112,
+          "lon": 36.30639,
+          "ref": "ACT.9.3"
+        },
+        {
+          "name": "Cesarea de Filipo",
+          "lat": 33.246111,
+          "lon": 35.693333,
+          "ref": "MAT.16.13"
+        },
+        {
+          "name": "Monte Hermón",
+          "lat": 33.416667,
+          "lon": 35.857222,
+          "ref": "PSA.89.12"
+        }
+      ]
+    },
+    "roma": {
+      "title": "Roma y el Mediterráneo occidental",
+      "caption": "El viaje de Pablo a Roma incluyó Malta, Siracusa y Puteoli antes de llegar a la capital del imperio.",
+      "center": [
+        39.6,
+        13.4
+      ],
+      "latSpan": 7.2,
+      "lonSpan": 8.4,
+      "markers": [
+        {
+          "name": "Roma",
+          "lat": 41.8922,
+          "lon": 12.4852,
+          "ref": "ACT.28.16"
+        },
+        {
+          "name": "Puteoli",
+          "lat": 40.826111,
+          "lon": 14.120556,
+          "ref": "ACT.28.13"
+        },
+        {
+          "name": "Siracusa",
+          "lat": 37.063889,
+          "lon": 15.293056,
+          "ref": "ACT.28.12"
+        },
+        {
+          "name": "Malta",
+          "lat": 35.933464,
+          "lon": 14.411732,
+          "ref": "ACT.28.1"
+        }
+      ]
+    },
+    "efeso": {
+      "title": "Éfeso y la costa de Asia",
+      "caption": "Éfeso fue un centro importante del cristianismo primitivo. Pablo enseñó allí y Juan escribió a las iglesias de Asia.",
+      "center": [
+        37.9,
+        27.2
+      ],
+      "latSpan": 1.9,
+      "lonSpan": 2.5,
+      "markers": [
+        {
+          "name": "Éfeso",
+          "lat": 37.939125,
+          "lon": 27.3407,
+          "ref": "ACT.19.1"
+        },
+        {
+          "name": "Mileto",
+          "lat": 37.531111,
+          "lon": 27.275556,
+          "ref": "ACT.20.15"
+        },
+        {
+          "name": "Esmirna",
+          "lat": 38.418889,
+          "lon": 27.137778,
+          "ref": "REV.2.8"
+        },
+        {
+          "name": "Patmos",
+          "lat": 37.325,
+          "lon": 26.541667,
+          "ref": "REV.1.9"
+        }
+      ]
+    },
+    "corinto": {
+      "title": "Corinto, Atenas y el Egeo",
+      "caption": "Pablo vivió en Corinto y escribió a su iglesia. Cerca estaba Cencrea, su puerto hacia el oriente.",
+      "center": [
+        37.9,
+        23.2
+      ],
+      "latSpan": 1.3,
+      "lonSpan": 2.2,
+      "markers": [
+        {
+          "name": "Corinto",
+          "lat": 37.905785,
+          "lon": 22.878741,
+          "ref": "ACT.18.1"
+        },
+        {
+          "name": "Atenas",
+          "lat": 37.971851,
+          "lon": 23.726738,
+          "ref": "ACT.17.16"
+        },
+        {
+          "name": "Cencrea",
+          "lat": 37.884335,
+          "lon": 22.996816,
+          "ref": "ROM.16.1"
+        }
+      ]
+    },
+    "atenas": {
+      "title": "Atenas y Corinto",
+      "caption": "En Atenas Pablo pronunció su discurso en el Areópago; poco después llegó a Corinto.",
+      "center": [
+        37.95,
+        23.3
+      ],
+      "latSpan": 0.7,
+      "lonSpan": 1.4,
+      "markers": [
+        {
+          "name": "Atenas",
+          "lat": 37.971851,
+          "lon": 23.726738,
+          "ref": "ACT.17.16"
+        },
+        {
+          "name": "Corinto",
+          "lat": 37.905785,
+          "lon": 22.878741,
+          "ref": "ACT.18.1"
+        }
+      ]
+    },
+    "jerico": {
+      "title": "Jericó y el valle del Jordán",
+      "caption": "Jericó es una de las ciudades más antiguas de la región. Jesús pasó por ella camino a Jerusalén.",
+      "center": [
+        31.84,
+        35.5
+      ],
+      "latSpan": 0.8,
+      "lonSpan": 1.0,
+      "markers": [
+        {
+          "name": "Jericó",
+          "lat": 31.871719,
+          "lon": 35.444564,
+          "ref": "LUK.19.1"
+        },
+        {
+          "name": "Río Jordán",
+          "lat": 31.761389,
+          "lon": 35.558333,
+          "ref": "MAT.3.13"
+        },
+        {
+          "name": "Mar Muerto",
+          "lat": 31.5,
+          "lon": 35.5,
+          "ref": "EZK.47.18"
+        },
+        {
+          "name": "Betania",
+          "lat": 31.771661,
+          "lon": 35.255903,
+          "ref": "JHN.11.1"
+        }
+      ]
+    },
+    "samaria": {
+      "title": "Samaria y Siquem",
+      "caption": "Jesús atravesó Samaria y conversó con una mujer junto al pozo de Sicar, cerca de Siquem.",
+      "center": [
+        32.25,
+        35.23
+      ],
+      "latSpan": 1.0,
+      "lonSpan": 1.3,
+      "markers": [
+        {
+          "name": "Samaria",
+          "lat": 32.276111,
+          "lon": 35.195,
+          "ref": "JHN.4.4"
+        },
+        {
+          "name": "Siquem",
+          "lat": 32.213611,
+          "lon": 35.281944,
+          "ref": "GEN.12.6"
+        },
+        {
+          "name": "Sicar",
+          "lat": 32.21776,
+          "lon": 35.28897,
+          "ref": "JHN.4.5"
+        }
+      ]
+    },
+    "sinai": {
+      "title": "Monte Sinaí y el mar Rojo",
+      "caption": "El monte Sinaí es el lugar asociado con la entrega de la ley y la alianza de Israel con Dios.",
+      "center": [
+        28.6,
+        33.9
+      ],
+      "latSpan": 1.9,
+      "lonSpan": 2.6,
+      "markers": [
+        {
+          "name": "Monte Sinaí",
+          "lat": 28.539722,
+          "lon": 33.973333,
+          "ref": "EXO.19.20"
+        },
+        {
+          "name": "Mar Rojo",
+          "lat": 28.75,
+          "lon": 34.75,
+          "ref": "EXO.14.21"
+        }
+      ]
+    },
+    "mar-de-galilea": {
+      "title": "El mar de Galilea",
+      "caption": "También llamado lago de Genesaret. En sus orillas Jesús llamó a sus discípulos y enseñó a las multitudes.",
+      "center": [
+        32.82,
+        35.55
+      ],
+      "latSpan": 0.55,
+      "lonSpan": 0.78,
+      "markers": [
+        {
+          "name": "Cafarnaún",
+          "lat": 32.881111,
+          "lon": 35.575,
+          "ref": "MAT.4.13"
+        },
+        {
+          "name": "Magdala",
+          "lat": 32.827069,
+          "lon": 35.513552,
+          "ref": "MAT.15.39"
+        },
+        {
+          "name": "Tiberias",
+          "lat": 32.773611,
+          "lon": 35.544167,
+          "ref": "JHN.6.23"
+        },
+        {
+          "name": "Mar de Galilea",
+          "lat": 32.818906,
+          "lon": 35.590033,
+          "ref": "MAT.4.18"
+        },
+        {
+          "name": "Caná",
+          "lat": 32.8222,
+          "lon": 35.30269,
+          "ref": "JHN.2.1"
+        }
+      ]
+    },
+    "jordan": {
+      "title": "El río Jordán",
+      "caption": "El Jordán atraviesa el valle del rift y desemboca en el mar Muerto. Jesús fue bautizado en sus aguas.",
+      "center": [
+        31.9,
+        35.55
+      ],
+      "latSpan": 1.6,
+      "lonSpan": 1.7,
+      "markers": [
+        {
+          "name": "Río Jordán",
+          "lat": 31.761389,
+          "lon": 35.558333,
+          "ref": "MAT.3.13"
+        },
+        {
+          "name": "Jericó",
+          "lat": 31.871719,
+          "lon": 35.444564,
+          "ref": "LUK.19.1"
+        },
+        {
+          "name": "Mar Muerto",
+          "lat": 31.5,
+          "lon": 35.5,
+          "ref": "EZK.47.18"
+        },
+        {
+          "name": "Betania",
+          "lat": 31.837109,
+          "lon": 35.550301,
+          "ref": "JHN.1.28"
+        },
+        {
+          "name": "Jerusalén",
+          "lat": 31.776667,
+          "lon": 35.234167,
+          "ref": "JHN.1.19"
+        }
+      ]
+    },
+    "mat_2": {
+      "title": "De Belén a Egipto y Nazaret",
+      "caption": "Mateo 2 narra la huida a Egipto y el regreso a Nazaret después de la muerte de Herodes.",
+      "center": [
+        31.2,
+        34.3
+      ],
+      "latSpan": 5.4,
+      "lonSpan": 6.5,
+      "markers": [
+        {
+          "name": "Belén",
+          "lat": 31.704306,
+          "lon": 35.207639,
+          "ref": "MAT.2.1"
+        },
+        {
+          "name": "Jerusalén",
+          "lat": 31.776667,
+          "lon": 35.234167,
+          "ref": "MAT.2.3"
+        },
+        {
+          "name": "Egipto",
+          "lat": 30.129444,
+          "lon": 31.3075,
+          "ref": "MAT.2.13"
+        },
+        {
+          "name": "Nazaret",
+          "lat": 32.70214,
+          "lon": 35.29769,
+          "ref": "MAT.2.23"
+        }
+      ]
+    },
+    "act_9": {
+      "title": "De Jerusalén a Damasco",
+      "caption": "Hechos 9 relata el encuentro de Saulo con Cristo camino de Damasco y su primer testimonio en las sinagogas.",
+      "center": [
+        32.9,
+        35.6
+      ],
+      "latSpan": 4.3,
+      "lonSpan": 4.9,
+      "markers": [
+        {
+          "name": "Jerusalén",
+          "lat": 31.776667,
+          "lon": 35.234167,
+          "ref": "ACT.9.2"
+        },
+        {
+          "name": "Damasco",
+          "lat": 33.511112,
+          "lon": 36.30639,
+          "ref": "ACT.9.3"
+        },
+        {
+          "name": "Cesarea",
+          "lat": 32.5,
+          "lon": 34.891667,
+          "ref": "ACT.9.30"
+        },
+        {
+          "name": "Tarso",
+          "lat": 36.913028,
+          "lon": 34.892056,
+          "ref": "ACT.9.30"
+        },
+        {
+          "name": "Samaria",
+          "lat": 32.276111,
+          "lon": 35.195,
+          "ref": "ACT.8.5"
+        }
+      ]
+    }
+  }
+}

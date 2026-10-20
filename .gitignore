@@ -1,0 +1,5 @@
+*.reabundle
+__pycache__/
+*.pyc
+catalog/data/
+catalog/sources/

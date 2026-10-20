@@ -1,0 +1,383 @@
+{
+  "resources": [
+    {
+      "resourceId": "bible.rv1909",
+      "type": "bible",
+      "inputDir": "app/assets/catalog/rv1909",
+      "metadata": {
+        "subtitle": "Santa Biblia — Reina Valera 1909",
+        "authors": [
+          "Reina, Casiodoro de",
+          "Valera, Cipriano de"
+        ],
+        "publisher": "Sociedad Bíblica Británica y Extranjera",
+        "edition": "1909",
+        "description": "Traducción clásica al español iniciada por Casiodoro de Reina (1569) y revisada por Cipriano de Valera; esta edición de 1909 es de dominio público. Incluye los 66 libros del canon protestante.",
+        "licenseKind": "public-domain",
+        "tags": [
+          "Biblia",
+          "Español",
+          "Dominio público"
+        ],
+        "attributes": {
+          "versification": "standard",
+          "bookOrder": "protestant66",
+          "calendar": null
+        }
+      }
+    },
+    {
+      "resourceId": "bible.kjv",
+      "type": "bible",
+      "inputDir": "catalog/sources/kjv",
+      "ingest": {
+        "usfmZip": "https://ebible.org/Scriptures/eng-kjv_usfm.zip",
+        "sourceUrl": "https://ebible.org/Scriptures/eng-kjv_usfm.zip",
+        "title": "King James Version",
+        "abbrev": "KJV",
+        "language": "en",
+        "license": "Public Domain"
+      },
+      "metadata": {
+        "subtitle": "King James Version (Authorized Version)",
+        "authors": [
+          "Traductores de la Versión Autorizada (1611)"
+        ],
+        "publisher": "eBible.org",
+        "edition": "1769 (texto estandarizado)",
+        "description": "Versión autorizada inglesa de 1611, en el texto estandarizado de 1769. Esta edición incluye los 66 libros del canon protestante; el paquete de origen es de dominio público.",
+        "licenseKind": "public-domain",
+        "tags": [
+          "Biblia",
+          "Inglés",
+          "Dominio público"
+        ],
+        "attributes": {
+          "versification": "standard",
+          "bookOrder": "protestant66",
+          "calendar": null
+        }
+      }
+    },
+    {
+      "resourceId": "bible.asv",
+      "type": "bible",
+      "inputDir": "catalog/sources/asv",
+      "ingest": {
+        "usfmZip": "https://ebible.org/Scriptures/eng-asv_usfm.zip",
+        "sourceUrl": "https://ebible.org/Scriptures/eng-asv_usfm.zip",
+        "title": "American Standard Version",
+        "abbrev": "ASV",
+        "language": "en",
+        "license": "Public Domain"
+      },
+      "metadata": {
+        "subtitle": "American Standard Version (1901)",
+        "authors": [
+          "Comité de revisión de la American Standard Version"
+        ],
+        "publisher": "eBible.org",
+        "edition": "1901",
+        "description": "Revisión formal inglesa de 1901, apreciada por su literalidad y su uso de «Jehová» en el texto hebreo. Incluye los 66 libros del canon protestante y es de dominio público.",
+        "licenseKind": "public-domain",
+        "tags": [
+          "Biblia",
+          "Inglés",
+          "Dominio público",
+          "Estudio"
+        ],
+        "attributes": {
+          "versification": "standard",
+          "bookOrder": "protestant66",
+          "calendar": null
+        }
+      }
+    },
+    {
+      "resourceId": "bible.bll",
+      "type": "bible",
+      "inputDir": "catalog/sources/bll",
+      "ingest": {
+        "usfmZip": "https://ebible.org/Scriptures/spabll_usfm.zip",
+        "sourceUrl": "https://ebible.org/Scriptures/spabll_usfm.zip",
+        "title": "Santa Biblia libre Latinoamericano",
+        "abbrev": "BLL",
+        "language": "es",
+        "license": "Public Domain"
+      },
+      "metadata": {
+        "subtitle": "Santa Biblia libre Latinoamericano",
+        "authors": [
+          "Equipo de Santa Biblia libre Latinoamericano"
+        ],
+        "publisher": "eBible.org",
+        "edition": "Borrador de traducción",
+        "description": "Traducción española contemporánea pensada para Latinoamérica, con lenguaje claro y directo. El paquete de origen declara dominio público, se identifica como borrador de traducción e incluye los 66 libros del canon protestante.",
+        "licenseKind": "public-domain",
+        "tags": [
+          "Biblia",
+          "Español",
+          "Dominio público",
+          "Latinoamérica"
+        ],
+        "attributes": {
+          "versification": "standard",
+          "bookOrder": "protestant66",
+          "calendar": null
+        }
+      }
+    },
+    {
+      "resourceId": "bible.tahot",
+      "type": "bible",
+      "inputDir": "catalog/sources/tahot",
+      "metadata": {
+        "subtitle": "Texto hebreo del Antiguo Testamento (TAHOT)",
+        "authors": [
+          "STEPBible.org",
+          "Tyndale House Cambridge"
+        ],
+        "publisher": "STEPBible.org",
+        "edition": "Transliterated Amalgamated Hebrew OT",
+        "description": "Texto hebreo con vocales y acentos, etiquetado Strong desambiguado y morfología ETCBC/Tyndale House. Conserva los títulos de los salmos como versículo 0 y sigue la versificación de la RV1909/KJV. La traducción inglesa de la fuente se muestra como glosa de estudio.",
+        "licenseKind": "cc-by",
+        "tags": [
+          "Biblia",
+          "Hebreo",
+          "Original",
+          "Strong",
+          "Morfología",
+          "CC BY"
+        ],
+        "attributes": {
+          "original": true,
+          "strongs": true,
+          "morphology": "ETCBC/Tyndale House",
+          "rtl": true,
+          "versification": "KJV/RV1909"
+        }
+      }
+    },
+    {
+      "resourceId": "bible.tagnt",
+      "type": "bible",
+      "inputDir": "catalog/sources/tagnt",
+      "metadata": {
+        "subtitle": "Texto griego del Nuevo Testamento (TAGNT)",
+        "authors": [
+          "STEPBible.org",
+          "Tyndale House Cambridge"
+        ],
+        "publisher": "STEPBible.org",
+        "edition": "Translators Amalgamated Greek NT",
+        "description": "Texto griego con etiquetado Strong desambiguado, morfología y glosa inglesa. Usa la referencia KJV entre corchetes cuando la versificación difiere, para alinearse con la RV1909. No incluye la columna española de OpenGNT ni las palabras que solo aparecen en el Textus Receptus dentro de referencias con texto crítico.",
+        "licenseKind": "cc-by",
+        "tags": [
+          "Biblia",
+          "Griego",
+          "Original",
+          "Strong",
+          "Morfología",
+          "CC BY"
+        ],
+        "attributes": {
+          "original": true,
+          "strongs": true,
+          "morphology": "TAGNT",
+          "rtl": false,
+          "versification": "KJV/RV1909"
+        }
+      }
+    },
+    {
+      "resourceId": "bible.sblm",
+      "type": "bible",
+      "inputDir": "catalog/sources/sblm",
+      "ingest": {
+        "usfmZip": "https://ebible.org/Scriptures/spablm_usfm.zip",
+        "sourceUrl": "https://ebible.org/Scriptures/spablm_usfm.zip",
+        "title": "Santa Biblia libre para el mundo",
+        "abbrev": "SBLM",
+        "language": "es",
+        "license": "Public Domain"
+      },
+      "metadata": {
+        "subtitle": "Santa Biblia libre para el mundo",
+        "authors": [
+          "Williams, David",
+          "Johnson, Michael Paul"
+        ],
+        "publisher": "eBible.org",
+        "edition": "Borrador de traducción 2026",
+        "description": "Traducción española contemporánea de los 66 libros, publicada por eBible.org como dominio público. El equipo de origen la identifica como un borrador en revisión; se incluye tal como se distribuye.",
+        "licenseKind": "public-domain",
+        "tags": [
+          "Biblia",
+          "Español",
+          "Dominio público"
+        ],
+        "attributes": {
+          "versification": "standard",
+          "bookOrder": "protestant66",
+          "calendar": null
+        }
+      }
+    },
+    {
+      "resourceId": "bible.bes",
+      "type": "bible",
+      "inputDir": "catalog/sources/bes",
+      "ingest": {
+        "usfmZip": "https://ebible.org/Scriptures/spabes_usfm.zip",
+        "sourceUrl": "https://ebible.org/Scriptures/spabes_usfm.zip",
+        "title": "La Biblia en Español Sencillo",
+        "abbrev": "BES",
+        "language": "es",
+        "license": "Public Domain"
+      },
+      "metadata": {
+        "subtitle": "La Biblia en Español Sencillo 2026",
+        "authors": [
+          "Flores, Irma",
+          "AudioBiblia.org"
+        ],
+        "publisher": "eBible.org",
+        "edition": "2026",
+        "description": "Traducción española en lenguaje sencillo, pensada para América Latina y México, con los 66 libros del canon protestante. El paquete de origen la declara de dominio público.",
+        "licenseKind": "public-domain",
+        "tags": [
+          "Biblia",
+          "Español",
+          "Dominio público",
+          "Lenguaje sencillo"
+        ],
+        "attributes": {
+          "versification": "standard",
+          "bookOrder": "protestant66",
+          "calendar": null
+        }
+      }
+    },
+    {
+      "resourceId": "bible.vbl",
+      "type": "bible",
+      "inputDir": "catalog/sources/vbl",
+      "ingest": {
+        "usfmZip": "https://ebible.org/Scriptures/spavbl_usfm.zip",
+        "sourceUrl": "https://ebible.org/Scriptures/spavbl_usfm.zip",
+        "title": "Versión Biblia Libre",
+        "abbrev": "VBL",
+        "language": "es",
+        "license": "CC BY-SA 4.0"
+      },
+      "metadata": {
+        "subtitle": "Versión Biblia Libre",
+        "authors": [
+          "Gallagher, Jonathan",
+          "Barrios de Ávila, Shelly"
+        ],
+        "publisher": "eBible.org",
+        "edition": "2018-2020",
+        "description": "Traducción española contemporánea distribuida bajo CC BY-SA 4.0. El paquete de eBible.org contiene los 66 libros. Se ofrece como texto de lectura; sus etiquetas Strong no se usan porque la alineación de la fuente es irregular.",
+        "licenseKind": "cc-by-sa",
+        "tags": [
+          "Biblia",
+          "Español",
+          "CC BY-SA",
+          "Lectura"
+        ],
+        "attributes": {
+          "versification": "standard",
+          "bookOrder": "protestant66",
+          "strongs": false,
+          "calendar": null
+        }
+      }
+    },
+    {
+      "resourceId": "lexicon.strongs",
+      "type": "dictionary",
+      "inputDir": "catalog/sources/lexicon.strongs",
+      "metadata": {
+        "subtitle": "Léxico Strong hebreo y griego",
+        "authors": [
+          "Strong, James",
+          "STEPBible.org",
+          "Tyndale House Cambridge"
+        ],
+        "publisher": "STEPBible.org / CrossWire",
+        "edition": "TBESH/TBESG + Strong's Hebrew Dictionary",
+        "description": "Léxico de las 18.085 entradas Strong hebreas y griegas usadas por los textos originales. Lema, transliteración, morfología y glosa de TBESH/TBESG (CC BY 4.0); definiciones hebreas del Strong's Hebrew Dictionary de dominio público. Las definiciones griegas proceden de TBESG (CC BY 4.0).",
+        "licenseKind": "cc-by",
+        "tags": [
+          "Léxico",
+          "Strong",
+          "Hebreo",
+          "Griego",
+          "Estudio",
+          "CC BY"
+        ],
+        "attributes": {
+          "embeddedSections": true,
+          "strongs": true,
+          "entries": 18085
+        }
+      }
+    },
+    {
+      "resourceId": "commentary.matthew-henry-concise",
+      "type": "commentary",
+      "inputDir": "catalog/sources/commentary.matthew-henry-concise",
+      "ingest": {
+        "importer": "commentary"
+      },
+      "metadata": {
+        "subtitle": "Comentario conciso de Matthew Henry",
+        "authors": [
+          "Henry, Matthew"
+        ],
+        "publisher": "lyteword (edición Markdown)",
+        "edition": "Conciso",
+        "description": "Comentario devocional y expositivo de Matthew Henry sobre toda la Biblia, en su edición concisa. El texto original es de dominio público y la edición Markdown se publica bajo CC0; 2 Reyes 1 se completa desde la edición completa del mismo autor.",
+        "licenseKind": "public-domain",
+        "tags": [
+          "Comentario",
+          "Inglés",
+          "Dominio público",
+          "Matthew Henry"
+        ],
+        "attributes": {
+          "coverage": "protestant66",
+          "sourceEdition": "concise"
+        }
+      }
+    },
+    {
+      "resourceId": "dictionary.easton",
+      "type": "dictionary",
+      "inputDir": "catalog/sources/dictionary.easton",
+      "ingest": {
+        "importer": "dictionary"
+      },
+      "metadata": {
+        "subtitle": "Diccionario bíblico de Easton",
+        "authors": [
+          "Easton, Matthew George"
+        ],
+        "publisher": "JWBickel/BibleDictionaries (edición JSONL)",
+        "edition": "1897",
+        "description": "Diccionario de nombres propios, lugares, objetos y temas bíblicos publicado por Matthew George Easton en 1897. El texto original es de dominio público.",
+        "licenseKind": "public-domain",
+        "tags": [
+          "Diccionario",
+          "Inglés",
+          "Dominio público",
+          "Referencia"
+        ],
+        "attributes": {
+          "entries": "alphabetical"
+        }
+      }
+    }
+  ]
+}

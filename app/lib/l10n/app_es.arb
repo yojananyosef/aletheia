@@ -1,0 +1,940 @@
+{
+  "@@locale": "es",
+  "appTitle": "Aletheia",
+  "retry": "Reintentar",
+  "close": "Cerrar",
+  "cancel": "Cancelar",
+  "bannerDev": "Aletheia · build de desarrollo — catálogo de dominio público",
+  "bannerOpenLibrary": "Abrir Biblioteca",
+  "bannerClose": "Cerrar banner",
+  "navHome": "Inicio",
+  "navLibrary": "Biblioteca",
+  "navSearch": "Búsqueda",
+  "navBible": "Biblia",
+  "navAssistant": "Asistente de estudio",
+  "navTopics": "Temas",
+  "navGuidedStudy": "Estudio guiado",
+  "navNotes": "Notas",
+  "navTools": "Herramientas",
+  "navQuickActions": "Acciones rápidas",
+  "navStore": "Tienda",
+  "navLayouts": "Diseños",
+  "navCloseAllTabs": "Cerrar todas las pestañas",
+  "quickOpenCommentary": "Abrir un comentario",
+  "quickOpenStudyBible": "Abrir una Biblia de estudio",
+  "quickCompareBibles": "Comparar versiones",
+  "quickOpenDictionary": "Abrir un diccionario bíblico",
+  "quickOpenDevotional": "Abrir el devocional de hoy",
+  "moreOptions": "Más opciones",
+  "menuSettings": "Configuración",
+  "menuResourceCatalog": "Catálogo de recursos",
+  "menuOriginalStore": "Tienda de la app original (no aplica)",
+  "menuDownloadApp": "Descargar la app original (no aplica)",
+  "sidebarExpand": "Expandir barra lateral",
+  "sidebarCollapse": "Colapsar barra lateral",
+  "layoutOne": "Una columna",
+  "layoutTwo": "Dos columnas",
+  "layoutTwoRows": "Dos filas",
+  "layoutThree": "Tres columnas",
+  "layoutFour": "Cuadrícula 2×2",
+  "omniboxHint": "Pasaje o tema",
+  "omniboxGoto": "Ir a {reference}",
+  "@omniboxGoto": {
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "omniboxSearch": "Buscar «{query}»",
+  "@omniboxSearch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "workspaceEmptyTile": "Sin pestañas — abre algo desde la barra lateral",
+  "panelCommands": "Comandos del panel",
+  "tabClose": "Cerrar pestaña",
+  "tabDuplicate": "Duplicar esta pestaña",
+  "tabCloseThis": "Cerrar esta pestaña",
+  "tabCloseToRight": "Cerrar pestañas a la derecha",
+  "tabCloseOthers": "Cerrar otras pestañas",
+  "tabCloseAll": "Cerrar todas las pestañas",
+  "panelTitleDashboard": "Inicio",
+  "panelTitleLibrary": "Biblioteca",
+  "panelTitleStore": "Tienda",
+  "panelTitleSearch": "Búsqueda",
+  "panelTitleResource": "Recurso",
+  "panelTitleBible": "Biblia",
+  "panelTitleStudyAssistant": "Asistente de estudio",
+  "panelTitleFactbook": "Temas",
+  "panelTitleGuidedStudy": "Estudio guiado",
+  "panelTitleNotes": "Notas",
+  "panelTitleTools": "Herramientas",
+  "panelTitleTextComparison": "Comparación de textos",
+  "panelTitleDevotional": "Devocional del día",
+  "panelTitleSettings": "Configuración",
+  "placeholderDashboard": "Estado del espacio de trabajo y banners configurables (M3).",
+  "placeholderLibrary": "La Biblioteca se abre desde la barra lateral como panel flotante (M2): búsqueda, facetas y detalle de recursos.",
+  "placeholderStore": "Catálogo navegable de recursos de dominio público (M5). Sin compras: los recursos propios se marcan como disponibles.",
+  "placeholderResource": "Lector de recursos no bíblicos (M5): comentarios, diccionarios y libros desde el catálogo.",
+  "placeholderStudyAssistant": "Asistente de estudio (plugin IA opcional, M6): chat con citas a recursos, adjuntos y selección de alcance.",
+  "placeholderFactbook": "Temas (M5): artículos por tema o referencia con secciones y temas relacionados.",
+  "placeholderGuidedStudy": "Estudio guiado (M6): guías (estudio de palabras, exégesis, pasaje, bosquejo de sermón) y flujos de trabajo guiados.",
+  "placeholderTools": "Centro de herramientas (M5): Atlas, Documentos, Favoritos, Información, Multimedia, Explorador de Salmos, Gestor de planes de lectura, Comparación de textos.",
+  "placeholderTextComparison": "Comparación de textos (M5): referencia + conjunto de versiones en columnas sincronizadas por versículo.",
+  "placeholderDevotional": "Devocional del día (M5): recursos con calendario (formato MM-DD), navegación mañana/tarde.",
+  "placeholderFallback": "Pendiente en próximos milestones.",
+  "readerBack": "Atrás",
+  "readerForward": "Adelante",
+  "readerChangeBook": "Cambiar libro",
+  "readerModeHome": "Inicio",
+  "readerModeSearch": "Buscar",
+  "readerModeNotes": "Notas",
+  "readerModeFormat": "Formato",
+  "readerModeView": "Vista",
+  "readerModeMore": "Más",
+  "readerSearchInResource": "Buscar en este recurso",
+  "readerToolsSoon": "Herramientas — M6",
+  "readerCopyReference": "Copiar referencia",
+  "readerCopyCitation": "Copiar cita",
+  "readerCopyPassageAndCitation": "Copiar pasaje y cita",
+  "readerCopied": "Copiado al portapapeles",
+  "readerContents": "Índice",
+  "readerContentsTooltip": "Índice de contenidos",
+  "readerArticle": "Artículo",
+  "readerArticleStepTo": "Ir a artículo",
+  "readerArticlePrevious": "Artículo anterior",
+  "readerArticleNext": "Artículo siguiente",
+  "readerPrevChapter": "Capítulo anterior",
+  "readerNextChapter": "Capítulo siguiente",
+  "readerLinkSet": "Conjunto de vínculos",
+  "readerLinkSetSoon": "Conjunto de vínculos — M6",
+  "readerInsights": "Análisis",
+  "readerInfo": "Información",
+  "insightsTitle": "Ideas",
+  "insightsClose": "Cerrar el panel",
+  "insightsBookInfoTab": "Información del libro",
+  "insightsAbout": "Acerca de {title}",
+  "@insightsAbout": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsAuthor": "Autor",
+  "insightsPublisher": "Editorial",
+  "insightsEdition": "Edición",
+  "insightsLanguage": "Idioma",
+  "insightsType": "Tipo",
+  "insightsStats": "Estadísticas",
+  "insightsVerseCount": "{count, plural, =1{1 versículo} other{{count} versículos}}",
+  "@insightsVerseCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsSectionCount": "{count, plural, =1{1 sección} other{{count} secciones}}",
+  "@insightsSectionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsAuxId": "Identificador",
+  "insightsAuxType": "Tipo",
+  "insightsAuxSource": "Fuente",
+  "insightsAuxiliary": "Información auxiliar",
+  "insightsBookInfoUnavailable": "Sin ficha del recurso.",
+  "insightsCopyright": "Copyright",
+  "insightsLicenseUnknown": "Licencia no indicada.",
+  "insightsRelatedBooks": "Libros relacionados",
+  "insightsNoBooks": "Ningún recurso del catálogo cita esta referencia.",
+  "insightsRelatedPassages": "Pasajes relacionados",
+  "insightsCrossReferences": "Referencias cruzadas",
+  "insightsNoPassages": "Sin pasajes relacionados en el catálogo actual.",
+  "insightsRelatedError": "No se pudo cargar el contenido relacionado.",
+  "insightsMore": "Más »",
+  "readingPlanStart": "Comenzar plan de lectura",
+  "readerHideLocationBar": "Ocultar la barra de ubicación",
+  "readerShowLocationBar": "Mostrar la barra de ubicación",
+  "readerHideSecondaryToolbar": "Ocultar la barra secundaria",
+  "readerShowSecondaryToolbar": "Mostrar la barra secundaria",
+  "readerHistory": "Historial",
+  "readerHistoryPanel": "Historial del panel",
+  "readerHistoryEmpty": "Sin historial todavía",
+  "readerLoadMoreChapters": "Cargar más capítulos",
+  "readerEnd": "— Fin —",
+  "readerFootnote": "Nota {label}",
+  "@readerFootnote": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "readerFootnoteUnavailable": "Nota al pie no disponible.",
+  "readerInvalidReference": "Referencia no válida: {reference}",
+  "@readerInvalidReference": {
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "readerSectionMissing": "No se encontró {book} {chapter} en el documento.",
+  "@readerSectionMissing": {
+    "placeholders": {
+      "book": {
+        "type": "String"
+      },
+      "chapter": {
+        "type": "int"
+      }
+    }
+  },
+  "readerLoadError": "No se pudo cargar el documento: {error}",
+  "@readerLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "readerFootnoteList": "Notas al pie",
+  "contentsTitle": "Índice de contenidos",
+  "contentsFilter": "Filtrar libros",
+  "contentsSearch": "Buscar en el índice",
+  "contentsClose": "Cerrar el índice",
+  "contentsChapter": "Capítulo {number}",
+  "@contentsChapter": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "changeBookTitle": "Cambiar libro",
+  "changeBookLoadError": "No se pudieron cargar las Biblias.\n{error}",
+  "@changeBookLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "changeBookEmpty": "Sin resultados",
+  "panelSearchTitle": "Buscar en «{resource}»",
+  "@panelSearchTitle": {
+    "placeholders": {
+      "resource": {
+        "type": "String"
+      }
+    }
+  },
+  "panelSearchSyntax": "Dentro de este recurso · palabras, \"frases\", AND/OR/NOT, WITHIN n WORDS",
+  "searchFailed": "No se pudo buscar",
+  "panelSearchPrompt": "Escribe una consulta para buscar en todo el recurso. Cada resultado te lleva al versículo exacto.",
+  "searchNoResults": "Sin resultados para «{query}»",
+  "@searchNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchTryFewerWords": "Prueba con menos palabras",
+  "searchTryFewerOrScope": "Prueba con menos palabras o otro ámbito",
+  "searchResultsCountFor": "{count, plural, =1{1 resultado} other{{count} resultados}} para «{query}»",
+  "@searchResultsCountFor": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchLoadMoreRemaining": "Cargar más ({count} restantes)",
+  "@searchLoadMoreRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchScope": "Ámbito: {scope}",
+  "@searchScope": {
+    "placeholders": {
+      "scope": {
+        "type": "String"
+      }
+    }
+  },
+  "searchSyntaxTitle": "Sintaxis de búsqueda",
+  "searchSyntaxWord": "una palabra",
+  "searchSyntaxPhrase": "\"en el principio\"",
+  "searchSyntaxPhraseNote": "frase exacta",
+  "searchSyntaxAnd": "Verbo AND principio",
+  "searchSyntaxAndNote": "ambas palabras (también OR y NOT)",
+  "searchSyntaxWithin": "principio WITHIN 5 WORDS Verbo",
+  "searchSyntaxWithinNote": "a menos de 5 palabras de distancia",
+  "searchSyntaxNearNote": "a menos de 10 palabras (NEAR/5 para 5)",
+  "searchSyntaxFieldNote": "pasaje y filtros: bible:, type:, language:, book:",
+  "searchSyntaxNote": "La búsqueda es insensible a mayúsculas y acentos. Combina la sintaxis con los filtros de tipo, idioma y libro; los resultados se agrupan por recurso.",
+  "searchFilterType": "Tipo",
+  "searchFilterLanguage": "Idioma",
+  "searchFilterBook": "Libro",
+  "searchFilterAll": "Todos",
+  "searchFilterAllBooks": "Todos los libros",
+  "searchFilterClear": "Limpiar filtros",
+  "searchBack": "Atrás",
+  "searchTitle": "Buscar en la Biblia y los libros",
+  "searchHistory": "Historial de búsquedas",
+  "searchHistoryEmpty": "Sin búsquedas todavía",
+  "searchPromptTitle": "Busca en el catálogo",
+  "searchPromptBody": "Palabras, frases entre comillas, AND/OR/NOT, NEAR, WITHIN n WORDS y campos como bible:\"Jn 3\". Cada resultado abre el recurso en el pasaje exacto.",
+  "searchIndexUnavailable": "No se pudo abrir el índice de búsqueda local. Reinstala la app o vuelve a generar el catálogo.",
+  "scopeAll": "Todo",
+  "scopeBible": "Biblia",
+  "scopeBooks": "Libros",
+  "scopeFactbook": "Temas",
+  "scopeMorph": "Morfología",
+  "scopeMedia": "Multimedia",
+  "scopeMaps": "Mapas",
+  "scopeTodoNote": "M5",
+  "scopeMorphNote": "M6",
+  "fmtMarkers": "Marcadores",
+  "fmtReformat": "Reformato",
+  "fmtReformatTitle": "Reformato del texto",
+  "fmtMarkersTitle": "Mostrar marcadores",
+  "fmtBibleText": "Texto bíblico",
+  "fmtBibleTextFormatting": "Formato del texto bíblico",
+  "fmtNumbers": "Números de capítulo y versículo",
+  "fmtFootnoteIndicators": "Indicadores de notas",
+  "fmtNonBibleText": "Texto no bíblico",
+  "fmtOneVersePerLine": "Un versículo por línea",
+  "fmtCorrespondingWords": "Palabras correspondientes",
+  "fmtSameSurfaceText": "Mismo texto superficial",
+  "fmtNote": "Reformatea el cuerpo principal del libro.",
+  "fmtMarkersNote": "Añade marcadores para mostrar datos ocultos del libro. Con Marcadores activo, solo se ven los indicadores y resaltados de los cuadernos y etiquetas marcados.",
+  "fmtSermons": "Sermones",
+  "fmtBibleStudies": "Estudios bíblicos",
+  "fmtMarkersNotebooks": "Cuadernos",
+  "fmtMarkersTags": "Etiquetas",
+  "fmtMarkersEmpty": "Aún no hay cuadernos ni etiquetas. Crea una nota con cuaderno o etiqueta para filtrar los marcadores.",
+  "viewPagedView": "Vista paginada",
+  "viewPagedTitle": "Vista paginada",
+  "viewColumns": "Columnas",
+  "viewColumnsAuto": "Auto",
+  "viewFootnotesOnPage": "Mostrar notas en la página",
+  "viewLocatorBar": "Barra de ubicación",
+  "viewZoom": "Zoom",
+  "viewFullScreen": "Pantalla completa",
+  "viewExitFullScreen": "Salir de pantalla completa",
+  "viewPageOf": "Página {page} de {total}",
+  "@viewPageOf": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "viewPrevPage": "Página anterior",
+  "viewNextPage": "Página siguiente",
+  "viewZoomReset": "Restablecer el zoom al 100 %",
+  "settingsReset": "Restablecer valores",
+  "settingsResetDone": "Valores restablecidos",
+  "settingsCatalog": "Catálogo",
+  "settingsServiceUrl": "Dirección del servicio",
+  "settingsApply": "Aplicar",
+  "settingsCatalogModeAuto": "Automático",
+  "settingsCatalogModeLocal": "Solo incluidos",
+  "settingsCatalogModeRemote": "Solo servicio",
+  "settingsChecking": "Comprobando el servicio…",
+  "settingsOffline": "Sin conexión — se usan los recursos incluidos en la app.",
+  "settingsOfflineError": "Sin conexión: {error}",
+  "@settingsOfflineError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsOnline": "Conectado: {resources} recursos, {verses} versículos y {sections} entradas indexadas.",
+  "@settingsOnline": {
+    "placeholders": {
+      "resources": {
+        "type": "int"
+      },
+      "verses": {
+        "type": "String"
+      },
+      "sections": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsLocalReady": "Modo local: {resources} recursos, {verses} versículos y {sections} entradas indexadas.",
+  "@settingsLocalReady": {
+    "placeholders": {
+      "resources": {
+        "type": "int"
+      },
+      "verses": {
+        "type": "String"
+      },
+      "sections": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsRecheck": "Recomprobar",
+  "settingsQuickActions": "Mostrar acciones rápidas",
+  "settingsBannersDashboard": "Mostrar banners en el panel de inicio",
+  "settingsBannersLayout": "Mostrar banners en los diseños",
+  "settingsToolbarLocation": "Ubicación de la barra de aplicaciones",
+  "settingsToolbarLeft": "Izquierda",
+  "settingsToolbarTop": "Arriba",
+  "settingsLanguage": "Idioma de la interfaz",
+  "settingsLanguageSystem": "Sistema",
+  "settingsCitationStyle": "Estilo de citas",
+  "citationTurabian": "Turabian (9.ª ed., nota completa)",
+  "citationSbl": "SBL (2.ª ed.)",
+  "citationChicago": "Chicago (17.ª ed.)",
+  "citationPlain": "Aletheia (simple)",
+  "settingsCopyCitations": "Copiar la cita con el texto",
+  "settingsHyperlinkCitations": "Enlazar las citas copiadas",
+  "settingsLimitedView": "Activar el modo de vista limitada",
+  "settingsLimitedViewHelp": "Vista accesible: sin paginación y con las notas al pie como lista al final de cada capítulo.",
+  "yes": "Sí",
+  "no": "No",
+  "help": "Ayuda",
+  "libraryFacets": "Facetas",
+  "libraryFind": "Buscar",
+  "libraryClear": "Limpiar",
+  "libraryCount": "{count, plural, =1{1 recurso} other{{count} recursos}}",
+  "@libraryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryTabLibrary": "Biblioteca",
+  "libraryTabStore": "Tienda",
+  "libraryStoreSoon": "M5: catálogo de la tienda",
+  "librarySort": "Ordenar",
+  "librarySortTitle": "por Título",
+  "librarySortAuthor": "por Autor",
+  "librarySortDate": "por Fecha",
+  "libraryClearFilters": "Limpiar filtros",
+  "libraryFacetType": "Tipo",
+  "libraryFacetLanguage": "Idioma",
+  "libraryFacetAuthor": "Autor",
+  "libraryLoadMore": "Cargar más",
+  "libraryErrorTitle": "No se pudo consultar el catálogo",
+  "libraryEmpty": "Sin recursos que coincidan con el filtro",
+  "libraryBack": "Volver a la lista",
+  "libraryOpen": "Abrir",
+  "libraryMore": "Más »",
+  "libraryLess": "Menos «",
+  "libraryStats": "{verses} versículos · {chapters} capítulos",
+  "@libraryStats": {
+    "placeholders": {
+      "verses": {
+        "type": "String"
+      },
+      "chapters": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryLoading": "Cargando…",
+  "languageEs": "Español",
+  "languageEn": "Inglés",
+  "languageEl": "Griego",
+  "languageHe": "Hebreo",
+  "languageLa": "Latín",
+  "typeBible": "Biblia",
+  "typeCommentary": "Comentario",
+  "typeDictionary": "Diccionario",
+  "typeEncyclopedia": "Enciclopedia",
+  "typeDevotional": "Devocional",
+  "typeDataset": "Datos",
+  "typeGuide": "Guía",
+  "typeWorkflow": "Flujo de trabajo",
+  "typeDocument": "Documento",
+  "settingsCitationHelp": "Turabian (9.ª ed., nota completa) · SBL (2.ª ed.) · Chicago (17.ª ed.) · Aletheia (simple)",
+  "resourceTitleCommentary": "Comentario",
+  "resourceTitleStudyBible": "Biblia de estudio",
+  "resourceTitleDictionary": "Diccionario bíblico",
+  "resourceLabelMatthewHenry": "Matthew Henry (conciso)",
+  "resourceLabelTsk": "Tesoro de conocimiento bíblico",
+  "settingsBannersDashboardHelp": "Banner de novedades dentro del panel de inicio.",
+  "settingsBannersLayoutHelp": "Los banners de los diseños (barra superior).",
+  "settingsCopyHelp": "Al copiar un pasaje se añade su cita.",
+  "settingsHyperlinkHelp": "Las citas copiadas enlazan al pasaje («ref:CANÓNICO»).",
+  "notesFind": "Buscar",
+  "notesFindHint": "Buscar en las notas",
+  "notesShare": "Compartir",
+  "notesNewNote": "Nueva nota",
+  "notesAll": "Todos",
+  "notesResults": "{count, plural, =1{1 resultado} other{{count} resultados}}",
+  "@notesResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notesFilters": "Filtros",
+  "notesSidebarToggle": "Filtros y cuadernos",
+  "notesNotebooks": "Cuadernos",
+  "notesTrash": "Papelera",
+  "notesByModified": "Fecha de modificación",
+  "notesByCreated": "Fecha de creación",
+  "notesSortBy": "por {label}",
+  "@notesSortBy": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "notesByNotebook": "Cuaderno",
+  "notesSortNotebookHint": "Selecciona un cuaderno para activar el orden por cuaderno",
+  "notesDensity": "Densidad",
+  "notesDensityDefault": "Predeterminado",
+  "notesDensityCompact": "Compacto",
+  "notesNewNoteInRef": "Nueva nota en {reference}",
+  "@notesNewNoteInRef": {
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "notesByTitle": "por título",
+  "notesEmpty": "Aún no hay notas",
+  "notesEmptyHint": "Crea una nota con «Nueva nota» o seleccionando un texto en el lector.",
+  "notesTrashEmpty": "La papelera está vacía",
+  "notesTrashHint": "Puedes restaurar las notas o eliminarlas definitivamente.",
+  "notesFilterKind": "Tipo",
+  "notesFilterKindNote": "Notas",
+  "notesFilterKindHighlight": "Resaltados",
+  "notesFilterNotebook": "Cuaderno",
+  "notesFilterTag": "Etiqueta",
+  "notesFilterResource": "Recurso",
+  "notesFiltersClear": "Quitar los filtros",
+  "notesFiltersActive": "{count, plural, =1{1 filtro} other{{count} filtros}}",
+  "notesNewNotebook": "Nuevo cuaderno",
+  "notesNotebookName": "Nombre del cuaderno",
+  "notesNotebookCreate": "Crear cuaderno",
+  "notesNotebookDeleteTitle": "¿Eliminar el cuaderno «{name}»?",
+  "notesNotebookDeleteBody": "Las notas no se eliminan: solo se quitan del cuaderno.",
+  "notesNotebookEmpty": "Sin cuadernos todavía",
+  "notesNotebookNotes": "{count, plural, =1{1 nota} other{{count} notas}}",
+  "notesRename": "Renombrar",
+  "notesRestore": "Restaurar",
+  "notesPurge": "Eliminar definitivamente",
+  "notesEmptyTrashAction": "Vaciar la papelera",
+  "notesDuplicate": "Duplicar",
+  "notesEdit": "Editar",
+  "notesOpen": "Abrir",
+  "notesClose": "Cerrar la nota",
+  "notesShowInReader": "Mostrar en el lector",
+  "notesNoAnchor": "Sin anclaje",
+  "notesAnchoredAt": "Anclada en {reference}",
+  "notesItemCount": "{count, plural, =1{1 nota} other{{count} notas}}",
+  "notesTrashCount": "en la papelera: {count}",
+  "noteTitleHint": "Título de la nota",
+  "noteBodyHint": "Escribe una nota…",
+  "noteQuoteLabel": "Cita",
+  "noteQuoteRemove": "Quitar la cita",
+  "noteFormatBold": "Negrita",
+  "noteFormatItalic": "Cursiva",
+  "noteFormatUnderline": "Subrayado",
+  "noteFormatHighlight": "Resaltado",
+  "noteFormatBullets": "Lista con viñetas",
+  "noteFormatNumbered": "Lista numerada",
+  "noteFormatQuote": "Cita en bloque",
+  "noteFormatReference": "Insertar referencia",
+  "noteNotebooksLabel": "Cuadernos",
+  "noteNotebookAdd": "Añadir a un cuaderno",
+  "noteTagsLabel": "Etiquetas",
+  "noteTagAdd": "Añadir etiqueta",
+  "noteTagHint": "Nueva etiqueta",
+  "noteAnchorLabel": "Anclaje",
+  "noteAnchorChange": "Cambiar el anclaje",
+  "noteSaved": "Guardado",
+  "noteCreatedOn": "Creada el {date}",
+  "noteModifiedOn": "Modificada el {date}",
+  "noteDeletedOn": "Eliminada el {date}",
+  "noteShareCopied": "Nota copiada al portapapeles",
+  "noteShareMarkdown": "Copiar como Markdown",
+  "noteShareText": "Copiar como texto",
+  "noteKindNote": "Nota",
+  "noteKindHighlight": "Resaltado",
+  "noteColorYellow": "Amarillo",
+  "noteColorGreen": "Verde",
+  "noteColorBlue": "Azul",
+  "noteColorRed": "Rojo",
+  "noteColorOrange": "Anaranjado",
+  "noteColorPink": "Rosa",
+  "readerNotesNew": "Nueva nota",
+  "readerNotesEmpty": "No hay notas en este recurso",
+  "readerNotesEmptyHint": "Selecciona un texto para crear una nota o un resaltado.",
+  "readerNotesOnVerse": "Notas sobre el versículo {verse}",
+  "readerNoteMarker": "Notas en este versículo",
+  "readerHighlightCreated": "Resaltado añadido",
+  "readerNoteCreated": "Nota creada",
+  "readerNotesView": "Notas de este recurso",
+  "selectionCopy": "Copiar",
+  "selectionLookUp": "Consultar",
+  "selectionHighlight": "Resaltar",
+  "selectionNote": "Nota",
+  "selectionAddNote": "Agregar nota",
+  "selectionSearch": "Buscar",
+  "selectionMore": "Mostrar más opciones",
+  "selectionVisualCopy": "Copia visual",
+  "selectionUnderlineRed": "Subrayado rojo",
+  "highlightSwatch": "Resaltado {color}",
+  "@highlightSwatch": {
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "underlineSwatch": "Subrayado {color}",
+  "@underlineSwatch": {
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "selectionCitation": "Copiar cita",
+  "selectionNoteStub": "Nota",
+  "devotionalToday": "Hoy",
+  "devotionalPrevious": "Día anterior",
+  "devotionalNext": "Día siguiente",
+  "devotionalPickDate": "Elegir fecha",
+  "devotionalEmptyTitle": "No hay lectura para esta fecha",
+  "devotionalEmptyDetail": "Prueba con otro día o vuelve a hoy.",
+  "factbookSearchHint": "Tema o referencia",
+  "factbookLoadError": "No se pudo cargar la enciclopedia.",
+  "factbookTopicsCount": "{count, plural, =1{1 tema} other{{count} temas}}",
+  "@factbookTopicsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "factbookNoResults": "No se encontraron temas",
+  "factbookOpenPassage": "Abrir pasaje",
+  "factbookLensAll": "Todo",
+  "factbookLensBiblical": "Bíblico",
+  "factbookLensLibrary": "Biblioteca",
+  "factbookLensTheology": "Teológico",
+  "factbookLensCounseling": "Consejería",
+  "factbookLensDiscover": "Descubra",
+  "factbookBack": "Volver a los temas",
+  "factbookReferences": "Referencias",
+  "factbookRelated": "Temas relacionados",
+  "catalogFilterHint": "Filtrar por título o tema",
+  "catalogEntriesCount": "{count, plural, =1{1 entrada} other{{count} entradas}}",
+  "@catalogEntriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogBackToIndex": "Volver al índice",
+  "compareReferenceHint": "Referencia",
+  "compareVersions": "Versiones",
+  "compareVersionsCount": "{count, plural, =1{1 versión} other{{count} versiones}}",
+  "@compareVersionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "compareDifference": "{percent}% de diferencia",
+  "@compareDifference": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "compareCopy": "Copiar comparación",
+  "compareCopied": "Comparación copiada al portapapeles",
+  "compareNoVersions": "No hay versiones disponibles",
+  "compareSingleVersion": "Solo hay una versión disponible; inicia el servicio de catálogo para comparar más.",
+  "compareLoadError": "No se pudo cargar el capítulo.",
+  "compareNoChapter": "La referencia no existe en esta versión.",
+  "compareInvalidReference": "Referencia no válida. Prueba, por ejemplo, «Juan 1».",
+  "compareVersionUnavailable": "No disponible en esta versión.",
+  "compareAddVersions": "Abrir Biblioteca",
+  "layoutsSaved": "Diseños guardados",
+  "layoutSaveCurrent": "Guardar el diseño actual…",
+  "layoutSaveTitle": "Guardar diseño",
+  "layoutNameLabel": "Nombre del diseño",
+  "layoutNameHint": "p. ej., Estudio de Juan",
+  "layoutSave": "Guardar",
+  "layoutSavedToast": "Diseño guardado",
+  "layoutDelete": "Eliminar diseño",
+  "layoutDeleteQuestion": "¿Eliminar el diseño «{name}»?",
+  "@layoutDeleteQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "layoutDeleteConfirm": "Eliminar",
+  "layoutNoSaved": "Aún no hay diseños guardados",
+  "layoutAppliedToast": "Diseño «{name}» aplicado",
+  "@layoutAppliedToast": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "guidedFindHint": "Buscar una guía",
+  "guidedGuides": "Guías",
+  "guidedWorkflows": "Flujos de trabajo",
+  "guidedNoMatch": "Ninguna guía coincide con la búsqueda.",
+  "guidedParamWord": "Palabra",
+  "guidedParamReference": "Referencia",
+  "guidedGenerate": "Generar guía",
+  "guidedBack": "Todas las guías",
+  "guidedStepDone": "Marcar el paso",
+  "guidedActionReader": "Abrir en el lector",
+  "guidedActionCompare": "Comparar versiones",
+  "guidedActionFactbook": "Ver en Temas",
+  "guidedActionSearch": "Buscar en el catálogo",
+  "guidedActionNotes": "Abrir Notas",
+  "guideWordTitle": "Estudio de palabras bíblicas",
+  "guideWordDesc": "Analiza una palabra clave y sus apariciones en el catálogo.",
+  "guideExegeticalTitle": "Guía exegética",
+  "guideExegeticalDesc": "Contexto, estructura y género del pasaje, paso a paso.",
+  "guidePassageTitle": "Guía de pasajes",
+  "guidePassageDesc": "Recorre un pasaje con las herramientas y el catálogo.",
+  "guideSermonTitle": "Guía para sermones",
+  "guideSermonDesc": "Del texto al bosquejo del mensaje.",
+  "workflowBasicTitle": "Estudio bíblico básico",
+  "workflowBasicDesc": "Cinco pasos clásicos para estudiar un pasaje.",
+  "workflowInductiveTitle": "Estudio bíblico inductivo",
+  "workflowInductiveDesc": "Observación, interpretación y aplicación.",
+  "workflowLectioTitle": "Lectio divina",
+  "workflowLectioDesc": "Lectura orante en cuatro movimientos.",
+  "stepPrayTitle": "Ora y prepara el corazón",
+  "stepPrayDetail": "Pide al Señor que abra tu entendimiento antes de leer.",
+  "stepReadTitle": "Lee el pasaje completo",
+  "stepReadDetail": "Lee {param} dos o tres veces, sin detenerte en los detalles.",
+  "@stepReadDetail": {
+    "placeholders": {
+      "param": {
+        "type": "String"
+      }
+    }
+  },
+  "stepContextTitle": "Estudia el contexto",
+  "stepContextDetail": "¿Quién escribe, a quién y por qué? Consulta los temas del pasaje.",
+  "stepObserveTitle": "Observa el texto",
+  "stepObserveDetail": "Repeticiones, contrastes, conectores y tiempos verbales.",
+  "stepInterpretTitle": "Interpreta",
+  "stepInterpretDetail": "¿Qué significaba entonces? ¿Qué dice aquí y ahora?",
+  "stepApplyTitle": "Aplica",
+  "stepApplyDetail": "¿Qué te pide Dios hoy con este texto? Escríbelo en Notas.",
+  "stepNoteTitle": "Anota tus conclusiones",
+  "stepNoteDetail": "Ancla una nota al versículo y resume lo que descubriste.",
+  "stepWordTitle": "Analiza las palabras clave",
+  "stepWordDetail": "Busca «{param}» en el catálogo y compara sus apariciones.",
+  "@stepWordDetail": {
+    "placeholders": {
+      "param": {
+        "type": "String"
+      }
+    }
+  },
+  "stepCrossTitle": "Sigue las referencias cruzadas",
+  "stepCrossDetail": "Abre Ideas ▸ Pasajes relacionados en el lector y sigue las citas.",
+  "stepCompareTitle": "Compara traducciones",
+  "stepCompareDetail": "Compara el pasaje con la otra versión del catálogo.",
+  "stepOutlineTitle": "Bosqueja el mensaje",
+  "stepOutlineDetail": "Tres puntos con su aplicación, anotados en Notas.",
+  "stepThemeTitle": "Encuentra el tema central",
+  "stepThemeDetail": "Consulta los temas del pasaje en Temas y elige el eje del mensaje.",
+  "stepLectioTitle": "Lectio: lee despacio",
+  "stepLectioDetail": "Lee {param} en voz alta, saboreando cada frase.",
+  "@stepLectioDetail": {
+    "placeholders": {
+      "param": {
+        "type": "String"
+      }
+    }
+  },
+  "stepMeditatioTitle": "Meditatio: rumia el texto",
+  "stepMeditatioDetail": "¿Qué palabra o frase te llama la atención? ¿Por qué?",
+  "stepOratioTitle": "Oratio: responde en oración",
+  "stepOratioDetail": "Convierte el texto en tu propia oración.",
+  "stepContemplatioTitle": "Contemplatio: descansa en Dios",
+  "stepContemplatioDetail": "Quédate en silencio con lo que Dios te mostró.",
+  "toolsAtlas": "Atlas",
+  "toolsCourses": "Cursos",
+  "toolsDocuments": "Documentos",
+  "toolsInfo": "Información",
+  "toolsMedia": "Medios",
+  "toolsPlans": "Planes de lectura",
+  "toolsSoon": "Pronto",
+  "panelTitleReadingPlans": "Planes de lectura",
+  "plansIntro": "Elige un plan para leer la Biblia con un ritmo constante. El progreso se guarda en tu equipo.",
+  "plansEmpty": "No tienes un plan activo. Elige uno para empezar.",
+  "plansAvailable": "Planes disponibles",
+  "plansOther": "Otros planes",
+  "plansInProgress": "En curso",
+  "plansOpenToday": "Abrir la lectura de hoy",
+  "plansMarkRead": "Marcar día como leído",
+  "plansStop": "Detener plan",
+  "plansDayOf": "Día {day} de {days}",
+  "@plansDayOf": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "plansCompleted": "¡Plan completado! Puedes empezar otro cuando quieras.",
+  "plansToday": "Lectura de hoy",
+  "plansDays": "{days} días",
+  "@plansDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "plansStart": "Comenzar",
+  "plansReplaceTitle": "¿Reemplazar el plan activo?",
+  "plansReplaceBody": "Ya tienes un plan de lectura en curso. Si empiezas otro, se perderá su progreso.",
+  "plansReplace": "Reemplazar",
+  "planBibleYearTitle": "Biblia en un año",
+  "planBibleYearDesc": "Todo el canon, unos tres capítulos al día.",
+  "planGospels30Title": "Evangelios en 30 días",
+  "planGospels30Desc": "Mateo, Marcos, Lucas y Juan completos.",
+  "planPsalms31Title": "Salmos y Proverbios en 31 días",
+  "planPsalms31Desc": "Sabiduría diaria durante un mes.",
+  "planNt90Title": "Nuevo Testamento en 90 días",
+  "planNt90Desc": "Los 27 libros del Nuevo Testamento.",
+  "readingPlanView": "Ver plan de lectura",
+  "dashboardSubtitle": "Continúa donde lo dejaste y retoma tus herramientas.",
+  "dashboardContinue": "Continuar la lectura",
+  "dashboardContinueEmpty": "Abre un pasaje desde la barra lateral o con el buscador para verlo aquí.",
+  "dashboardPlan": "Plan de lectura",
+  "dashboardPlanEmpty": "No tienes un plan activo.",
+  "dashboardPlanChoose": "Elegir un plan",
+  "dashboardPlanView": "Ver el plan",
+  "dashboardNotes": "Notas",
+  "dashboardNotesCount": "{notes, plural, =1{1 nota} other{{notes} notas}} · {highlights, plural, =1{1 resaltado} other{{highlights} resaltados}}",
+  "@dashboardNotesCount": {
+    "placeholders": {
+      "notes": {
+        "type": "int"
+      },
+      "highlights": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardNotesOpen": "Abrir Notas",
+  "dashboardDevotional": "Devocional de hoy",
+  "dashboardDevotionalOpen": "Abrir el devocional",
+  "dashboardGuided": "Estudio guiado",
+  "dashboardGuidedOpen": "Abrir el estudio guiado",
+  "dashboardTools": "Herramientas",
+  "assistantLead": "Solo pregunta. Usaré tu biblioteca para responder preguntas como…",
+  "assistantPrompt1": "¿Qué enseña Juan 1 sobre el Verbo?",
+  "assistantPrompt2": "¿Cómo describe el Salmo 23 al pastor?",
+  "assistantPrompt3": "¿Qué dicen los evangelios sobre el perdón?",
+  "assistantAiNotice": "Esta función usa IA. Verifica siempre los resultados.",
+  "assistantConnect": "Conectar un proveedor de IA",
+  "assistantConnectTail": "para empezar la conversación.",
+  "assistantDialogTitle": "Asistente de estudio",
+  "assistantDialogBody": "El asistente es un plugin opcional: esta instalación no tiene ningún proveedor de IA conectado. Cuando lo conectes, las respuestas llegarán con citas de tu biblioteca. Mientras tanto, el Estudio guiado y las demás herramientas funcionan en local.",
+  "assistantDialogOpenGuided": "Abrir el Estudio guiado",
+  "assistantChatHint": "Haz una pregunta sobre tu biblioteca: las respuestas llegan con citas que abren el lector.",
+  "assistantNew": "Nuevo",
+  "assistantRecent": "Recientes",
+  "assistantRecentEmpty": "Aún no hay preguntas.",
+  "assistantCopyAll": "Copiar todo",
+  "assistantCopied": "Conversación copiada.",
+  "assistantScope": "Alcance",
+  "assistantScopeAll": "Todos los libros",
+  "assistantScopeBible": "La Biblia",
+  "assistantInput": "Escribe tu pregunta…",
+  "assistantSend": "Enviar",
+  "assistantThinking": "Pensando…",
+  "assistantYou": "Tú",
+  "assistantAnswerLabel": "Asistente",
+  "assistantFailed": "No se pudo obtener respuesta del proveedor.",
+  "readerLinkSetNone": "Sin conjunto",
+  "readerLinkSetHelp": "Los paneles con la misma letra siguen la misma referencia.",
+  "storeTitle": "Tienda local",
+  "storeIntro": "Recursos de dominio público incluidos en esta instalación. No hay compras ni descargas externas.",
+  "storeCount": "{count} recursos incluidos",
+  "@storeCount": {"placeholders": {"count": {"type": "int"}}},
+  "storeIncluded": "Incluido",
+  "storeOpen": "Abrir",
+  "storeSearch": "Buscar recursos",
+  "storeAllTypes": "Todos los tipos",
+  "storeEmpty": "No hay recursos que coincidan.",
+  "storeError": "No se pudo cargar el catálogo local.",
+  "storeRetry": "Reintentar",
+  "storeOpenLibrary": "Abrir la Biblioteca",
+  "storeLicense": "Licencia",
+  "panelFullscreenEnter": "Pantalla completa",
+  "panelFullscreenExit": "Salir de pantalla completa",
+  "settingsTheme": "Tema de la interfaz",
+  "settingsThemeSystem": "Sistema",
+  "settingsThemeLight": "Claro",
+  "settingsThemeDark": "Oscuro",
+  "settingsThemeHelp": "Claro, oscuro o según el sistema.",
+  "readerOriginal": "Original",
+  "readerOriginalTooltip": "Abrir el texto original",
+  "wordStudyTitle": "Estudio de la palabra",
+  "wordStudyStrong": "Strong",
+  "wordStudyTranslit": "Transliteración",
+  "wordStudyLemma": "Lema",
+  "wordStudyMorphology": "Morfología",
+  "wordStudyGloss": "Glosa",
+  "wordStudyGlossSource": "Glosa de la fuente (inglés)",
+  "wordStudyOpenLexicon": "Abrir en el léxico",
+  "wordStudyLexiconTitle": "Léxico Strong",
+  "wordStudyLexiconError": "No se pudo cargar la entrada del léxico.",
+  "wordStudyNoLexicon": "No hay una entrada del léxico para esta palabra.",
+  "tabFullscreen": "Pantalla completa",
+  "mapTitle": "Mapa",
+  "mapLoadError": "No se pudo cargar el mapa.",
+  "mapAttribution": "Geometría: Natural Earth (dominio público) · Lugares: OpenBible.info (CC BY 4.0)"
+}
