@@ -27,7 +27,7 @@ flutter run -d chrome
 - **Despliegue:** el workflow de la raíz, `.github/workflows/pages.yml`, publica el build en GitHub Pages en cada push a `main`.
 - **SQLite:** `web/sqlite3.wasm` (757.984 bytes) procede del release `sqlite3-3.7.1`; no se descarga en tiempo de ejecución.
 - **Persistencia:** workspace y notas en IndexedDB (`aletheia_app`). El índice FTS5 se descomprime en memoria al buscar por primera vez.
-- **Limitación:** la primera búsqueda descarga ~48,8 MB y necesita ~250 MB de heap; el resto de la app funciona sin red.
+- **Limitación:** la primera búsqueda descarga ~48,8 MB; en la URL publicada tardó ~10,4 s y necesitó ~344 MB de heap (en localhost, ~2,5 s y ~245 MB). El resto de la app funciona sin red tras la carga inicial.
 
 En web, `auto` se comporta como `local` porque GitHub Pages no puede alojar el servicio de catálogo. El modo `remote` explícito sigue disponible desde Ajustes.
 

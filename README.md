@@ -30,14 +30,14 @@ Lector bíblico con **catálogo de recursos desacoplado**, implementado en **Flu
 La versión web está en **<https://yojananyosef.github.io/aletheia/>**. Es la misma aplicación Flutter, sin el servicio Python local: usa únicamente los recursos empaquetados y el índice FTS5 incluido en el build.
 
 - **Persistencia:** SQLite WASM sobre `IndexedDbFileSystem` (base `aletheia_app`). El workspace y las notas sobreviven a una recarga; el índice de búsqueda no se escribe en IndexedDB.
-- **Búsqueda local:** la primera búsqueda descarga `search.sqlite.gz` (~48,8 MB), lo descomprime con `DecompressionStream` y lo monta en un VFS de solo lectura sin duplicarlo en memoria. En una máquina de desarrollo tarda ~2,5 s desde localhost y usa ~250 MB de heap; en una conexión lenta el tiempo depende de la descarga. No se intenta conectar a `127.0.0.1` en modo `auto`; el modo `remote` sigue disponible si se configura un servicio accesible.
+- **Búsqueda local:** la primera búsqueda descarga `search.sqlite.gz` (~48,8 MB), lo descomprime con `DecompressionStream` y lo monta en un VFS de solo lectura sin duplicarlo en memoria. En localhost tarda ~2,5 s y usa ~245 MB de heap; en la URL publicada, la primera búsqueda medida el 2026-10-20 tardó ~10,4 s (8,1 s de descarga) y usó ~344 MB. En una conexión lenta el tiempo depende sobre todo de la descarga. No se intenta conectar a `127.0.0.1` en modo `auto`; el modo `remote` sigue disponible si se configura un servicio accesible.
 - **Build:** requiere Flutter 3.47.7 y `app/web/sqlite3.wasm` (del paquete `sqlite3` 3.7.1).
   ```bash
   cd app
   flutter pub get
   flutter build web --release --base-href /aletheia/ --no-web-resources-cdn
   ```
-- **Despliegue:** `.github/workflows/pages.yml` compila en cada push a `main` y publica `app/build/web` con `upload-pages-artifact` y `deploy-pages`. GitHub Pages sirve el sitio como artefacto estático; no ejecuta `catalog/server`.
+- **Despliegue:** `.github/workflows/pages.yml` compila en cada push a `main` y publica `app/build/web` con `upload-pages-artifact` y `deploy-pages`. GitHub Pages sirve el sitio como artefacto estático; no ejecuta `catalog/server`. El `.gz` se sirve como `application/gzip` sin `Content-Encoding`, por lo que la descompresión manual del navegador sigue siendo válida. Pages debe habilitarse una vez en **Settings → Pages → GitHub Actions** (ya está habilitado en este repositorio).
 
 ## Estructura
 
