@@ -66,13 +66,13 @@ Derivado del reconocimiento de las fases 1–3. Las columnas:
 
 | # | Función | P | Ev. | Notas |
 |---|---|---|---|---|
-| 5.1 | Caja de búsqueda con scopes: All · Bible · Books · Factbook · Morph · Media · Maps | P0 (All/Bible/Books) | L2 | Sobre FTS5 local o servicio (misma sintaxis) |
-| 5.2 | Sintaxis v2 (OR/AND/NEAR/WITHIN n WORDS, frases, campos `bible:"Jn 3"`, `book:`, `type:`, `language:`, `resource:`) | P1 | L1/L2 | Implementada; `BEFORE` y morfología pendientes |
+| 5.1 | Caja de búsqueda con scopes: All · Bible · Books · Factbook · Morph · Media · Maps | P0 (All/Bible/Books) | L2 | **Hecho**: los siete ámbitos están habilitados; Morph/Media/Maps usan `morphology.json`/`map_sections.json` y no abren el índice FTS |
+| 5.2 | Sintaxis v2 (OR/AND/NEAR/WITHIN n WORDS, frases, campos `bible:"Jn 3"`, `book:`, `type:`, `language:`, `resource:`) | P1 | L1/L2 | **Hecho**; `BEFORE` se evalúa en el índice local (el servicio remoto no lo implementa) |
 | 5.3 | Resultados: título→`offset+textranges`, snippet con énfasis, fuente, cita (ref, vol/pág), candado | P0 | L2 | |
 | 5.4 | Historial y back/forward | P1 | L2 | |
 | 5.5 | Tarjeta **Synopsis** (IA) con citas numeradas y medición/upsell | P3 | L2 | Plugin IA opcional |
 | 5.6 | Smart Search (preview) y "Books Search" restringida a biblioteca | P3/P1 | L2 | |
-| 5.7 | Teclados bíblicos (griego/hebreo) para consultas morfológicas | P3 | L2 | |
+| 5.7 | Teclados bíblicos (griego/hebreo) para consultas morfológicas | P3 | L2 | **Hecho**: diálogo con pestañas Griego/Hebreo, inserción en la consulta, borrado y previsualización |
 
 ## 6. Notas
 

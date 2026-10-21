@@ -209,19 +209,19 @@ Implementado en `catalog/server/catalog_server.py` (Python 3 stdlib + sqlite3/FT
 | `GET /v1/resources/{id}/books/{CODE}` | ✅ *(extensión v1)* | Libro completo en formato de app (`{code, name, chapters[]}`). Es lo que consume el lector; añadido al contrato base, que solo definía secciones |
 | `GET /v1/resources/{id}/sections/{S}` | ✅ | Sección suelta (contrato §1); `ETag` + `304`. Si el recurso tiene las secciones embebidas (M5) se sirve desde `sections.json`; si usa `sections/<id>.json`, se carga perezosamente |
 | `GET /v1/resources/{id}/sections?from=&limit=` | ✅ | Stream secuencial (scroll infinito); máx. 200 por página. Devuelve metadatos sin `blocks` |
-| `GET /v1/search` | ✅ | `q`, `scope=all\|bible\|books\|factbook\|devotional`, `resource=` *(extensión v1)*, `type`, `language`, `book`, `page`, `pageSize`; facetas de tipo/idioma/libro y sintaxis abajo |
+| `GET /v1/search` | ✅ | `q`, `scope=all\|bible\|books\|factbook\|devotional`, `resource=` *(extensión v1)*, `type`, `language`, `book`, `page`, `pageSize`; facetas de tipo/idioma/libro y sintaxis abajo. Los ámbitos `morph`, `media` y `maps` son una extensión **solo local** de la app |
 | `GET /v1/cross-references` | ✅ | `ref` (versículo o capítulo) y `limit` 1–200; devuelve `source`, `license`, `total` e `items[]` del TSK |
 | `/v1/references/resolve`, `/v1/divisions`, `insights/*`, `notes`, `layouts`, `assistant`… | — | M6+ (el árbol de Contents sale hoy de `books[]` del manifiesto) |
 
 ### Búsqueda de estudio
 
-- **Sintaxis:** palabras sueltas (AND implícito), `"frases"`, `AND` / `OR` / `NOT`, `NEAR` (10 palabras), `NEAR/5` (distancia explícita) y `WITHIN n WORDS` (equivalente a `NEAR(..., n)`). Diacríticos y mayúsculas son indiferentes.
+- **Sintaxis:** palabras sueltas (AND implícito), `"frases"`, `AND` / `OR` / `NOT`, `NEAR` (10 palabras), `NEAR/5` (distancia explícita), `WITHIN n WORDS` (equivalente a `NEAR(..., n)`) y `BEFORE` (el término izquierdo debe aparecer antes que el derecho; se evalúa en el índice local). Diacríticos y mayúsculas son indiferentes.
 - **Campos:** `bible:"Jn 3"` limita a un pasaje (libro y capítulo, con rango de versículos opcional), `book:JHN` filtra por libro, `type:factbook`, `language:es` y `resource:bible.kjv`. Una consulta puede contener solo campos para listar un pasaje o un tipo.
 - **Filtros de UI:** `type`, `language` y `book` aplican los mismos filtros que los campos; se combinan con `scope`. La respuesta devuelve `facets` (`type`, `language`, `book`) calculadas excluyendo el propio filtro para poder cambiar de opción.
-- **Scopes:** `all` recorre todo; `bible` solo Biblias; `books` todo lo que no es Biblia (comentario, diccionario, Factbook y devocional); `factbook` y `devotional` son ámbitos específicos.
+- **Scopes:** `all` recorre todo; `bible` solo Biblias; `books` todo lo que no es Biblia (comentario, diccionario, Factbook y devocional); `factbook` y `devotional` son ámbitos específicos. En la app, `morph` busca códigos/descripciones de `morphology.json`, y `maps`/`media` listan las entradas de `map_sections.json` (23 entradas de mapa: 19 del Factbook y 4 del comentario; Multimedia incluye los mapas mientras no haya otros bloques visuales) sin descargar el índice FTS.
 - **`resource=` *(extensión v1)*:** limita la búsqueda a un recurso concreto; es lo que usa el modo **Buscar dentro del panel del lector** (cada panel busca solo en su versión). Devuelve el campo `resource` en la respuesta, `404` si el recurso no existe y respeta `scope`.
 - **Agrupación:** la UI agrupa los hits por `resourceId` y muestra la cabecera del recurso; al pulsar un hit bíblico salta al versículo, Factbook/devocional abre su sección y comentario/diccionario abre el panel genérico en la entrada.
-- **No soportado todavía:** `BEFORE`, morfología y paréntesis explícitos.
+- **No soportado todavía:** paréntesis explícitos. El servicio remoto no implementa `BEFORE` ni los ámbitos `morph`/`media`/`maps`; la app los resuelve localmente.
 - **Forma del hit implementada:**
 
 ```jsonc
@@ -267,6 +267,9 @@ funcionar sin arrancar Python:
   `cross_references` y su hash de contenido. En el primer uso la app lo extrae a
   `catalog.search.<hash>.sqlite` en el directorio de datos y lo abre en modo
   lectura. No hay indexación en tiempo de ejecución.
+- `app/assets/catalog/morphology.json` y `map_sections.json` — descripciones
+  de morfología y manifiesto de mapas/contenido visual; se empaquetan y
+  alimentan los ámbitos `morph`/`maps`/`media` sin abrir el índice.
 
 El gateway (`lib/catalog/catalog_gateway.dart`) usa `auto` (servicio con
 respaldo local), `local` (solo assets) o `remote` (solo servicio). En `auto`, si
@@ -274,8 +277,8 @@ el servicio no responde, tanto la Biblioteca como la Búsqueda caen al índice
 local, y `crossReferences` cae a la tabla local. La sintaxis es la misma
 (`lib/catalog/local_search_query.dart` replica `tokenize_query` +
 `fts_expression` del servidor): palabras, `"frases"`, `AND`/`OR`/`NOT`, `NEAR`,
-`WITHIN n WORDS`, campos, `scope`, filtros `type`/`language`/`book` y
-`resource=`.
+`WITHIN n WORDS`, `BEFORE` (local), campos, `scope`, filtros
+`type`/`language`/`book` y `resource=`.
 
 El índice contiene **248 870 versículos** de las nueve Biblias y **23 633
 secciones no bíblicas** (272 503 entradas FTS5), más **376 083** enlaces de

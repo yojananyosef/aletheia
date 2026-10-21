@@ -577,6 +577,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchSyntaxWithinNote => 'within 5 words of each other';
 
   @override
+  String get searchSyntaxBeforeNote => 'one term appears before the other';
+
+  @override
   String get searchSyntaxNearNote => 'within 10 words (NEAR/5 for 5)';
 
   @override
@@ -586,6 +589,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get searchSyntaxNote =>
       'Search is case- and accent-insensitive. Combine syntax with type, language and book filters; results are grouped by resource.';
+
+  @override
+  String get searchMorphologyTitle => 'Morphology';
+
+  @override
+  String get searchKeyboardTitle => 'Greek and Hebrew keyboard';
+
+  @override
+  String get searchKeyboardGreek => 'Greek';
+
+  @override
+  String get searchKeyboardHebrew => 'Hebrew';
+
+  @override
+  String get searchKeyboardHint => 'Tap a letter to insert it into the search.';
+
+  @override
+  String get searchKeyboardBackspace => 'Delete a letter';
 
   @override
   String get searchFilterType => 'Type';

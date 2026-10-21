@@ -35,6 +35,7 @@ String resourceTypeLabel(String type, {String lang = 'es'}) => switch (type) {
   'encyclopedia' => lang == 'en' ? 'Encyclopedia' : 'Enciclopedia',
   'factbook' => lang == 'en' ? 'Articles' : 'Artículos',
   'devotional' => lang == 'en' ? 'Devotional' : 'Devocional',
+  'morphology' => lang == 'en' ? 'Morphology' : 'Morfología',
   'dataset' => lang == 'en' ? 'Dataset' : 'Datos',
   'guide' => lang == 'en' ? 'Guide' : 'Guía',
   'workflow' => lang == 'en' ? 'Workflow' : 'Flujo de trabajo',
@@ -200,6 +201,7 @@ class SearchHit {
     this.abbrev,
     this.resourceType = 'bible',
     this.locked = false,
+    this.detail,
   });
 
   final String resourceId;
@@ -223,6 +225,10 @@ class SearchHit {
   /// Fragmento con las coincidencias entre `<em>…</em>`.
   final String snippet;
 
+  /// Texto completo para paneles que no deben mostrar el fragmento recortado
+  /// (por ejemplo, la descripción de un código de morfología).
+  final String? detail;
+
   final bool locked;
 
   static SearchHit fromJson(Map<String, dynamic> json) => SearchHit(
@@ -238,6 +244,7 @@ class SearchHit {
     ref: json['ref'] as String? ?? '',
     citation: json['citation'] as String? ?? '',
     snippet: json['snippet'] as String? ?? '',
+    detail: json['detail'] as String?,
     locked: json['locked'] as bool? ?? false,
   );
 }
@@ -302,7 +309,8 @@ class CrossReference {
   );
 }
 
-/// Ámbitos de búsqueda de la UI (todo, Biblia, libros y Temas).
+/// Ámbitos de búsqueda de la UI (todo, Biblia, libros, Temas, Morfología,
+/// Multimedia y Mapas).
 class SearchScope {
   const SearchScope(this.id, this.label, {this.enabled = true, this.note});
 
@@ -319,9 +327,9 @@ class SearchScope {
     bible,
     books,
     SearchScope('factbook', 'Temas'),
-    SearchScope('morph', 'Morfología', enabled: false, note: 'M6'),
-    SearchScope('media', 'Multimedia', enabled: false, note: 'M5'),
-    SearchScope('maps', 'Mapas', enabled: false, note: 'M5'),
+    SearchScope('morph', 'Morfología'),
+    SearchScope('media', 'Multimedia'),
+    SearchScope('maps', 'Mapas'),
   ];
 
   /// Etiqueta en el idioma de la interfaz.

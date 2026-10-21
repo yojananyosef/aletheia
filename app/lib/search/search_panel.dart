@@ -34,6 +34,7 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
   static const _pageSize = 20;
 
   late final TextEditingController _controller;
+  late final FocusNode _focusNode;
 
   String _scope = SearchScope.all.id;
   String? _typeFilter;
@@ -49,6 +50,7 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.tab.query ?? '');
+    _focusNode = FocusNode();
     final query = widget.tab.query?.trim();
     if (query != null && query.isNotEmpty) _run(query, page: 1);
   }
@@ -56,6 +58,7 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -68,6 +71,8 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
     final trimmed = query?.trim();
     if (trimmed != null && trimmed.isNotEmpty) {
       _run(trimmed, page: 1);
+    } else if (_supportsEmptyScope) {
+      _run('', page: 1);
     } else {
       setState(() {
         _result = null;
@@ -179,9 +184,20 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
     _rerun();
   }
 
+  bool get _supportsEmptyScope =>
+      _scope == 'morph' || _scope == 'maps' || _scope == 'media';
+
   void _rerun() {
-    final query = widget.tab.query?.trim();
-    if (query != null && query.isNotEmpty) _run(query, page: 1);
+    final query = widget.tab.query?.trim() ?? '';
+    if (query.isNotEmpty || _supportsEmptyScope) {
+      _run(query, page: 1);
+      return;
+    }
+    setState(() {
+      _result = null;
+      _error = null;
+      _loading = false;
+    });
   }
 
   void _historyGo(int index) {
@@ -195,6 +211,10 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
   }
 
   void _openHit(SearchHit hit) {
+    if (hit.resourceType == 'morphology') {
+      _showMorphologyHit(hit);
+      return;
+    }
     final ctrl = ref.read(workspaceProvider.notifier);
     final kind = switch (hit.resourceType) {
       'factbook' => PanelKind.factbook,
@@ -221,6 +241,73 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
         resourceType: hit.resourceType,
       ),
     );
+  }
+
+  void _showMorphologyHit(SearchHit hit) {
+    final l10n = context.l10n;
+    final description =
+        hit.detail ?? hit.snippet.replaceAll(RegExp(r'</?em>'), '');
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          l10n.searchMorphologyTitle,
+          style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600),
+        ),
+        content: SizedBox(
+          width: 440,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SelectableText(
+                  hit.citation,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'monospace',
+                    color: kAccentDark,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  description.isEmpty ? hit.snippet : description,
+                  style: const TextStyle(fontSize: 13, height: 1.5),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.close),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _insertText(String value) {
+    final text = _controller.text;
+    final selection = _controller.selection;
+    final start = selection.start >= 0 ? selection.start : text.length;
+    final end = selection.end >= 0 ? selection.end : start;
+    final updated = text.replaceRange(start, end, value);
+    _controller.value = TextEditingValue(
+      text: updated,
+      selection: TextSelection.collapsed(offset: start + value.length),
+    );
+  }
+
+  Future<void> _showKeyboard() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) =>
+          _ScriptKeyboardDialog(controller: _controller, onInsert: _insertText),
+    );
+    if (mounted) _focusNode.requestFocus();
   }
 
   void _showSyntaxHelp() {
@@ -254,6 +341,10 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
               _SyntaxRow(
                 example: 'Verbo NEAR principio',
                 meaning: l10n.searchSyntaxNearNote,
+              ),
+              _SyntaxRow(
+                example: 'principio BEFORE Verbo',
+                meaning: l10n.searchSyntaxBeforeNote,
               ),
               _SyntaxRow(
                 example: 'bible:"Jn 3" type:factbook',
@@ -323,6 +414,7 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
     Widget field({bool dense = false}) => TextField(
       key: const ValueKey('search-field'),
       controller: _controller,
+      focusNode: _focusNode,
       onSubmitted: (_) => _submit(),
       style: const TextStyle(fontSize: 13),
       decoration: InputDecoration(
@@ -402,6 +494,14 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
       ],
     );
 
+    Widget keyboard() => IconButton(
+      key: const ValueKey('search-keyboard'),
+      iconSize: 19,
+      tooltip: l10n.searchKeyboardTitle,
+      onPressed: _showKeyboard,
+      icon: const Icon(Icons.keyboard_outlined),
+    );
+
     Widget help() => IconButton(
       key: const ValueKey('search-help'),
       iconSize: 19,
@@ -432,6 +532,7 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
                     forward(),
                     const Spacer(),
                     historyButton(),
+                    keyboard(),
                     help(),
                   ],
                 ),
@@ -451,6 +552,7 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
               Expanded(child: field()),
               const SizedBox(width: 6),
               historyButton(),
+              keyboard(),
               help(),
             ],
           ),
@@ -882,8 +984,12 @@ class _ResourceGroupHeader extends StatelessWidget {
     final icon = switch (hit.resourceType) {
       'factbook' => Icons.menu_book_outlined,
       'devotional' => Icons.wb_twilight,
+      'morphology' => Icons.account_tree_outlined,
       _ => Icons.auto_stories_outlined,
     };
+    final title = hit.resourceType == 'morphology'
+        ? context.l10n.searchMorphologyTitle
+        : hit.resourceTitle;
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
       child: Row(
@@ -892,7 +998,7 @@ class _ResourceGroupHeader extends StatelessWidget {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              hit.resourceTitle,
+              title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -1090,6 +1196,304 @@ class _SyntaxRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+const _greekCharacters = <String>[
+  'α',
+  'β',
+  'γ',
+  'δ',
+  'ε',
+  'ζ',
+  'η',
+  'θ',
+  'ι',
+  'κ',
+  'λ',
+  'μ',
+  'ν',
+  'ξ',
+  'ο',
+  'π',
+  'ρ',
+  'σ',
+  'ς',
+  'τ',
+  'υ',
+  'φ',
+  'χ',
+  'ψ',
+  'ω',
+  'ά',
+  'έ',
+  'ή',
+  'ί',
+  'ό',
+  'ύ',
+  'ώ',
+  'ϊ',
+  'ϋ',
+  'Α',
+  'Β',
+  'Γ',
+  'Δ',
+  'Ε',
+  'Ζ',
+  'Η',
+  'Θ',
+  'Ι',
+  'Κ',
+  'Λ',
+  'Μ',
+  'Ν',
+  'Ξ',
+  'Ο',
+  'Π',
+  'Ρ',
+  'Σ',
+  'Τ',
+  'Υ',
+  'Φ',
+  'Χ',
+  'Ψ',
+  'Ω',
+];
+
+const _hebrewCharacters = <String>[
+  'א',
+  'ב',
+  'ג',
+  'ד',
+  'ה',
+  'ו',
+  'ז',
+  'ח',
+  'ט',
+  'י',
+  'כ',
+  'ך',
+  'ל',
+  'מ',
+  'ם',
+  'נ',
+  'ן',
+  'ס',
+  'ע',
+  'פ',
+  'ף',
+  'צ',
+  'ץ',
+  'ק',
+  'ר',
+  'ש',
+  'ת',
+];
+
+class _ScriptKeyboardDialog extends StatefulWidget {
+  const _ScriptKeyboardDialog({
+    required this.controller,
+    required this.onInsert,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onInsert;
+
+  @override
+  State<_ScriptKeyboardDialog> createState() => _ScriptKeyboardDialogState();
+}
+
+class _ScriptKeyboardDialogState extends State<_ScriptKeyboardDialog> {
+  var _tab = 0;
+
+  void _backspace() {
+    final text = widget.controller.text;
+    final selection = widget.controller.selection;
+    final start = selection.start >= 0 ? selection.start : text.length;
+    final end = selection.end >= 0 ? selection.end : start;
+    if (start == end) {
+      if (start == 0) return;
+      widget.controller.value = TextEditingValue(
+        text: text.replaceRange(start - 1, start, ''),
+        selection: TextSelection.collapsed(offset: start - 1),
+      );
+      return;
+    }
+    widget.controller.value = TextEditingValue(
+      text: text.replaceRange(start, end, ''),
+      selection: TextSelection.collapsed(offset: start),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(
+        l10n.searchKeyboardTitle,
+        style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600),
+      ),
+      content: SizedBox(
+        width: 440,
+        height: 360,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    key: const ValueKey('search-keyboard-greek'),
+                    onPressed: () => setState(() => _tab = 0),
+                    style: TextButton.styleFrom(
+                      foregroundColor: _tab == 0 ? kAccent : kTextSecondary,
+                      backgroundColor: _tab == 0
+                          ? kAccent.withValues(alpha: 0.07)
+                          : null,
+                      shape: const RoundedRectangleBorder(),
+                    ),
+                    child: Text(
+                      l10n.searchKeyboardGreek,
+                      style: TextStyle(
+                        fontWeight: _tab == 0
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: TextButton(
+                    key: const ValueKey('search-keyboard-hebrew'),
+                    onPressed: () => setState(() => _tab = 1),
+                    style: TextButton.styleFrom(
+                      foregroundColor: _tab == 1 ? kAccent : kTextSecondary,
+                      backgroundColor: _tab == 1
+                          ? kAccent.withValues(alpha: 0.07)
+                          : null,
+                      shape: const RoundedRectangleBorder(),
+                    ),
+                    child: Text(
+                      l10n.searchKeyboardHebrew,
+                      style: TextStyle(
+                        fontWeight: _tab == 1
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: IndexedStack(
+                index: _tab,
+                children: [
+                  _CharacterGrid(
+                    characters: _greekCharacters,
+                    onInsert: widget.onInsert,
+                  ),
+                  Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: _CharacterGrid(
+                      characters: _hebrewCharacters,
+                      onInsert: widget.onInsert,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: widget.controller,
+                    builder: (context, value, child) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: kBorder),
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      child: Text(
+                        value.text.isEmpty
+                            ? l10n.searchKeyboardHint
+                            : value.text,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: value.text.isEmpty
+                              ? kTextSecondary
+                              : kTextPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  key: const ValueKey('search-keyboard-backspace'),
+                  tooltip: l10n.searchKeyboardBackspace,
+                  iconSize: 18,
+                  onPressed: _backspace,
+                  icon: const Icon(Icons.backspace_outlined),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.close),
+        ),
+      ],
+    );
+  }
+}
+
+class _CharacterGrid extends StatelessWidget {
+  const _CharacterGrid({required this.characters, required this.onInsert});
+
+  final List<String> characters;
+  final ValueChanged<String> onInsert;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 8,
+        mainAxisExtent: 36,
+        crossAxisSpacing: 3,
+        mainAxisSpacing: 3,
+      ),
+      itemCount: characters.length,
+      itemBuilder: (context, index) {
+        final character = characters[index];
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(6),
+            onTap: () => onInsert(character),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: kBorder),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Center(
+                child: Text(character, style: const TextStyle(fontSize: 17)),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -2,7 +2,7 @@
 
 Aplicación Flutter **para escritorio y web** de Aletheia, con catálogo de recursos desacoplado.
 
-- **Estado:** M1 (lector) completado — además de M0 (shell + workspace de tiles/pestañas + omnibox + persistencia con layout adaptativo): lector real de la RV1909 con índice, historial, caja de referencia, notas al pie y cross-refs.
+- **Estado:** M0–M6 completados y build web publicado. Incluye lector, catálogo local/remoto, búsqueda FTS5 con ámbitos de estudio, morfología, mapas, notas, comparación, Factbook, devocional, herramientas y persistencia.
 - **Requisitos:** Flutter 3.47+ (instalado en `~/.local/share/flutter`), y para Linux desktop:
   `clang cmake ninja pkgconf gtk3` (cmake/ninja vía mise: `mise use -g cmake ninja`).
 
@@ -23,13 +23,14 @@ flutter run -d chrome
 
 ## Web
 
-- **Compilación ligera:** `bash tool/build_web_release.sh`. Genera un `pubspec.yaml` temporal con solo mapas, `index.json`, RV1909 y morfología; el resto del catálogo se descarga de [`aletheia-mods`](https://github.com/yojananyosef/aletheia-mods). El resultado queda en `build/web`.
+- **Compilación ligera:** `bash tool/build_web_release.sh`. Genera un `pubspec.yaml` temporal con solo mapas, `index.json`, `search.meta.json`, `map_sections.json`, RV1909 y morfología; el resto del catálogo se descarga de [`aletheia-mods`](https://github.com/yojananyosef/aletheia-mods). El resultado queda en `build/web`.
 - **Despliegue:** el workflow de la raíz, `.github/workflows/pages.yml`, publica el build en GitHub Pages en cada push a `main`.
 - **SQLite:** `web/sqlite3.wasm` (757.984 bytes) procede del release `sqlite3-3.7.1`; no se descarga en tiempo de ejecución.
 - **Persistencia:** workspace y notas en IndexedDB (`aletheia_app`). El índice FTS5 se descarga comprimido, se descomprime en memoria al buscar por primera vez y queda en la caché del service worker.
 - **Catálogo:** `lib/catalog/mods_catalog_source.dart` descarga los recursos con progreso y cancelación; `lib/catalog/catalog_asset_source.dart` abstrae assets y HTTP con respaldo local de RV1909/metadatos. En web, el modo `auto` usa el catálogo remoto y cae al núcleo empaquetado si no hay red.
-- **PWA/offline:** `web/sw.js` se activa en cuanto el navegador lo registra (≈0,5 s local; 5–8 s desde la navegación en producción, porque el registro ocurre tras cargar el shell). Precarga en segundo plano 97 archivos (20,4 MB) del shell esencial y cachea el catálogo. Se omiten los renderizadores opcionales (`skwasm`, `wimp`, `webparagraph`), que no usa el build. Tras la primera visita, recargar sin red mantiene la búsqueda y los libros ya descargados.
-- **Limitación:** la primera búsqueda sigue descargando ~48,8 MB y necesita ~190-250 MB de heap. En la URL publicada tardó ~10,5 s en escritorio y ~11,3 s en Chromium emulando un iPhone 13 (heap ~196 MB) el 2026-10-21; la recarga offline fue correcta en ambos. Safari/WebKit real sigue pendiente: el WebKit de Playwright no arranca en este entorno por dependencias del sistema.
+- **PWA/offline:** `web/sw.js` se activa en cuanto el navegador lo registra (≈0,5 s local; 5–8 s desde la navegación en producción, porque el registro ocurre tras cargar el shell). Precarga en segundo plano 98 archivos (20,4 MB) del shell esencial y cachea el catálogo. Se omiten los renderizadores opcionales (`skwasm`, `wimp`, `webparagraph`), que no usa el build. Tras la primera visita, recargar sin red mantiene la búsqueda y los libros ya descargados.
+- **Búsqueda:** `BEFORE` se resuelve en el índice local (los términos deben aparecer en orden). Los ámbitos **Morfología**, **Multimedia** y **Mapas** usan `morphology.json` y `map_sections.json` y no descargan `search.sqlite.gz`; el teclado griego/hebreo inserta letras en la consulta. En la prueba en Chromium, `Vqp3ms` devolvió 21 códigos, Mapas listó 23 entradas y `principio BEFORE Verbo` devolvió 4 resultados (incluido Juan 1:1).
+- **Limitación:** la primera búsqueda FTS sigue descargando ~48,8 MB y necesita ~190-250 MB de heap. En la URL publicada tardó ~10,5 s en escritorio y ~11,3 s en Chromium emulando un iPhone 13 (heap ~196 MB) el 2026-10-21; la recarga offline fue correcta en ambos. Safari/WebKit real sigue pendiente: el WebKit de Playwright no arranca en este entorno por dependencias del sistema.
 
 ## Estructura (M1)
 
@@ -75,9 +76,7 @@ evaluados sobre el ancho de **ventana** (no hardware):
 
 ## Pruebas
 
-- `flutter test` — pruebas unitarias y de widgets (guía `flutter-add-widget-test`): parser de referencias,
-  layout de tiles y **ausencia de overflow** con ventanas de 320 a 1532 px, repositorio de documentos
-  (conteos y textos de la RV1909) y lector (navegación, índice, historial, steppers, notas/xrefs sintéticas).
+- `flutter test` — **156 pruebas** unitarias y de widgets (guía `flutter-add-widget-test`): parser de referencias y sintaxis FTS (`BEFORE`), layout de tiles y **ausencia de overflow** con ventanas de 320 a 1532 px, repositorio de documentos, lector, teclado griego/hebreo, ámbitos de búsqueda, morfología y mapas.
 - `flutter test integration_test -d linux` — prueba de integración sobre el binario real
   (guía `flutter-add-integration-test`): arranca la app completa (assets, `path_provider`,
   persistencia) y comprueba que el workspace se restaura en un segundo arranque
@@ -86,7 +85,7 @@ evaluados sobre el ancho de **ventana** (no hardware):
   reconstruir con `flutter build linux --debug` para relanzar la app.
 - `flutter test test/reader_screens.dart` — herramienta de desarrollo: capturas PNG del lector
   (inicio, índice, historial) en `/tmp/opencode/reader-*.png` para revisión visual.
-- **Web:** no se usa `flutter test --platform chrome` porque el harness no sirve bien los assets del catálogo. La comprobación se hace en Chromium contra `build/web` servido bajo `/aletheia/`: arranque, lector, búsqueda FTS5 remota (`principio` → 436 resultados), apertura de `bll/books/ISA.json.gz`, cancelación/reintento del índice, service worker, recarga offline y consola sin errores.
+- **Web:** no se usa `flutter test --platform chrome` porque el harness no sirve bien los assets del catálogo. La comprobación se hace en Chromium contra `build/web` servido bajo `/aletheia/`: arranque, lector, búsqueda FTS5 remota (`principio` → 436 resultados), `principio BEFORE Verbo` → 4 resultados, morfología sin índice, mapas sin índice, teclado griego/hebreo, apertura de `bll/books/ISA.json.gz`, cancelación/reintento del índice, service worker, recarga offline y consola sin errores.
 
 ## Funcionalidad M1 (lector)
 

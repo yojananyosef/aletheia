@@ -580,6 +580,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get searchSyntaxWithinNote => 'a menos de 5 palabras de distancia';
 
   @override
+  String get searchSyntaxBeforeNote => 'un término aparece antes que el otro';
+
+  @override
   String get searchSyntaxNearNote => 'a menos de 10 palabras (NEAR/5 para 5)';
 
   @override
@@ -589,6 +592,25 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get searchSyntaxNote =>
       'La búsqueda es insensible a mayúsculas y acentos. Combina la sintaxis con los filtros de tipo, idioma y libro; los resultados se agrupan por recurso.';
+
+  @override
+  String get searchMorphologyTitle => 'Morfología';
+
+  @override
+  String get searchKeyboardTitle => 'Teclado griego y hebreo';
+
+  @override
+  String get searchKeyboardGreek => 'Griego';
+
+  @override
+  String get searchKeyboardHebrew => 'Hebreo';
+
+  @override
+  String get searchKeyboardHint =>
+      'Toca una letra para insertarla en la búsqueda.';
+
+  @override
+  String get searchKeyboardBackspace => 'Borrar una letra';
 
   @override
   String get searchFilterType => 'Tipo';

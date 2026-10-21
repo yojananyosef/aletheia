@@ -8,6 +8,8 @@
 /// - palabras sueltas (AND implícito) y `"frases"`;
 /// - `AND`, `OR`, `NOT`;
 /// - `NEAR` (distancia 10) y `NEAR/5` (distancia explícita);
+/// - `BEFORE` (un término aparece antes que otro en el mismo texto; solo
+///   índice local, el servicio remoto no lo implementa);
 /// - `WITHIN n WORDS` (se convierte en `NEAR(..., n)`);
 /// - campos `bible:"Jn 3"`, `book:JHN`, `type:factbook`, `language:es` y
 ///   `resource:bible.kjv`.
@@ -23,7 +25,7 @@ const _operators = {'AND', 'OR', 'NOT'};
 const _keywords = {'WITHIN', 'WORDS'};
 const _fieldNames = {'bible', 'book', 'type', 'language', 'resource'};
 
-enum _TokenKind { word, phrase, op, num, kw, near }
+enum _TokenKind { word, phrase, op, num, kw, near, before }
 
 class _Token {
   const _Token(this.kind, this.value);
@@ -48,10 +50,18 @@ class LocalBibleFilter {
 }
 
 /// Consulta local ya separada en texto FTS y filtros de estudio.
+class LocalBeforeConstraint {
+  const LocalBeforeConstraint(this.left, this.right);
+
+  final String left;
+  final String right;
+}
+
 class LocalSearchQuery {
   const LocalSearchQuery({
     required this.text,
     required this.expression,
+    this.before = const [],
     this.bible,
     this.book,
     this.type,
@@ -63,6 +73,9 @@ class LocalSearchQuery {
 
   /// Expresión MATCH; `null` cuando la consulta solo tiene filtros.
   final String? expression;
+
+  /// Restricciones `A BEFORE B`, que se aplican sobre el texto del hit.
+  final List<LocalBeforeConstraint> before;
 
   final LocalBibleFilter? bible;
   final String? book;
@@ -93,6 +106,8 @@ List<_Token> _tokenize(String query) {
         ? _TokenKind.op
         : near != null
         ? _TokenKind.near
+        : upper == 'BEFORE'
+        ? _TokenKind.before
         : _keywords.contains(upper)
         ? _TokenKind.kw
         : RegExp(r'^[0-9]+$').hasMatch(word)
@@ -148,12 +163,28 @@ String _term(_Token token) {
   return _quoted(token.value);
 }
 
-String _buildExpression(List<_Token> tokens) {
+class _BuiltExpression {
+  const _BuiltExpression(this.expression, this.before);
+
+  final String expression;
+  final List<LocalBeforeConstraint> before;
+}
+
+bool _isTerm(_Token token) =>
+    token.kind == _TokenKind.word ||
+    token.kind == _TokenKind.phrase ||
+    token.kind == _TokenKind.num;
+
+_BuiltExpression _buildExpression(List<_Token> tokens) {
   if (tokens.isEmpty) {
     throw CatalogException('consulta vacía');
   }
 
   final out = <String>[];
+  // Valor crudo del operando simple de cada salida; `null` para operadores y
+  // expresiones compuestas. BEFORE solo se aplica a términos simples.
+  final rawOperands = <String?>[];
+  final before = <LocalBeforeConstraint>[];
   var i = 0;
   while (i < tokens.length) {
     final token = tokens[i];
@@ -173,7 +204,9 @@ String _buildExpression(List<_Token> tokens) {
         throw CatalogException('WITHIN necesita «WITHIN n WORDS término»');
       }
       final left = out.removeLast();
+      rawOperands.removeLast();
       out.add('NEAR($left ${_term(right)}, ${number.value})');
+      rawOperands.add(null);
       i += 4;
       continue;
     }
@@ -186,13 +219,38 @@ String _buildExpression(List<_Token> tokens) {
         throw CatalogException('NEAR necesita un término a la derecha');
       }
       final right = tokens[i + 1];
-      if (right.kind != _TokenKind.word &&
-          right.kind != _TokenKind.phrase &&
-          right.kind != _TokenKind.num) {
+      if (!_isTerm(right)) {
         throw CatalogException('NEAR necesita un término a la derecha');
       }
       final left = out.removeLast();
+      rawOperands.removeLast();
       out.add('NEAR($left ${_term(right)}, ${token.value})');
+      rawOperands.add(null);
+      i += 2;
+      continue;
+    }
+
+    if (token.kind == _TokenKind.before) {
+      if (out.isEmpty) {
+        throw CatalogException('BEFORE necesita un término delante');
+      }
+      if (i + 1 >= tokens.length) {
+        throw CatalogException('BEFORE necesita un término a la derecha');
+      }
+      final right = tokens[i + 1];
+      if (!_isTerm(right)) {
+        throw CatalogException('BEFORE necesita un término a la derecha');
+      }
+      final leftRaw = rawOperands.removeLast();
+      if (leftRaw == null) {
+        throw CatalogException(
+          'BEFORE necesita un término simple a la izquierda',
+        );
+      }
+      final left = out.removeLast();
+      out.add('$left AND ${_term(right)}');
+      rawOperands.add(null);
+      before.add(LocalBeforeConstraint(leftRaw, right.value));
       i += 2;
       continue;
     }
@@ -202,10 +260,12 @@ String _buildExpression(List<_Token> tokens) {
         throw CatalogException('«${token.value}» no puede ir al principio');
       }
       out.add(token.value);
+      rawOperands.add(null);
     } else if (token.kind == _TokenKind.kw) {
       throw CatalogException('palabra clave inesperada: ${token.value}');
     } else {
       out.add(_term(token));
+      rawOperands.add(token.value);
     }
     i++;
   }
@@ -213,12 +273,12 @@ String _buildExpression(List<_Token> tokens) {
   if (out.isNotEmpty && _operators.contains(out.last)) {
     throw CatalogException('la consulta no puede terminar en operador');
   }
-  return out.join(' ');
+  return _BuiltExpression(out.join(' '), before);
 }
 
 /// Convierte la consulta del usuario en una expresión MATCH de FTS5.
 String buildLocalFtsExpression(String query) =>
-    _buildExpression(_tokenize(query));
+    _buildExpression(_tokenize(query)).expression;
 
 bool _isFieldStart(String ch) => RegExp(r'[A-Za-z_]').hasMatch(ch);
 
@@ -332,9 +392,12 @@ LocalSearchQuery parseLocalSearchQuery(
     }
   }
 
+  final built = tokens.isEmpty ? null : _buildExpression(tokens);
+
   return LocalSearchQuery(
     text: text,
-    expression: tokens.isEmpty ? null : _buildExpression(tokens),
+    expression: built?.expression,
+    before: built?.before ?? const [],
     bible: bible,
     book: book,
     type: fields['type'],

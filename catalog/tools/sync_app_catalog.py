@@ -12,6 +12,7 @@ Toma `catalog/data/` (creado por `build_catalog.py` y `seed_m5.py`) y deja en
   <recurso>/sections/*.json  cuerpo de comentario y diccionario
   search.sqlite.gz           índice FTS5 comprimido (búsqueda sin servicio)
   search.meta.json           hash y tamaño para extraer/verificar el índice
+  map_sections.json          secciones con mapas y contenido visual
 
 El nombre del archivo extraído en tiempo de ejecución incluye el hash del
 índice: al cambiar el catálogo, la app no reutiliza una copia vieja.
@@ -131,6 +132,62 @@ def copy_resource(resource_id: str, base: Path, manifest: dict) -> Path:
     return dest
 
 
+def write_media_manifest(resources: list[tuple[dict, Path]]) -> None:
+    """Registra las secciones con mapas u otros bloques visuales.
+
+    La búsqueda por ámbitos Mapas/Multimedia no necesita consultar el índice
+    FTS: usa este manifiesto pequeño para listar y filtrar títulos y pies de
+    mapa, y luego abre la sección real del Factbook o del comentario.
+    """
+    maps: list[dict] = []
+    media: list[dict] = []
+    visual_types = {"map", "image", "video", "audio", "gallery", "media"}
+    for manifest, dest in resources:
+        if manifest.get("type") not in {
+            "factbook",
+            "commentary",
+            "devotional",
+            "dictionary",
+            "encyclopedia",
+        }:
+            continue
+        index_path = dest / "sections.json.gz"
+        if not index_path.exists():
+            continue
+        sections = json.loads(gzip.decompress(index_path.read_bytes()))
+        for section in sections:
+            section_id = section.get("id")
+            if not isinstance(section_id, str) or not section_id:
+                continue
+            blocks = section.get("blocks")
+            if blocks is None:
+                body = dest / "sections" / f"{section_id}.json"
+                if not body.exists():
+                    continue
+                blocks = read_json(body).get("blocks", [])
+            types = {block.get("type") for block in blocks or []}
+            if not types.intersection(visual_types):
+                continue
+            for block in blocks or []:
+                if block.get("type") not in visual_types:
+                    continue
+                entry = {
+                    "resource": manifest["id"],
+                    "resourceTitle": manifest.get("title", ""),
+                    "section": section_id,
+                    "title": block.get("title") or section.get("title", ""),
+                    "caption": block.get("caption", ""),
+                    "kind": block.get("type"),
+                }
+                if block.get("type") == "map":
+                    maps.append(entry)
+                media.append(entry)
+    maps.sort(key=lambda entry: (entry["resource"], entry["section"]))
+    media.sort(key=lambda entry: (entry["resource"], entry["section"]))
+    write_json(ASSETS / "map_sections.json", {"maps": maps, "media": media})
+    print(f"· multimedia: {len(maps)} mapas, {len(media)} bloques visuales")
+
+
 def main() -> int:
     catalog_path = DATA / "catalog.json"
     index_path = DATA / "index" / "search.sqlite"
@@ -144,12 +201,14 @@ def main() -> int:
     entries = read_json(catalog_path)["resources"]
     summaries = []
     manifests = []
+    synced = []
     for entry in entries:
         base = DATA / entry["path"]
         manifest = read_json(base / "manifest.json")
         resource_id = manifest["id"]
         manifests.append(manifest)
-        copy_resource(resource_id, base, manifest)
+        dest = copy_resource(resource_id, base, manifest)
+        synced.append((manifest, dest))
         summaries.append(summary(manifest))
         print(
             f"· {resource_id}: {manifest.get('stats', {}).get('books', 0)} libros, "
@@ -161,6 +220,7 @@ def main() -> int:
         shutil.copyfile(morph, ASSETS / "morphology.json")
 
     write_json(ASSETS / "index.json", summaries)
+    write_media_manifest(synced)
 
     # Reconstruye el índice con todos los recursos (Biblias + Factbook +
     # devocional) para no depender de que el último build haya incluido M5.

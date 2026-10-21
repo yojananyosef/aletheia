@@ -209,6 +209,19 @@ void main() {
     expect(near5.total, greaterThan(0));
     expect(near5.hits.map((hit) => hit.ref), contains('JHN.1.1'));
 
+    final before = await gateway.search(
+      query: 'principio BEFORE Verbo',
+      scope: 'bible',
+    );
+    expect(before.total, greaterThan(0));
+    expect(before.hits.map((hit) => hit.ref), contains('JHN.1.1'));
+
+    final reversed = await gateway.search(
+      query: 'Verbo BEFORE principio',
+      scope: 'bible',
+    );
+    expect(reversed.hits.map((hit) => hit.ref), isNot(contains('JHN.1.1')));
+
     final passage = await gateway.search(query: 'bible:"Jn 3"');
     expect(passage.total, greaterThan(0));
     expect(
@@ -240,6 +253,41 @@ void main() {
     final john = await gateway.search(query: 'principio', book: 'JHN');
     expect(john.total, greaterThan(0));
     expect(john.hits.every((hit) => hit.book == 'JHN'), isTrue);
+  });
+
+  test('los ámbitos Morfología, Mapas y Multimedia usan datos locales', () async {
+    final morphology = await gateway.search(
+      query: 'Vqp3ms',
+      scope: 'morph',
+    );
+    expect(morphology.total, greaterThan(0));
+    expect(
+      morphology.hits.every((hit) => hit.resourceType == 'morphology'),
+      isTrue,
+    );
+    expect(morphology.hits.first.citation, contains('Vqp3ms'));
+    expect(morphology.hits.first.detail, isNotEmpty);
+
+    final allMorphology = await gateway.search(query: '', scope: 'morph');
+    expect(allMorphology.total, greaterThan(4000));
+
+    final maps = await gateway.search(query: '', scope: 'maps');
+    expect(maps.total, 23);
+    expect(
+      maps.hits.map((hit) => hit.resourceType).toSet(),
+      containsAll(['factbook', 'commentary']),
+    );
+
+    final jerusalem = await gateway.search(query: 'Jerusalén', scope: 'maps');
+    expect(jerusalem.total, greaterThan(0));
+    expect(
+      jerusalem.hits.any((hit) => hit.citation.contains('Jerusalén')),
+      isTrue,
+    );
+
+    final media = await gateway.search(query: '', scope: 'media');
+    expect(media.total, 23);
+    expect(media.hits.every((hit) => hit.abbrev == 'MEDIA'), isTrue);
   });
 
   test('las facetas de búsqueda cuentan tipos, idiomas y libros', () async {
@@ -331,7 +379,7 @@ void main() {
         ),
       );
       await expectLater(
-        gateway.search(query: 'Dios', scope: 'morph'),
+        gateway.search(query: 'Dios', scope: 'desconocido'),
         throwsA(
           isA<CatalogException>().having(
             (error) => error.message,

@@ -121,13 +121,13 @@ Inline = Text | VerseNumber(n) | FootnoteMarker(id) | CrossRefMarker(ref,target)
 
 ## 5. Búsqueda
 
-- Parser de sintaxis de estudio (palabras, frases, `AND/OR/NOT`, `NEAR`, `WITHIN n WORDS`, campos `bible:`/`book:`/`type:`/`language:`/`resource:`; `BEFORE` y morfología pendientes).
+- Parser de sintaxis de estudio (palabras, frases, `AND/OR/NOT`, `NEAR`, `WITHIN n WORDS`, `BEFORE` local, campos `bible:`/`book:`/`type:`/`language:`/`resource:`).
 - Backend: FTS5 en el servicio de catálogo **y en el índice local empaquetado**;
   respuesta con `resourceId, ref, citation, snippet` (los `offset/textRanges`
   del borrador se sustituyen por `ref` — ver `03` §7). La sintaxis se replica en
   `lib/catalog/local_search_query.dart`; el modo `auto` cae al índice local si
   el servicio no responde.
-- UI: scopes (Todo/Biblia/Libros/Temas; morfología, multimedia y mapas siguen deshabilitados), filtros de tipo/idioma/libro con facetas, ayuda de sintaxis e historial. Los resultados se agrupan por recurso; un hit bíblico abre el versículo, Factbook/devocional abre su sección y comentario/diccionario abre `CatalogResourcePanel` en la entrada.
+- UI: scopes (Todo/Biblia/Libros/Temas/Morfología/Multimedia/Mapas), filtros de tipo/idioma/libro con facetas, ayuda de sintaxis, historial y teclado griego/hebreo. Los resultados se agrupan por recurso; un hit bíblico abre el versículo, Factbook/devocional abre su sección, comentario/diccionario abre `CatalogResourcePanel` y morfología muestra el código y su descripción. Morfología y Mapas/Multimedia no abren el índice FTS: usan `morphology.json` y `map_sections.json`.
 - **Búsqueda dentro del panel** (`resource=`): cada panel busca solo en su versión; reutiliza el mismo render de resultados (`SearchHitTile`/`SnippetText` en `lib/search/`) y el gateway con respaldo local.
 - Placeholder para proveedores IA (Synopsis/Smart search) como plugins.
 

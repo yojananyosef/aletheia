@@ -11,9 +11,10 @@
 library;
 
 import 'dart:async' show unawaited;
+import 'dart:convert' show jsonDecode;
 import 'dart:math' show max, min;
 
-import 'package:flutter/services.dart' show AssetBundle;
+import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 import 'package:sqlite3/common.dart';
 
 import '../references/reference_parser.dart'
@@ -51,6 +52,8 @@ class LocalCatalogIndex {
 
   Future<CommonDatabase>? _opening;
   CommonDatabase? _database;
+  Future<Map<String, String>>? _morphology;
+  Future<Map<String, List<Map<String, dynamic>>>>? _visualSections;
 
   Future<CommonDatabase> _db() {
     final existing = _opening;
@@ -149,6 +152,169 @@ class LocalCatalogIndex {
     return result;
   }
 
+  Future<Map<String, String>> _loadMorphology() {
+    final cached = _morphology;
+    if (cached != null) return cached;
+    final loading = () async {
+      try {
+        final text = await _source.loadText('assets/catalog/morphology.json');
+        final raw = jsonDecode(text) as Map<String, dynamic>;
+        return {
+          for (final entry in raw.entries)
+            if (entry.value is String) entry.key: entry.value as String,
+        };
+      } on Object {
+        return const <String, String>{};
+      }
+    }();
+    _morphology = loading;
+    return loading;
+  }
+
+  Future<Map<String, List<Map<String, dynamic>>>> _loadVisualSections() {
+    final cached = _visualSections;
+    if (cached != null) return cached;
+    final loading = () async {
+      try {
+        final text = await rootBundle.loadString(
+          'assets/catalog/map_sections.json',
+        );
+        final raw = jsonDecode(text) as Map<String, dynamic>;
+        return {
+          for (final key in const ['maps', 'media'])
+            key: [
+              for (final item in (raw[key] as List? ?? const []))
+                if (item is Map) Map<String, dynamic>.from(item),
+            ],
+        };
+      } on Object {
+        return const <String, List<Map<String, dynamic>>>{};
+      }
+    }();
+    _visualSections = loading;
+    return loading;
+  }
+
+  Future<SearchResult> _searchMorphology({
+    required String query,
+    required String text,
+    required int page,
+    required int pageSize,
+  }) async {
+    final safePage = max(page, 1);
+    final safePageSize = min(max(pageSize, 1), 100);
+    final terms = _queryTerms(text);
+    final entries = (await _loadMorphology()).entries.where((entry) {
+      final haystack = _fold('${entry.key} ${entry.value}');
+      return terms.every(haystack.contains);
+    }).toList()..sort((a, b) => a.key.compareTo(b.key));
+    final total = entries.length;
+    final start = (safePage - 1) * safePageSize;
+    final hits = <SearchHit>[];
+    for (final entry in entries.skip(start).take(safePageSize)) {
+      final description = entry.value;
+      hits.add(
+        SearchHit(
+          resourceId: 'morphology',
+          resourceTitle: 'Morfología',
+          resourceType: 'morphology',
+          abbrev: 'MORF',
+          sectionId: entry.key,
+          book: '',
+          bookName: entry.key,
+          chapter: 0,
+          verse: 0,
+          ref: entry.key,
+          citation: entry.key,
+          snippet: _highlightSnippet(
+            description.isEmpty ? entry.key : description,
+            terms,
+          ),
+          detail: description,
+        ),
+      );
+    }
+    return SearchResult(
+      query: query,
+      scope: 'morph',
+      total: total,
+      page: safePage,
+      pageSize: safePageSize,
+      hits: hits,
+      facets: const {},
+    );
+  }
+
+  Future<SearchResult> _searchVisual({
+    required String scope,
+    required String query,
+    required String text,
+    required int page,
+    required int pageSize,
+  }) async {
+    final safePage = max(page, 1);
+    final safePageSize = min(max(pageSize, 1), 100);
+    final terms = _queryTerms(text);
+    final all = (await _loadVisualSections())[scope] ?? const [];
+    final entries =
+        all.where((entry) {
+          if (entry['kind'] != 'map' && scope == 'maps') return false;
+          final haystack = _fold(
+            '${entry['title'] ?? ''} ${entry['caption'] ?? ''} '
+            '${entry['resourceTitle'] ?? ''} ${entry['section'] ?? ''}',
+          );
+          return terms.every(haystack.contains);
+        }).toList()..sort((a, b) {
+          final resource = (a['resource'] as String? ?? '').compareTo(
+            b['resource'] as String? ?? '',
+          );
+          if (resource != 0) return resource;
+          return (a['title'] as String? ?? '').compareTo(
+            b['title'] as String? ?? '',
+          );
+        });
+    final total = entries.length;
+    final start = (safePage - 1) * safePageSize;
+    final hits = <SearchHit>[];
+    for (final entry in entries.skip(start).take(safePageSize)) {
+      final resourceId = entry['resource'] as String? ?? '';
+      final section = entry['section'] as String? ?? '';
+      final title = entry['title'] as String? ?? section;
+      final caption = entry['caption'] as String? ?? '';
+      final type = resourceId.startsWith('commentary.')
+          ? 'commentary'
+          : resourceId.startsWith('factbook.')
+          ? 'factbook'
+          : 'document';
+      hits.add(
+        SearchHit(
+          resourceId: resourceId,
+          resourceTitle: entry['resourceTitle'] as String? ?? '',
+          resourceType: type,
+          abbrev: scope == 'maps' ? 'MAPA' : 'MEDIA',
+          sectionId: section,
+          book: '',
+          bookName: '',
+          chapter: 0,
+          verse: 0,
+          ref: section,
+          citation: title,
+          snippet: _highlightSnippet(caption.isEmpty ? title : caption, terms),
+          detail: caption,
+        ),
+      );
+    }
+    return SearchResult(
+      query: query,
+      scope: scope,
+      total: total,
+      page: safePage,
+      pageSize: safePageSize,
+      hits: hits,
+      facets: const {},
+    );
+  }
+
   /// Búsqueda con el mismo contrato y sintaxis que `GET /v1/search`.
   Future<SearchResult> search({
     required String query,
@@ -167,6 +333,23 @@ class LocalCatalogIndex {
         (book != null && book.isNotEmpty) ||
         (resource != null && resource.isNotEmpty);
     final parsed = parseLocalSearchQuery(query, allowEmpty: hasParamFilters);
+    if (scope == 'morph') {
+      return _searchMorphology(
+        query: query,
+        text: parsed.text,
+        page: page,
+        pageSize: pageSize,
+      );
+    }
+    if (scope == 'maps' || scope == 'media') {
+      return _searchVisual(
+        scope: scope,
+        query: query,
+        text: parsed.text,
+        page: page,
+        pageSize: pageSize,
+      );
+    }
     final expression = parsed.expression;
     final scopeSql = switch (scope) {
       'all' => '',
@@ -253,6 +436,27 @@ class LocalCatalogIndex {
         values.add(bible.verseEnd);
       }
       conditions.add(_SearchCondition('bible', parts.join(' AND '), values));
+    }
+
+    for (var i = 0; i < parsed.before.length; i++) {
+      final constraint = parsed.before[i];
+      // FTS5 no tiene un operador de orden, así que MATCH exige ambos
+      // términos y SQLite comprueba la posición en el texto original.
+      conditions.add(
+        _SearchCondition(
+          'before_$i',
+          'instr(lower(verses.text), lower(?)) > 0 AND '
+              'instr(lower(verses.text), lower(?)) > 0 AND '
+              'instr(lower(verses.text), lower(?)) < '
+              'instr(lower(verses.text), lower(?))',
+          [
+            constraint.left,
+            constraint.right,
+            constraint.left,
+            constraint.right,
+          ],
+        ),
+      );
     }
 
     if (conditions.isEmpty) {
@@ -363,6 +567,71 @@ class LocalCatalogIndex {
     _opening = null;
     db?.close();
   }
+}
+
+String _fold(String value) {
+  var text = value.toLowerCase();
+  const accents = {
+    'á': 'a',
+    'à': 'a',
+    'ä': 'a',
+    'â': 'a',
+    'ã': 'a',
+    'é': 'e',
+    'è': 'e',
+    'ë': 'e',
+    'ê': 'e',
+    'í': 'i',
+    'ì': 'i',
+    'ï': 'i',
+    'î': 'i',
+    'ó': 'o',
+    'ò': 'o',
+    'ö': 'o',
+    'ô': 'o',
+    'õ': 'o',
+    'ú': 'u',
+    'ù': 'u',
+    'ü': 'u',
+    'û': 'u',
+    'ñ': 'n',
+    'ç': 'c',
+  };
+  for (final entry in accents.entries) {
+    text = text.replaceAll(entry.key, entry.value);
+  }
+  return text;
+}
+
+List<String> _queryTerms(String text) {
+  const ignored = {'and', 'or', 'not', 'near', 'within', 'words', 'before'};
+  return [
+    for (final raw in text.replaceAll('"', ' ').split(RegExp(r'\s+')))
+      if (raw.trim().isNotEmpty && !ignored.contains(raw.toLowerCase()))
+        _fold(raw.trim()),
+  ];
+}
+
+String _highlightSnippet(String text, List<String> terms) {
+  var snippet = text;
+  if (snippet.length > 280) {
+    final folded = _fold(snippet);
+    var first = -1;
+    for (final term in terms) {
+      final index = folded.indexOf(term);
+      if (index >= 0 && (first < 0 || index < first)) first = index;
+    }
+    final start = first > 60 ? first - 60 : 0;
+    snippet = text.substring(start, min(text.length, start + 280));
+    if (start > 0) snippet = '…$snippet';
+    if (start + 280 < text.length) snippet = '$snippet…';
+  }
+  if (terms.isEmpty) return snippet;
+  final pattern = RegExp(
+    terms.map(RegExp.escape).join('|'),
+    caseSensitive: false,
+  );
+  return snippet.replaceAllMapped(pattern, (match) => '<em>${match[0]}</em>');
 }
 
 class _SearchCondition {

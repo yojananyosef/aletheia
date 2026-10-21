@@ -78,6 +78,7 @@ flutter:
     - assets/catalog/index.json
     - assets/catalog/search.sqlite.gz
     - assets/catalog/search.meta.json
+    - assets/catalog/map_sections.json
     - assets/catalog/rv1909/
     - assets/catalog/rv1909/books/
     # KJV empaquetada (mejora de autonomía): catálogo y comparación offline.

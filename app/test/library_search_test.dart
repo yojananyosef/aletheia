@@ -18,10 +18,8 @@ import 'support/test_fakes.dart';
 
 // --------------------------------------------------------------- utilidades
 
-Widget _app(ProviderContainer container) => UncontrolledProviderScope(
-  container: container,
-  child: const AletheiaApp(),
-);
+Widget _app(ProviderContainer container) =>
+    UncontrolledProviderScope(container: container, child: const AletheiaApp());
 
 ProviderContainer _container(
   CatalogGateway gateway, {
@@ -420,6 +418,119 @@ void main() {
       find.textContaining('Contenido devocional de prueba'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('búsqueda: el teclado griego y hebreo inserta letras', (
+    tester,
+  ) async {
+    _setWindow(tester, const Size(1500, 900));
+    final gateway = FakeCatalogGateway();
+    final container = _container(gateway);
+    addTearDown(container.dispose);
+    addTearDown(gateway.client.close);
+
+    container
+        .read(workspaceProvider.notifier)
+        .openTab(const TabSpec(kind: PanelKind.search));
+    await tester.pumpWidget(_app(container));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('search-keyboard')));
+    await tester.pumpAndSettle();
+    expect(find.text('Griego'), findsOneWidget);
+    expect(find.text('Hebreo'), findsOneWidget);
+
+    await tester.tap(find.text('α'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('search-keyboard-hebrew')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('א'));
+    await tester.pump();
+    await tester.tap(find.text('Cerrar'));
+    await tester.pumpAndSettle();
+
+    final field = tester.widget<TextField>(
+      find.byKey(const ValueKey('search-field')),
+    );
+    expect(field.controller?.text, 'αא');
+  });
+
+  testWidgets('búsqueda: ámbitos de morfología y mapas', (tester) async {
+    _setWindow(tester, const Size(1500, 900));
+    final gateway = FakeCatalogGateway(
+      searchResult: const SearchResult(
+        query: 'Vqp3ms',
+        scope: 'all',
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        hits: [
+          SearchHit(
+            resourceId: 'morphology',
+            resourceTitle: 'Morfología',
+            resourceType: 'morphology',
+            abbrev: 'MORF',
+            sectionId: 'HVqp3ms',
+            book: '',
+            bookName: 'HVqp3ms',
+            chapter: 0,
+            verse: 0,
+            ref: 'HVqp3ms',
+            citation: 'HVqp3ms',
+            snippet: 'función: <em>verbo</em>; tema: qal',
+            detail: 'función: verbo; tema: qal; forma: perfecto',
+          ),
+        ],
+      ),
+    );
+    final container = _container(gateway);
+    addTearDown(container.dispose);
+    addTearDown(gateway.client.close);
+
+    container
+        .read(workspaceProvider.notifier)
+        .openTab(const TabSpec(kind: PanelKind.search, query: 'Vqp3ms'));
+    await tester.pumpWidget(_app(container));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('scope-morph')));
+    await tester.pumpAndSettle();
+    expect(gateway.searchCalls.last, 'Vqp3ms|morph');
+
+    await tester.tap(
+      find.byKey(const ValueKey('search-hit-morphology-HVqp3ms')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text('función: verbo; tema: qal; forma: perfecto'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Cerrar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('scope-maps')));
+    await tester.pumpAndSettle();
+    expect(gateway.searchCalls.last, 'Vqp3ms|maps');
+  });
+
+  testWidgets('búsqueda: un ámbito de mapas lista sin consulta', (
+    tester,
+  ) async {
+    _setWindow(tester, const Size(1500, 900));
+    final gateway = FakeCatalogGateway();
+    final container = _container(gateway);
+    addTearDown(container.dispose);
+    addTearDown(gateway.client.close);
+
+    container
+        .read(workspaceProvider.notifier)
+        .openTab(const TabSpec(kind: PanelKind.search));
+    await tester.pumpWidget(_app(container));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('scope-maps')));
+    await tester.pumpAndSettle();
+    expect(gateway.searchCalls.last, '|maps');
   });
 
   testWidgets('búsqueda sin servicio: aviso y reintento', (tester) async {

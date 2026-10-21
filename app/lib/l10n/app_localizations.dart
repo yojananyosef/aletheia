@@ -1106,6 +1106,12 @@ abstract class AppLocalizations {
   /// **'a menos de 5 palabras de distancia'**
   String get searchSyntaxWithinNote;
 
+  /// No description provided for @searchSyntaxBeforeNote.
+  ///
+  /// In es, this message translates to:
+  /// **'un término aparece antes que el otro'**
+  String get searchSyntaxBeforeNote;
+
   /// No description provided for @searchSyntaxNearNote.
   ///
   /// In es, this message translates to:
@@ -1123,6 +1129,42 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'La búsqueda es insensible a mayúsculas y acentos. Combina la sintaxis con los filtros de tipo, idioma y libro; los resultados se agrupan por recurso.'**
   String get searchSyntaxNote;
+
+  /// No description provided for @searchMorphologyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Morfología'**
+  String get searchMorphologyTitle;
+
+  /// No description provided for @searchKeyboardTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Teclado griego y hebreo'**
+  String get searchKeyboardTitle;
+
+  /// No description provided for @searchKeyboardGreek.
+  ///
+  /// In es, this message translates to:
+  /// **'Griego'**
+  String get searchKeyboardGreek;
+
+  /// No description provided for @searchKeyboardHebrew.
+  ///
+  /// In es, this message translates to:
+  /// **'Hebreo'**
+  String get searchKeyboardHebrew;
+
+  /// No description provided for @searchKeyboardHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca una letra para insertarla en la búsqueda.'**
+  String get searchKeyboardHint;
+
+  /// No description provided for @searchKeyboardBackspace.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar una letra'**
+  String get searchKeyboardBackspace;
 
   /// No description provided for @searchFilterType.
   ///

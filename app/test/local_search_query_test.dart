@@ -42,6 +42,46 @@ void main() {
     );
   });
 
+  test('BEFORE exige ambos términos y conserva el orden', () {
+    final query = parseLocalSearchQuery('principio BEFORE Verbo');
+    expect(query.expression, '"principio" AND "Verbo"');
+    expect(query.before, hasLength(1));
+    expect(query.before.single.left, 'principio');
+    expect(query.before.single.right, 'Verbo');
+
+    expect(
+      buildLocalFtsExpression('"en el principio" before "el Verbo"'),
+      '"en el principio" AND "el Verbo"',
+    );
+    expect(
+      buildLocalFtsExpression('principio BEFORE Verbo AND Dios'),
+      '"principio" AND "Verbo" AND "Dios"',
+    );
+  });
+
+  test('rechaza BEFORE sin dos términos simples', () {
+    final cases = <String, String>{
+      'BEFORE Verbo': 'BEFORE necesita un término delante',
+      'principio BEFORE': 'BEFORE necesita un término a la derecha',
+      'principio BEFORE AND Verbo': 'BEFORE necesita un término a la derecha',
+      'principio NEAR Verbo BEFORE Dios':
+          'BEFORE necesita un término simple a la izquierda',
+    };
+    for (final entry in cases.entries) {
+      expect(
+        () => buildLocalFtsExpression(entry.key),
+        throwsA(
+          isA<CatalogException>().having(
+            (error) => error.message,
+            'mensaje',
+            contains(entry.value),
+          ),
+        ),
+        reason: 'consulta «${entry.key}»',
+      );
+    }
+  });
+
   test('separa campos conocidos y conserva las frases entre comillas', () {
     final passage = parseLocalSearchQuery('bible:"Jn 3" Verbo');
     expect(passage.text, 'Verbo');
