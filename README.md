@@ -33,7 +33,7 @@ La versión web está en **<https://yojananyosef.github.io/aletheia/>**. Es la m
 - **Build ligero:** `app/tool/build_web_release.sh` genera un `pubspec.yaml` temporal que solo empaqueta mapas, `index.json`, RV1909 y morfología. El resto se descarga. El build pasa de **136 MB a 45 MB** (2,4 MB de catálogo empaquetado).
 - **Persistencia:** SQLite WASM sobre `IndexedDbFileSystem` (base `aletheia_app`). El workspace y las notas sobreviven a una recarga; el índice de búsqueda se descarga comprimido, se descomprime con `DecompressionStream` y se monta en un VFS de solo lectura.
 - **Búsqueda:** la primera búsqueda descarga `search.sqlite.gz` (~48,8 MB) con un banner de progreso y botón **Cancelar**. Si se cancela o falla, «Reintentar» vuelve a empezar. En la prueba real del 2026-10-20 tardó ~6-10 s; el service worker conserva el índice y los libros en caché.
-- **PWA/offline:** `app/web/sw.js` precarga el shell (CanvasKit, `main.dart.js`, RV1909, mapas) y cachea el catálogo con URLs versionadas (`?v=<mods.version>`). Tras una primera visita se puede recargar sin red y repetir la búsqueda o abrir un libro ya descargado. El service worker se registra desde `app/web/index.html`.
+- **PWA/offline:** `app/web/sw.js` se activa en menos de un segundo y precarga en segundo plano el shell esencial (96 archivos, 20,4 MB: CanvasKit base/Chromium, `main.dart.js`, RV1909, mapas y fuentes). El catálogo se cachea con URLs versionadas (`?v=<mods.version>`). Tras una primera visita se puede recargar sin red y repetir la búsqueda o abrir un libro ya descargado. El service worker se registra desde `app/web/index.html`.
 - **Build:** requiere Flutter 3.47.7 y `app/web/sqlite3.wasm` (del paquete `sqlite3` 3.7.1).
   ```bash
   cd app

@@ -13,27 +13,33 @@
 
 importScripts('sw-manifest.js');
 
-const SHELL_CACHE = 'aletheia-shell-v1';
+const SHELL_CACHE = 'aletheia-shell-v2';
 const MODS_CACHE = 'aletheia-mods-v1';
 const MODS_PATH = '/aletheia-mods/';
 const SHELL_ASSETS = self.ALETHEIA_SHELL_ASSETS || [];
 
+async function precacheShell() {
+  const cache = await caches.open(SHELL_CACHE);
+  await Promise.allSettled(
+    SHELL_ASSETS.map(async (asset) => {
+      try {
+        const url = new URL(asset, self.registration.scope).href;
+        // `no-cache` revalida con ETag: evita conservar un shell viejo tras
+        // un despliegue sin volver a descargar lo que no cambió.
+        const response = await fetch(url, { cache: 'no-cache' });
+        if (response.ok) await cache.put(url, response);
+      } catch (_) {
+        // Un archivo opcional no debe impedir la instalación.
+      }
+    }),
+  );
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil((async () => {
-    const cache = await caches.open(SHELL_CACHE);
-    await Promise.allSettled(
-      SHELL_ASSETS.map(async (asset) => {
-        try {
-          const url = new URL(asset, self.registration.scope).href;
-          const response = await fetch(url, { cache: 'reload' });
-          if (response.ok) await cache.put(url, response);
-        } catch (_) {
-          // Un archivo opcional no debe impedir la instalación.
-        }
-      }),
-    );
-    await self.skipWaiting();
-  })());
+  // Activar de inmediato. La precarga del shell se hace en `activate`, así el
+  // worker controla la página en segundos y puede cachear también el catálogo
+  // mientras el navegador sigue descargando el shell en segundo plano.
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', (event) => {
@@ -45,6 +51,7 @@ self.addEventListener('activate', (event) => {
         .map((name) => caches.delete(name)),
     );
     await self.clients.claim();
+    await precacheShell();
   })());
 });
 
@@ -68,10 +75,18 @@ async function networkFirst(request, cacheName) {
     if (response.ok) await put(cacheName, request, response);
     return response;
   } catch (_) {
-    const cached = await caches.match(request, {
-    ignoreVary: true,
-    ignoreSearch: cacheName === SHELL_CACHE,
-  });
+    let cached = await caches.match(request, {
+      ignoreVary: true,
+      ignoreSearch: cacheName === SHELL_CACHE,
+    });
+    if (!cached && request.mode === 'navigate') {
+      // Respaldo para navegaciones offline a una ruta sin entrada exacta.
+      const index = new URL('index.html', self.registration.scope).href;
+      cached = await caches.match(index, {
+        ignoreVary: true,
+        ignoreSearch: true,
+      });
+    }
     if (cached) return cached;
     throw _;
   }

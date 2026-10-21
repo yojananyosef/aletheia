@@ -72,6 +72,12 @@ seen = set()
 def add(relative: str) -> None:
     if relative in seen:
         return
+    if relative == "":
+        # La URL raíz del ámbito también debe estar en caché: una navegación
+        # offline a /aletheia/ no coincide con /aletheia/index.html.
+        seen.add(relative)
+        selected.append(relative)
+        return
     if (root / relative).is_file():
         seen.add(relative)
         selected.append(relative)
@@ -89,8 +95,18 @@ for name in (
 ):
     add(name)
 
-# Renderizadores y shaders (se omiten los símbolos de depuración).
-for directory in ("canvaskit", "icons", "assets/shaders"):
+# CanvasKit base (Safari/Firefox) y Chromium, los dos renderizadores que
+# Flutter puede cargar en producción. Se omiten skwasm, wimp, webparagraph y
+# los símbolos de depuración: no se usan y sumaban casi 20 MB a la precarga.
+for name in (
+    "canvaskit/canvaskit.js",
+    "canvaskit/canvaskit.wasm",
+    "canvaskit/chromium/canvaskit.js",
+    "canvaskit/chromium/canvaskit.wasm",
+):
+    add(name)
+
+for directory in ("icons", "assets/shaders"):
     base = root / directory
     if not base.exists():
         continue
@@ -141,7 +157,9 @@ import sys
 
 root = Path(sys.argv[1])
 manifest = root / "sw-manifest.js"
-version = hashlib.sha256(manifest.read_bytes()).hexdigest()[:12]
+version = hashlib.sha256(
+    (root / "sw.js").read_bytes() + manifest.read_bytes()
+).hexdigest()[:12]
 index = root / "index.html"
 text = index.read_text(encoding="utf-8")
 text = re.sub(r"register\('sw\.js(?:\?v=[^']*)?'\)", f"register('sw.js?v={version}')", text)
