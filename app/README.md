@@ -96,7 +96,7 @@ evaluados sobre el ancho de **ventana** (no hardware):
 
 ## Pruebas
 
-- `flutter test` — **173 pruebas** unitarias y de widgets (guía `flutter-add-widget-test`): parser de referencias y sintaxis FTS (`BEFORE`), layout de tiles y **ausencia de overflow** con ventanas de 320 a 1532 px, repositorio de documentos, lector, teclado griego/hebreo, ámbitos de búsqueda, morfología, mapas y las seis herramientas (Atlas, Cursos, Documentos, Medios, Favoritos y Salmos), incluida su navegación en móvil.
+- `flutter test` — **173 pruebas** unitarias y de widgets (guía `flutter-add-widget-test`): parser de referencias y sintaxis FTS (`BEFORE`), layout de tiles y **ausencia de overflow** con ventanas de 320 a 1532 px, repositorio de documentos, lector, teclado griego/hebreo, ámbitos de búsqueda, morfología, mapas y las seis herramientas (Atlas, Cursos, Documentos, Medios, Favoritos y Salmos), incluida su navegación en móvil. El workflow `.github/workflows/desktop.yml` repite la suite en Linux, Windows y macOS y compila los tres escritorios.
 - `flutter test integration_test -d linux` — prueba de integración sobre el binario real
   (guía `flutter-add-integration-test`): arranca la app completa (assets, `path_provider`,
   persistencia) y comprueba que el workspace se restaura en un segundo arranque
@@ -134,4 +134,4 @@ evaluados sobre el ancho de **ventana** (no hardware):
   texto libre → abre pestaña de búsqueda.
 - Persistencia del workspace (JSON en el directorio de soporte de la app).
 
-Próximo paso: validar la app en Windows/macOS y abordar mejoras opcionales (exportar/imprimir, respaldo sin cuenta y RAG local); los milestones cerrados están en `docs/spec/02-arquitectura-flutter.md`.
+Próximo paso: smoke manual en Windows/macOS (los builds y la suite ya pasan en CI) y mejoras opcionales (exportar/imprimir, respaldo sin cuenta y RAG local); los milestones cerrados están en `docs/spec/02-arquitectura-flutter.md`.
