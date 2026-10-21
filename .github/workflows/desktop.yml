@@ -61,6 +61,8 @@ jobs:
           cache: true
       - name: Dependencias
         run: flutter pub get
+      - name: Pruebas
+        run: flutter test
       - name: Build Windows
         run: flutter build windows --release
 
@@ -79,5 +81,7 @@ jobs:
           cache: true
       - name: Dependencias
         run: flutter pub get
+      - name: Pruebas
+        run: flutter test
       - name: Build macOS
         run: flutter build macos --release
