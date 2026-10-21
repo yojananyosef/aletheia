@@ -40,6 +40,7 @@ block = """
   assets:
     - assets/maps/
     - assets/catalog/index.json
+    - assets/catalog/search.meta.json
     - assets/catalog/rv1909/
     - assets/catalog/rv1909/books/
     - assets/catalog/morphology.json
@@ -120,6 +121,7 @@ for name in (
     "assets/AssetManifest.bin.json",
     "assets/FontManifest.json",
     "assets/assets/catalog/index.json",
+    "assets/assets/catalog/search.meta.json",
     "assets/assets/catalog/morphology.json",
 ):
     add(name)
