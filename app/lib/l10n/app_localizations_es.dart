@@ -2199,4 +2199,359 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get mapAttribution =>
       'Geometría: Natural Earth (dominio público) · Lugares: OpenBible.info (CC BY 4.0)';
+
+  @override
+  String get panelTitleAtlas => 'Atlas';
+
+  @override
+  String get panelTitleCourses => 'Cursos';
+
+  @override
+  String get panelTitleDocuments => 'Documentos';
+
+  @override
+  String get panelTitleMedia => 'Medios';
+
+  @override
+  String get panelTitleFavorites => 'Favoritos';
+
+  @override
+  String get panelTitlePsalms => 'Explorador de Salmos';
+
+  @override
+  String get toolsFavorites => 'Favoritos';
+
+  @override
+  String get toolsPsalms => 'Explorador de Salmos';
+
+  @override
+  String get atlasIntro =>
+      'Explora los mapas del Factbook y del comentario. Se dibujan sin conexión con la geometría de Natural Earth y las coordenadas de OpenBible.info.';
+
+  @override
+  String get mediaIntro =>
+      'Galería de contenido visual del catálogo. Cada ficha abre el mapa y la sección original que lo acompaña.';
+
+  @override
+  String get atlasSearchHint => 'Buscar un mapa o un lugar';
+
+  @override
+  String get mediaSearchHint => 'Buscar en los medios';
+
+  @override
+  String get atlasSourceAll => 'Todas las fuentes';
+
+  @override
+  String get atlasSourceFactbook => 'Factbook';
+
+  @override
+  String get atlasSourceCommentary => 'Comentario';
+
+  @override
+  String get atlasLoadError => 'No se pudo cargar esta entrada del catálogo.';
+
+  @override
+  String get mediaLoadError => 'No se pudieron cargar los medios.';
+
+  @override
+  String get atlasEmpty => 'Todavía no hay mapas en el catálogo empaquetado.';
+
+  @override
+  String get mediaEmpty =>
+      'Todavía no hay contenido visual en el catálogo empaquetado.';
+
+  @override
+  String get atlasAttribution =>
+      'Mapas propios del catálogo de Aletheia. La geometría y las coordenadas conservan su atribución.';
+
+  @override
+  String get atlasNoResults => 'Ningún mapa coincide con la búsqueda.';
+
+  @override
+  String atlasCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entradas',
+      one: '1 entrada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mediaOpenMap => 'Abrir mapa';
+
+  @override
+  String get atlasOpenResource => 'Abrir la sección';
+
+  @override
+  String get coursesIntro =>
+      'Rutas breves de estudio con lecturas de la RV1909. Elige una y avanza lección a lección.';
+
+  @override
+  String get coursesSearchHint => 'Buscar un curso';
+
+  @override
+  String get coursesNoResults => 'Ningún curso coincide con la búsqueda.';
+
+  @override
+  String coursesLessons(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lecciones',
+      one: '1 lección',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get courseCompleted =>
+      'Curso completado. Puedes repasar sus lecturas cuando quieras.';
+
+  @override
+  String courseProgress(int done, int total) {
+    return 'Progreso: $done de $total';
+  }
+
+  @override
+  String get courseLessonRead => 'Leer';
+
+  @override
+  String get coursePanoramaTitle => 'Panorama bíblico';
+
+  @override
+  String get coursePanoramaDesc =>
+      'Tres paradas para recorrer la historia bíblica: creación, éxodo y monarquía.';
+
+  @override
+  String get coursePanoramaLesson1Title => 'La creación y la alianza';
+
+  @override
+  String get coursePanoramaLesson1Detail =>
+      'Lee el comienzo de Génesis y observa cómo Dios ordena la creación y llama a la vida.';
+
+  @override
+  String get coursePanoramaLesson2Title => 'Éxodo y liberación';
+
+  @override
+  String get coursePanoramaLesson2Detail =>
+      'La zarza ardiente presenta el nombre de Dios y el comienzo de la liberación de Egipto.';
+
+  @override
+  String get coursePanoramaLesson3Title => 'Reyes y profetas';
+
+  @override
+  String get coursePanoramaLesson3Detail =>
+      'La elección de David abre una nueva etapa de la historia de Israel.';
+
+  @override
+  String get courseGospelsTitle => 'Los Evangelios';
+
+  @override
+  String get courseGospelsDesc =>
+      'El anuncio del Reino, la misericordia y la resurrección en tres lecturas.';
+
+  @override
+  String get courseGospelsLesson1Title => 'El Reino se acerca';
+
+  @override
+  String get courseGospelsLesson1Detail =>
+      'Jesús proclama el Reino y llama a la conversión en Galilea.';
+
+  @override
+  String get courseGospelsLesson2Title => 'Parábolas y misericordia';
+
+  @override
+  String get courseGospelsLesson2Detail =>
+      'Las parábolas de Lucas 15 muestran el corazón del Padre que busca a los perdidos.';
+
+  @override
+  String get courseGospelsLesson3Title => 'Cruz y resurrección';
+
+  @override
+  String get courseGospelsLesson3Detail =>
+      'La tumba vacía abre el Evangelio de Juan y la misión de la comunidad.';
+
+  @override
+  String get coursePrayerTitle => 'Salmos y oración';
+
+  @override
+  String get coursePrayerDesc =>
+      'Tres salmos para orar con confianza, lamento y alabanza.';
+
+  @override
+  String get coursePrayerLesson1Title => 'Confianza en el pastor';
+
+  @override
+  String get coursePrayerLesson1Detail =>
+      'El Salmo 23 acompaña la oración con la imagen del pastor que cuida.';
+
+  @override
+  String get coursePrayerLesson2Title => 'El lamento sincero';
+
+  @override
+  String get coursePrayerLesson2Detail =>
+      'El Salmo 42 enseña a llevar la sed y la tristeza delante de Dios.';
+
+  @override
+  String get coursePrayerLesson3Title => 'La alabanza de todo el pueblo';
+
+  @override
+  String get coursePrayerLesson3Detail =>
+      'El Salmo 100 invita a celebrar la fidelidad de Dios con gratitud.';
+
+  @override
+  String get documentsIntro =>
+      'Tres guías breves de estudio propias de Aletheia, pensadas para acompañar la lectura y la consulta del catálogo.';
+
+  @override
+  String get documentsSearchHint => 'Buscar en los documentos';
+
+  @override
+  String get documentsNoResults => 'Ningún documento coincide con la búsqueda.';
+
+  @override
+  String get documentsAttribution =>
+      'Documentos propios de Aletheia; no reproducen obras licenciadas de terceros.';
+
+  @override
+  String get documentReadingTitle => 'Cómo leer la Biblia';
+
+  @override
+  String get documentReadingSubtitle =>
+      'Un método sencillo en cuatro pasos: observar, interpretar, aplicar y orar.';
+
+  @override
+  String get documentReadingBody =>
+      '## Antes de leer\n\nLa Biblia es una biblioteca de libros escritos en épocas distintas. Antes de buscar una aplicación inmediata, sitúa el pasaje: ¿quién escribe, a quién se dirige y qué problema o promesa aparece en el contexto?\n\n## Observar\n\nLee el texto despacio y anota lo que dice, no lo que esperas que diga. Fíjate en las palabras repetidas, las personas, los lugares, los contrastes y las órdenes. Una buena observación prepara una buena interpretación.\n\n## Interpretar\n\nPregunta qué significaba el pasaje para sus primeros lectores y cómo encaja en la historia bíblica. Compara traducciones y consulta el comentario o el diccionario cuando una palabra o una costumbre no sean claras.\n\n## Aplicar y orar\n\nLa aplicación nace del sentido del texto, no al revés. Termina convirtiendo lo que has visto en una oración: agradece, confiesa, pide ayuda y comprométete a un paso concreto.';
+
+  @override
+  String get documentTimelineTitle => 'Cronología bíblica';
+
+  @override
+  String get documentTimelineSubtitle =>
+      'Cuatro etapas para orientarse en la historia del Antiguo y del Nuevo Testamento.';
+
+  @override
+  String get documentTimelineBody =>
+      '## Patriarcas y éxodo\n\nGénesis presenta a Abraham, Isaac y Jacob; Éxodo narra la liberación de Egipto y la alianza del Sinaí. Son relatos de llamada, promesa y formación de un pueblo.\n\n## Monarquía y profetas\n\nSamuel, Saúl y David inauguran la monarquía. Los profetas llaman al pueblo a la fidelidad a la alianza y anuncian juicio y esperanza.\n\n## Exilio y retorno\n\nLa caída de Jerusalén y el exilio en Babilonia marcan una crisis profunda. Esdras y Nehemías relatan la reconstrucción; los salmos y los profetas guardan la memoria de la espera.\n\n## Jesús y la iglesia\n\nLos Evangelios presentan a Jesús como el cumplimiento de las promesas. Hechos y las cartas describen la comunidad que anuncia su muerte y resurrección.';
+
+  @override
+  String get documentGlossaryTitle => 'Glosario de estudio';
+
+  @override
+  String get documentGlossarySubtitle =>
+      'Cuatro términos que aparecen una y otra vez en la lectura bíblica.';
+
+  @override
+  String get documentGlossaryBody =>
+      '## Alianza\n\nUn vínculo establecido por Dios con su pueblo, con promesas y compromisos. No es un contrato entre iguales: Dios toma la iniciativa y sostiene la relación.\n\n## Gracia\n\nEl favor que Dios concede sin que sea una recompensa merecida. En el Nuevo Testamento es la base de la salvación y de la vida cristiana.\n\n## Justificación\n\nEl acto por el que Dios declara justo al pecador que cree, sobre la base de la obra de Cristo. No es una mejora moral previa, sino una nueva relación con Dios.\n\n## Mesianismo\n\nLa esperanza de un rey o enviado de Dios que restaure a su pueblo. Los Evangelios leen en Jesús el cumplimiento de esa espera, a la vez presente y futura.';
+
+  @override
+  String get favoritesIntro =>
+      'Guarda pasajes para volver a ellos. También puedes añadir una referencia directamente.';
+
+  @override
+  String get favoritesAddHint => 'Referencia: Juan 3:16';
+
+  @override
+  String get favoritesAdd => 'Añadir';
+
+  @override
+  String get favoritesInvalidReference => 'No se reconoce esa referencia.';
+
+  @override
+  String get favoritesAlreadySaved => 'Ese pasaje ya está en Favoritos.';
+
+  @override
+  String get favoritesPassageSubtitle => 'Pasaje de la RV1909';
+
+  @override
+  String get favoritesSearchHint => 'Buscar en Favoritos';
+
+  @override
+  String get favoritesEmpty =>
+      'Todavía no tienes favoritos. Usa la estrella del lector o añade una referencia.';
+
+  @override
+  String get favoritesNoResults => 'Ningún favorito coincide con la búsqueda.';
+
+  @override
+  String get favoritesOpen => 'Abrir favorito';
+
+  @override
+  String get favoritesRemove => 'Quitar de Favoritos';
+
+  @override
+  String get favoritesAdded => 'Añadido a Favoritos';
+
+  @override
+  String get favoritesRemoved => 'Quitado de Favoritos';
+
+  @override
+  String get psalmsIntro =>
+      'Recorre los 150 salmos por género y abre cualquiera en el lector. Las categorías se solapan.';
+
+  @override
+  String get psalmsSearchHint => 'Buscar un salmo o una palabra';
+
+  @override
+  String psalmsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count salmos',
+      one: '1 salmo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get psalmsAll => 'Todos';
+
+  @override
+  String get psalmsNoResults => 'Ningún salmo coincide con la búsqueda.';
+
+  @override
+  String get psalmsAttribution =>
+      'Clasificación propia de Aletheia; el texto bíblico es la RV1909, de dominio público.';
+
+  @override
+  String get psalmOfDay => 'Salmo del día';
+
+  @override
+  String psalmNumber(int number) {
+    return 'Salmo $number';
+  }
+
+  @override
+  String get psalmsOpen => 'Leer';
+
+  @override
+  String get psalmsSubtitle => 'Salmo de la RV1909';
+
+  @override
+  String get psalmCategoryPraise => 'Alabanza';
+
+  @override
+  String get psalmCategoryLament => 'Lamento';
+
+  @override
+  String get psalmCategoryTrust => 'Confianza';
+
+  @override
+  String get psalmCategoryThanks => 'Acción de gracias';
+
+  @override
+  String get psalmCategoryWisdom => 'Sabiduría';
+
+  @override
+  String get psalmCategoryMessianic => 'Mesiánicos';
+
+  @override
+  String get psalmCategoryPenitential => 'Penitenciales';
+
+  @override
+  String get psalmCategoryPilgrimage => 'Peregrinación';
 }

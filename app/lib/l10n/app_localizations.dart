@@ -3973,6 +3973,600 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Geometría: Natural Earth (dominio público) · Lugares: OpenBible.info (CC BY 4.0)'**
   String get mapAttribution;
+
+  /// No description provided for @panelTitleAtlas.
+  ///
+  /// In es, this message translates to:
+  /// **'Atlas'**
+  String get panelTitleAtlas;
+
+  /// No description provided for @panelTitleCourses.
+  ///
+  /// In es, this message translates to:
+  /// **'Cursos'**
+  String get panelTitleCourses;
+
+  /// No description provided for @panelTitleDocuments.
+  ///
+  /// In es, this message translates to:
+  /// **'Documentos'**
+  String get panelTitleDocuments;
+
+  /// No description provided for @panelTitleMedia.
+  ///
+  /// In es, this message translates to:
+  /// **'Medios'**
+  String get panelTitleMedia;
+
+  /// No description provided for @panelTitleFavorites.
+  ///
+  /// In es, this message translates to:
+  /// **'Favoritos'**
+  String get panelTitleFavorites;
+
+  /// No description provided for @panelTitlePsalms.
+  ///
+  /// In es, this message translates to:
+  /// **'Explorador de Salmos'**
+  String get panelTitlePsalms;
+
+  /// No description provided for @toolsFavorites.
+  ///
+  /// In es, this message translates to:
+  /// **'Favoritos'**
+  String get toolsFavorites;
+
+  /// No description provided for @toolsPsalms.
+  ///
+  /// In es, this message translates to:
+  /// **'Explorador de Salmos'**
+  String get toolsPsalms;
+
+  /// No description provided for @atlasIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Explora los mapas del Factbook y del comentario. Se dibujan sin conexión con la geometría de Natural Earth y las coordenadas de OpenBible.info.'**
+  String get atlasIntro;
+
+  /// No description provided for @mediaIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Galería de contenido visual del catálogo. Cada ficha abre el mapa y la sección original que lo acompaña.'**
+  String get mediaIntro;
+
+  /// No description provided for @atlasSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar un mapa o un lugar'**
+  String get atlasSearchHint;
+
+  /// No description provided for @mediaSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en los medios'**
+  String get mediaSearchHint;
+
+  /// No description provided for @atlasSourceAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Todas las fuentes'**
+  String get atlasSourceAll;
+
+  /// No description provided for @atlasSourceFactbook.
+  ///
+  /// In es, this message translates to:
+  /// **'Factbook'**
+  String get atlasSourceFactbook;
+
+  /// No description provided for @atlasSourceCommentary.
+  ///
+  /// In es, this message translates to:
+  /// **'Comentario'**
+  String get atlasSourceCommentary;
+
+  /// No description provided for @atlasLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cargar esta entrada del catálogo.'**
+  String get atlasLoadError;
+
+  /// No description provided for @mediaLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar los medios.'**
+  String get mediaLoadError;
+
+  /// No description provided for @atlasEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no hay mapas en el catálogo empaquetado.'**
+  String get atlasEmpty;
+
+  /// No description provided for @mediaEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no hay contenido visual en el catálogo empaquetado.'**
+  String get mediaEmpty;
+
+  /// No description provided for @atlasAttribution.
+  ///
+  /// In es, this message translates to:
+  /// **'Mapas propios del catálogo de Aletheia. La geometría y las coordenadas conservan su atribución.'**
+  String get atlasAttribution;
+
+  /// No description provided for @atlasNoResults.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún mapa coincide con la búsqueda.'**
+  String get atlasNoResults;
+
+  /// No description provided for @atlasCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 entrada} other{{count} entradas}}'**
+  String atlasCount(int count);
+
+  /// No description provided for @mediaOpenMap.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir mapa'**
+  String get mediaOpenMap;
+
+  /// No description provided for @atlasOpenResource.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir la sección'**
+  String get atlasOpenResource;
+
+  /// No description provided for @coursesIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Rutas breves de estudio con lecturas de la RV1909. Elige una y avanza lección a lección.'**
+  String get coursesIntro;
+
+  /// No description provided for @coursesSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar un curso'**
+  String get coursesSearchHint;
+
+  /// No description provided for @coursesNoResults.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún curso coincide con la búsqueda.'**
+  String get coursesNoResults;
+
+  /// No description provided for @coursesLessons.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 lección} other{{count} lecciones}}'**
+  String coursesLessons(int count);
+
+  /// No description provided for @courseCompleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Curso completado. Puedes repasar sus lecturas cuando quieras.'**
+  String get courseCompleted;
+
+  /// No description provided for @courseProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'Progreso: {done} de {total}'**
+  String courseProgress(int done, int total);
+
+  /// No description provided for @courseLessonRead.
+  ///
+  /// In es, this message translates to:
+  /// **'Leer'**
+  String get courseLessonRead;
+
+  /// No description provided for @coursePanoramaTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Panorama bíblico'**
+  String get coursePanoramaTitle;
+
+  /// No description provided for @coursePanoramaDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Tres paradas para recorrer la historia bíblica: creación, éxodo y monarquía.'**
+  String get coursePanoramaDesc;
+
+  /// No description provided for @coursePanoramaLesson1Title.
+  ///
+  /// In es, this message translates to:
+  /// **'La creación y la alianza'**
+  String get coursePanoramaLesson1Title;
+
+  /// No description provided for @coursePanoramaLesson1Detail.
+  ///
+  /// In es, this message translates to:
+  /// **'Lee el comienzo de Génesis y observa cómo Dios ordena la creación y llama a la vida.'**
+  String get coursePanoramaLesson1Detail;
+
+  /// No description provided for @coursePanoramaLesson2Title.
+  ///
+  /// In es, this message translates to:
+  /// **'Éxodo y liberación'**
+  String get coursePanoramaLesson2Title;
+
+  /// No description provided for @coursePanoramaLesson2Detail.
+  ///
+  /// In es, this message translates to:
+  /// **'La zarza ardiente presenta el nombre de Dios y el comienzo de la liberación de Egipto.'**
+  String get coursePanoramaLesson2Detail;
+
+  /// No description provided for @coursePanoramaLesson3Title.
+  ///
+  /// In es, this message translates to:
+  /// **'Reyes y profetas'**
+  String get coursePanoramaLesson3Title;
+
+  /// No description provided for @coursePanoramaLesson3Detail.
+  ///
+  /// In es, this message translates to:
+  /// **'La elección de David abre una nueva etapa de la historia de Israel.'**
+  String get coursePanoramaLesson3Detail;
+
+  /// No description provided for @courseGospelsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Los Evangelios'**
+  String get courseGospelsTitle;
+
+  /// No description provided for @courseGospelsDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'El anuncio del Reino, la misericordia y la resurrección en tres lecturas.'**
+  String get courseGospelsDesc;
+
+  /// No description provided for @courseGospelsLesson1Title.
+  ///
+  /// In es, this message translates to:
+  /// **'El Reino se acerca'**
+  String get courseGospelsLesson1Title;
+
+  /// No description provided for @courseGospelsLesson1Detail.
+  ///
+  /// In es, this message translates to:
+  /// **'Jesús proclama el Reino y llama a la conversión en Galilea.'**
+  String get courseGospelsLesson1Detail;
+
+  /// No description provided for @courseGospelsLesson2Title.
+  ///
+  /// In es, this message translates to:
+  /// **'Parábolas y misericordia'**
+  String get courseGospelsLesson2Title;
+
+  /// No description provided for @courseGospelsLesson2Detail.
+  ///
+  /// In es, this message translates to:
+  /// **'Las parábolas de Lucas 15 muestran el corazón del Padre que busca a los perdidos.'**
+  String get courseGospelsLesson2Detail;
+
+  /// No description provided for @courseGospelsLesson3Title.
+  ///
+  /// In es, this message translates to:
+  /// **'Cruz y resurrección'**
+  String get courseGospelsLesson3Title;
+
+  /// No description provided for @courseGospelsLesson3Detail.
+  ///
+  /// In es, this message translates to:
+  /// **'La tumba vacía abre el Evangelio de Juan y la misión de la comunidad.'**
+  String get courseGospelsLesson3Detail;
+
+  /// No description provided for @coursePrayerTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Salmos y oración'**
+  String get coursePrayerTitle;
+
+  /// No description provided for @coursePrayerDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Tres salmos para orar con confianza, lamento y alabanza.'**
+  String get coursePrayerDesc;
+
+  /// No description provided for @coursePrayerLesson1Title.
+  ///
+  /// In es, this message translates to:
+  /// **'Confianza en el pastor'**
+  String get coursePrayerLesson1Title;
+
+  /// No description provided for @coursePrayerLesson1Detail.
+  ///
+  /// In es, this message translates to:
+  /// **'El Salmo 23 acompaña la oración con la imagen del pastor que cuida.'**
+  String get coursePrayerLesson1Detail;
+
+  /// No description provided for @coursePrayerLesson2Title.
+  ///
+  /// In es, this message translates to:
+  /// **'El lamento sincero'**
+  String get coursePrayerLesson2Title;
+
+  /// No description provided for @coursePrayerLesson2Detail.
+  ///
+  /// In es, this message translates to:
+  /// **'El Salmo 42 enseña a llevar la sed y la tristeza delante de Dios.'**
+  String get coursePrayerLesson2Detail;
+
+  /// No description provided for @coursePrayerLesson3Title.
+  ///
+  /// In es, this message translates to:
+  /// **'La alabanza de todo el pueblo'**
+  String get coursePrayerLesson3Title;
+
+  /// No description provided for @coursePrayerLesson3Detail.
+  ///
+  /// In es, this message translates to:
+  /// **'El Salmo 100 invita a celebrar la fidelidad de Dios con gratitud.'**
+  String get coursePrayerLesson3Detail;
+
+  /// No description provided for @documentsIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Tres guías breves de estudio propias de Aletheia, pensadas para acompañar la lectura y la consulta del catálogo.'**
+  String get documentsIntro;
+
+  /// No description provided for @documentsSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en los documentos'**
+  String get documentsSearchHint;
+
+  /// No description provided for @documentsNoResults.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún documento coincide con la búsqueda.'**
+  String get documentsNoResults;
+
+  /// No description provided for @documentsAttribution.
+  ///
+  /// In es, this message translates to:
+  /// **'Documentos propios de Aletheia; no reproducen obras licenciadas de terceros.'**
+  String get documentsAttribution;
+
+  /// No description provided for @documentReadingTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cómo leer la Biblia'**
+  String get documentReadingTitle;
+
+  /// No description provided for @documentReadingSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Un método sencillo en cuatro pasos: observar, interpretar, aplicar y orar.'**
+  String get documentReadingSubtitle;
+
+  /// No description provided for @documentReadingBody.
+  ///
+  /// In es, this message translates to:
+  /// **'## Antes de leer\n\nLa Biblia es una biblioteca de libros escritos en épocas distintas. Antes de buscar una aplicación inmediata, sitúa el pasaje: ¿quién escribe, a quién se dirige y qué problema o promesa aparece en el contexto?\n\n## Observar\n\nLee el texto despacio y anota lo que dice, no lo que esperas que diga. Fíjate en las palabras repetidas, las personas, los lugares, los contrastes y las órdenes. Una buena observación prepara una buena interpretación.\n\n## Interpretar\n\nPregunta qué significaba el pasaje para sus primeros lectores y cómo encaja en la historia bíblica. Compara traducciones y consulta el comentario o el diccionario cuando una palabra o una costumbre no sean claras.\n\n## Aplicar y orar\n\nLa aplicación nace del sentido del texto, no al revés. Termina convirtiendo lo que has visto en una oración: agradece, confiesa, pide ayuda y comprométete a un paso concreto.'**
+  String get documentReadingBody;
+
+  /// No description provided for @documentTimelineTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cronología bíblica'**
+  String get documentTimelineTitle;
+
+  /// No description provided for @documentTimelineSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuatro etapas para orientarse en la historia del Antiguo y del Nuevo Testamento.'**
+  String get documentTimelineSubtitle;
+
+  /// No description provided for @documentTimelineBody.
+  ///
+  /// In es, this message translates to:
+  /// **'## Patriarcas y éxodo\n\nGénesis presenta a Abraham, Isaac y Jacob; Éxodo narra la liberación de Egipto y la alianza del Sinaí. Son relatos de llamada, promesa y formación de un pueblo.\n\n## Monarquía y profetas\n\nSamuel, Saúl y David inauguran la monarquía. Los profetas llaman al pueblo a la fidelidad a la alianza y anuncian juicio y esperanza.\n\n## Exilio y retorno\n\nLa caída de Jerusalén y el exilio en Babilonia marcan una crisis profunda. Esdras y Nehemías relatan la reconstrucción; los salmos y los profetas guardan la memoria de la espera.\n\n## Jesús y la iglesia\n\nLos Evangelios presentan a Jesús como el cumplimiento de las promesas. Hechos y las cartas describen la comunidad que anuncia su muerte y resurrección.'**
+  String get documentTimelineBody;
+
+  /// No description provided for @documentGlossaryTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Glosario de estudio'**
+  String get documentGlossaryTitle;
+
+  /// No description provided for @documentGlossarySubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuatro términos que aparecen una y otra vez en la lectura bíblica.'**
+  String get documentGlossarySubtitle;
+
+  /// No description provided for @documentGlossaryBody.
+  ///
+  /// In es, this message translates to:
+  /// **'## Alianza\n\nUn vínculo establecido por Dios con su pueblo, con promesas y compromisos. No es un contrato entre iguales: Dios toma la iniciativa y sostiene la relación.\n\n## Gracia\n\nEl favor que Dios concede sin que sea una recompensa merecida. En el Nuevo Testamento es la base de la salvación y de la vida cristiana.\n\n## Justificación\n\nEl acto por el que Dios declara justo al pecador que cree, sobre la base de la obra de Cristo. No es una mejora moral previa, sino una nueva relación con Dios.\n\n## Mesianismo\n\nLa esperanza de un rey o enviado de Dios que restaure a su pueblo. Los Evangelios leen en Jesús el cumplimiento de esa espera, a la vez presente y futura.'**
+  String get documentGlossaryBody;
+
+  /// No description provided for @favoritesIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Guarda pasajes para volver a ellos. También puedes añadir una referencia directamente.'**
+  String get favoritesIntro;
+
+  /// No description provided for @favoritesAddHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Referencia: Juan 3:16'**
+  String get favoritesAddHint;
+
+  /// No description provided for @favoritesAdd.
+  ///
+  /// In es, this message translates to:
+  /// **'Añadir'**
+  String get favoritesAdd;
+
+  /// No description provided for @favoritesInvalidReference.
+  ///
+  /// In es, this message translates to:
+  /// **'No se reconoce esa referencia.'**
+  String get favoritesInvalidReference;
+
+  /// No description provided for @favoritesAlreadySaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese pasaje ya está en Favoritos.'**
+  String get favoritesAlreadySaved;
+
+  /// No description provided for @favoritesPassageSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasaje de la RV1909'**
+  String get favoritesPassageSubtitle;
+
+  /// No description provided for @favoritesSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en Favoritos'**
+  String get favoritesSearchHint;
+
+  /// No description provided for @favoritesEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no tienes favoritos. Usa la estrella del lector o añade una referencia.'**
+  String get favoritesEmpty;
+
+  /// No description provided for @favoritesNoResults.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún favorito coincide con la búsqueda.'**
+  String get favoritesNoResults;
+
+  /// No description provided for @favoritesOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir favorito'**
+  String get favoritesOpen;
+
+  /// No description provided for @favoritesRemove.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar de Favoritos'**
+  String get favoritesRemove;
+
+  /// No description provided for @favoritesAdded.
+  ///
+  /// In es, this message translates to:
+  /// **'Añadido a Favoritos'**
+  String get favoritesAdded;
+
+  /// No description provided for @favoritesRemoved.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitado de Favoritos'**
+  String get favoritesRemoved;
+
+  /// No description provided for @psalmsIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Recorre los 150 salmos por género y abre cualquiera en el lector. Las categorías se solapan.'**
+  String get psalmsIntro;
+
+  /// No description provided for @psalmsSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar un salmo o una palabra'**
+  String get psalmsSearchHint;
+
+  /// No description provided for @psalmsCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 salmo} other{{count} salmos}}'**
+  String psalmsCount(int count);
+
+  /// No description provided for @psalmsAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos'**
+  String get psalmsAll;
+
+  /// No description provided for @psalmsNoResults.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún salmo coincide con la búsqueda.'**
+  String get psalmsNoResults;
+
+  /// No description provided for @psalmsAttribution.
+  ///
+  /// In es, this message translates to:
+  /// **'Clasificación propia de Aletheia; el texto bíblico es la RV1909, de dominio público.'**
+  String get psalmsAttribution;
+
+  /// No description provided for @psalmOfDay.
+  ///
+  /// In es, this message translates to:
+  /// **'Salmo del día'**
+  String get psalmOfDay;
+
+  /// No description provided for @psalmNumber.
+  ///
+  /// In es, this message translates to:
+  /// **'Salmo {number}'**
+  String psalmNumber(int number);
+
+  /// No description provided for @psalmsOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'Leer'**
+  String get psalmsOpen;
+
+  /// No description provided for @psalmsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Salmo de la RV1909'**
+  String get psalmsSubtitle;
+
+  /// No description provided for @psalmCategoryPraise.
+  ///
+  /// In es, this message translates to:
+  /// **'Alabanza'**
+  String get psalmCategoryPraise;
+
+  /// No description provided for @psalmCategoryLament.
+  ///
+  /// In es, this message translates to:
+  /// **'Lamento'**
+  String get psalmCategoryLament;
+
+  /// No description provided for @psalmCategoryTrust.
+  ///
+  /// In es, this message translates to:
+  /// **'Confianza'**
+  String get psalmCategoryTrust;
+
+  /// No description provided for @psalmCategoryThanks.
+  ///
+  /// In es, this message translates to:
+  /// **'Acción de gracias'**
+  String get psalmCategoryThanks;
+
+  /// No description provided for @psalmCategoryWisdom.
+  ///
+  /// In es, this message translates to:
+  /// **'Sabiduría'**
+  String get psalmCategoryWisdom;
+
+  /// No description provided for @psalmCategoryMessianic.
+  ///
+  /// In es, this message translates to:
+  /// **'Mesiánicos'**
+  String get psalmCategoryMessianic;
+
+  /// No description provided for @psalmCategoryPenitential.
+  ///
+  /// In es, this message translates to:
+  /// **'Penitenciales'**
+  String get psalmCategoryPenitential;
+
+  /// No description provided for @psalmCategoryPilgrimage.
+  ///
+  /// In es, this message translates to:
+  /// **'Peregrinación'**
+  String get psalmCategoryPilgrimage;
 }
 
 class _AppLocalizationsDelegate

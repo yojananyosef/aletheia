@@ -29,6 +29,8 @@ en `app/assets/catalog/`, `app/assets/maps/` y en el catálogo publicado en
 | Coordenadas de lugares bíblicos | [OpenBible.info Bible Geocoding](https://github.com/openbibleinfo/Bible-Geocoding-Data) | **CC BY 4.0** | La ficha del repositorio declara CC BY 4.0. Se usan las coordenadas de los lugares, no las imágenes ni las teselas. La atribución aparece al pie de cada mapa. |
 | Devocional diario (`devotional.daily`) | Contenido propio de Aletheia | Propio | Lecturas y temas originales; los versículos citados son de la RV1909. |
 | Factbook (`factbook.core`) | Contenido propio de Aletheia | Propio | 32 artículos originales (19 con mapa); las referencias bíblicas son de dominio público. |
+| Cursos, Documentos y clasificación de Salmos | Contenido propio de Aletheia | Propio | 3 cursos × 3 lecciones, 3 guías documentales y la clasificación por géneros de los 150 salmos. Los versículos citados son de la RV1909 (dominio público). |
+| Selección y encuadre de mapas | Contenido propio de Aletheia | Propio | 18 mapas esquemáticos y 23 entradas de mapa (19 del Factbook y 4 del comentario); la geometría y las coordenadas tienen su propia licencia (Natural Earth y OpenBible.info). |
 
 ## 2. Atribución exigida por las licencias CC BY
 
@@ -81,6 +83,7 @@ estos textos.
 - **248 870 versículos indexados** y **23 633 secciones no bíblicas**;
   **272 503 entradas FTS5** en total.
 - **376 083 enlaces** de referencias cruzadas del TSK.
+- **Herramientas propias:** 3 cursos con 9 lecciones, 3 documentos guiados, 150 salmos clasificados y **23 entradas de mapa** (18 mapas esquemáticos; 19 entradas del Factbook y 4 del comentario). Favoritos y progreso de Cursos se guardan solo en la base local del usuario.
 - TAHOT: 39 libros, 929 capítulos, 23 261 versículos (incluidos los títulos de
   los salmos como versículo 0) y 305 417 palabras.
 - TAGNT: 27 libros, 260 capítulos, 7 953 versículos y 138 140 palabras.

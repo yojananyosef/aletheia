@@ -216,20 +216,28 @@
   "searchDownloadBody": "The index is {size}. It will be cached in your browser for future searches.",
   "@searchDownloadBody": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "searchDownloadProgress": "{received} of {total}",
   "@searchDownloadProgress": {
     "placeholders": {
-      "received": { "type": "String" },
-      "total": { "type": "String" }
+      "received": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
     }
   },
   "searchDownloadUnknown": "{received} downloaded",
   "@searchDownloadUnknown": {
     "placeholders": {
-      "received": { "type": "String" }
+      "received": {
+        "type": "String"
+      }
     }
   },
   "searchDownloadCancel": "Cancel",
@@ -775,7 +783,13 @@
   "storeTitle": "Local store",
   "storeIntro": "Public-domain resources included in this installation. No purchases or external downloads.",
   "storeCount": "{count} resources included",
-  "@storeCount": {"placeholders": {"count": {"type": "int"}}},
+  "@storeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "storeIncluded": "Included",
   "storeOpen": "Open",
   "storeSearch": "Search resources",
@@ -808,5 +822,142 @@
   "tabFullscreen": "Full screen",
   "mapTitle": "Map",
   "mapLoadError": "The map could not be loaded.",
-  "mapAttribution": "Geometry: Natural Earth (public domain) · Places: OpenBible.info (CC BY 4.0)"
+  "mapAttribution": "Geometry: Natural Earth (public domain) · Places: OpenBible.info (CC BY 4.0)",
+  "panelTitleAtlas": "Atlas",
+  "panelTitleCourses": "Courses",
+  "panelTitleDocuments": "Documents",
+  "panelTitleMedia": "Media",
+  "panelTitleFavorites": "Favorites",
+  "panelTitlePsalms": "Psalms Explorer",
+  "toolsFavorites": "Favorites",
+  "toolsPsalms": "Psalms Explorer",
+  "atlasIntro": "Explore the maps from the Factbook and the commentary. They are drawn offline with Natural Earth geometry and OpenBible.info coordinates.",
+  "mediaIntro": "A gallery of visual catalog content. Each card opens the map and the original section that accompanies it.",
+  "atlasSearchHint": "Search for a map or place",
+  "mediaSearchHint": "Search media",
+  "atlasSourceAll": "All sources",
+  "atlasSourceFactbook": "Factbook",
+  "atlasSourceCommentary": "Commentary",
+  "atlasLoadError": "Could not load this catalog entry.",
+  "mediaLoadError": "Could not load the media.",
+  "atlasEmpty": "There are no maps in the bundled catalog yet.",
+  "mediaEmpty": "There is no visual content in the bundled catalog yet.",
+  "atlasAttribution": "Maps from Aletheia's own catalog. Geometry and coordinates keep their attribution.",
+  "atlasNoResults": "No map matches the search.",
+  "atlasCount": "{count, plural, =1{1 entry} other{{count} entries}}",
+  "@atlasCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mediaOpenMap": "Open map",
+  "atlasOpenResource": "Open section",
+  "coursesIntro": "Short study paths with RV1909 readings. Pick one and move through it lesson by lesson.",
+  "coursesSearchHint": "Search for a course",
+  "coursesNoResults": "No course matches the search.",
+  "coursesLessons": "{count, plural, =1{1 lesson} other{{count} lessons}}",
+  "@coursesLessons": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courseCompleted": "Course complete. You can revisit its readings whenever you like.",
+  "courseProgress": "Progress: {done} of {total}",
+  "@courseProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "courseLessonRead": "Read",
+  "coursePanoramaTitle": "Bible overview",
+  "coursePanoramaDesc": "Three stops through the biblical story: creation, exodus, and monarchy.",
+  "coursePanoramaLesson1Title": "Creation and covenant",
+  "coursePanoramaLesson1Detail": "Read the beginning of Genesis and notice how God orders creation and calls forth life.",
+  "coursePanoramaLesson2Title": "Exodus and liberation",
+  "coursePanoramaLesson2Detail": "The burning bush reveals God's name and begins the liberation from Egypt.",
+  "coursePanoramaLesson3Title": "Kings and prophets",
+  "coursePanoramaLesson3Detail": "David's anointing opens a new stage in Israel's history.",
+  "courseGospelsTitle": "The Gospels",
+  "courseGospelsDesc": "The announcement of the Kingdom, mercy, and resurrection in three readings.",
+  "courseGospelsLesson1Title": "The Kingdom draws near",
+  "courseGospelsLesson1Detail": "Jesus proclaims the Kingdom and calls for repentance in Galilee.",
+  "courseGospelsLesson2Title": "Parables and mercy",
+  "courseGospelsLesson2Detail": "The parables of Luke 15 show the Father's heart as he seeks the lost.",
+  "courseGospelsLesson3Title": "Cross and resurrection",
+  "courseGospelsLesson3Detail": "The empty tomb opens John's Gospel and the mission of the community.",
+  "coursePrayerTitle": "Psalms and prayer",
+  "coursePrayerDesc": "Three psalms for praying with trust, lament, and praise.",
+  "coursePrayerLesson1Title": "Trust in the shepherd",
+  "coursePrayerLesson1Detail": "Psalm 23 accompanies prayer with the image of the shepherd who cares.",
+  "coursePrayerLesson2Title": "Honest lament",
+  "coursePrayerLesson2Detail": "Psalm 42 teaches us to bring thirst and sorrow before God.",
+  "coursePrayerLesson3Title": "The praise of all the people",
+  "coursePrayerLesson3Detail": "Psalm 100 invites us to celebrate God's faithfulness with gratitude.",
+  "documentsIntro": "Three short study guides written by Aletheia to accompany reading and catalog study.",
+  "documentsSearchHint": "Search documents",
+  "documentsNoResults": "No document matches the search.",
+  "documentsAttribution": "Original Aletheia documents; they do not reproduce licensed third-party works.",
+  "documentReadingTitle": "How to read the Bible",
+  "documentReadingSubtitle": "A simple four-step method: observe, interpret, apply, and pray.",
+  "documentReadingBody": "## Before reading\n\nThe Bible is a library of books written in different periods. Before looking for an immediate application, locate the passage: who is writing, to whom, and what problem or promise appears in the context?\n\n## Observe\n\nRead slowly and write down what the text says, not what you expect it to say. Notice repeated words, people, places, contrasts, and commands. Good observation prepares good interpretation.\n\n## Interpret\n\nAsk what the passage meant to its first readers and how it fits the biblical story. Compare translations and consult the commentary or dictionary when a word or custom is unclear.\n\n## Apply and pray\n\nApplication grows from the meaning of the text, not the other way around. End by turning what you have seen into prayer: give thanks, confess, ask for help, and commit to one concrete step.",
+  "documentTimelineTitle": "Biblical timeline",
+  "documentTimelineSubtitle": "Four stages to orient yourself in the history of the Old and New Testaments.",
+  "documentTimelineBody": "## Patriarchs and exodus\n\nGenesis presents Abraham, Isaac, and Jacob; Exodus narrates the liberation from Egypt and the covenant at Sinai. These are stories of calling, promise, and the formation of a people.\n\n## Monarchy and prophets\n\nSamuel, Saul, and David inaugurate the monarchy. The prophets call the people to covenant faithfulness and announce judgment and hope.\n\n## Exile and return\n\nThe fall of Jerusalem and the Babylonian exile mark a deep crisis. Ezra and Nehemiah tell of reconstruction; the psalms and prophets preserve the memory of waiting.\n\n## Jesus and the church\n\nThe Gospels present Jesus as the fulfillment of the promises. Acts and the letters describe the community that proclaims his death and resurrection.",
+  "documentGlossaryTitle": "Study glossary",
+  "documentGlossarySubtitle": "Four terms that appear again and again in biblical reading.",
+  "documentGlossaryBody": "## Covenant\n\nA bond established by God with his people, with promises and commitments. It is not a contract between equals: God takes the initiative and sustains the relationship.\n\n## Grace\n\nThe favor God gives without it being a deserved reward. In the New Testament it is the basis of salvation and the Christian life.\n\n## Justification\n\nGod's act of declaring the sinner who believes to be righteous on the basis of Christ's work. It is not prior moral improvement but a new relationship with God.\n\n## Messianism\n\nThe hope for a king or envoy of God who will restore his people. The Gospels read Jesus as the fulfillment of that hope, both present and future.",
+  "favoritesIntro": "Save passages to return to them. You can also add a reference directly.",
+  "favoritesAddHint": "Reference: John 3:16",
+  "favoritesAdd": "Add",
+  "favoritesInvalidReference": "That reference is not recognized.",
+  "favoritesAlreadySaved": "That passage is already in Favorites.",
+  "favoritesPassageSubtitle": "RV1909 passage",
+  "favoritesSearchHint": "Search Favorites",
+  "favoritesEmpty": "No favorites yet. Use the star in the reader or add a reference.",
+  "favoritesNoResults": "No favorite matches the search.",
+  "favoritesOpen": "Open favorite",
+  "favoritesRemove": "Remove from Favorites",
+  "favoritesAdded": "Added to Favorites",
+  "favoritesRemoved": "Removed from Favorites",
+  "psalmsIntro": "Browse the 150 psalms by genre and open any of them in the reader. Categories overlap.",
+  "psalmsSearchHint": "Search for a psalm or a word",
+  "psalmsCount": "{count, plural, =1{1 psalm} other{{count} psalms}}",
+  "@psalmsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "psalmsAll": "All",
+  "psalmsNoResults": "No psalm matches the search.",
+  "psalmsAttribution": "Aletheia's own classification; the biblical text is the public-domain RV1909.",
+  "psalmOfDay": "Psalm of the day",
+  "psalmNumber": "Psalm {number}",
+  "@psalmNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "psalmsOpen": "Read",
+  "psalmsSubtitle": "RV1909 psalm",
+  "psalmCategoryPraise": "Praise",
+  "psalmCategoryLament": "Lament",
+  "psalmCategoryTrust": "Trust",
+  "psalmCategoryThanks": "Thanksgiving",
+  "psalmCategoryWisdom": "Wisdom",
+  "psalmCategoryMessianic": "Messianic",
+  "psalmCategoryPenitential": "Penitential",
+  "psalmCategoryPilgrimage": "Pilgrimage"
 }

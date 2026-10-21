@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/app_database.dart';
 import 'core/localization.dart';
 import 'core/theme.dart';
+import 'courses/course_progress_persistence.dart';
+import 'favorites/favorites_persistence.dart';
 import 'notes/notes_persistence.dart';
 import 'reading_plans/reading_plans_persistence.dart';
 import 'shell/shell.dart';
@@ -20,12 +22,16 @@ Future<void> main() async {
   final store = WorkspaceStore.onDatabase(database);
   final notes = NotesStore.onDatabase(database);
   final readingPlans = ReadingPlansStore.onDatabase(database);
+  final favorites = FavoritesStore.onDatabase(database);
+  final courseProgress = CourseProgressStore.onDatabase(database);
   runApp(
     ProviderScope(
       overrides: [
         workspaceStoreProvider.overrideWithValue(store),
         notesStoreProvider.overrideWithValue(notes),
         readingPlansStoreProvider.overrideWithValue(readingPlans),
+        favoritesStoreProvider.overrideWithValue(favorites),
+        courseProgressStoreProvider.overrideWithValue(courseProgress),
       ],
       child: const AletheiaApp(),
     ),

@@ -313,20 +313,28 @@
   "searchDownloadBody": "El índice pesa {size}. Se guardará en la caché del navegador para las próximas búsquedas.",
   "@searchDownloadBody": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "searchDownloadProgress": "{received} de {total}",
   "@searchDownloadProgress": {
     "placeholders": {
-      "received": { "type": "String" },
-      "total": { "type": "String" }
+      "received": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
     }
   },
   "searchDownloadUnknown": "{received} descargados",
   "@searchDownloadUnknown": {
     "placeholders": {
-      "received": { "type": "String" }
+      "received": {
+        "type": "String"
+      }
     }
   },
   "searchDownloadCancel": "Cancelar",
@@ -932,7 +940,13 @@
   "storeTitle": "Tienda local",
   "storeIntro": "Recursos de dominio público incluidos en esta instalación. No hay compras ni descargas externas.",
   "storeCount": "{count} recursos incluidos",
-  "@storeCount": {"placeholders": {"count": {"type": "int"}}},
+  "@storeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "storeIncluded": "Incluido",
   "storeOpen": "Abrir",
   "storeSearch": "Buscar recursos",
@@ -965,5 +979,142 @@
   "tabFullscreen": "Pantalla completa",
   "mapTitle": "Mapa",
   "mapLoadError": "No se pudo cargar el mapa.",
-  "mapAttribution": "Geometría: Natural Earth (dominio público) · Lugares: OpenBible.info (CC BY 4.0)"
+  "mapAttribution": "Geometría: Natural Earth (dominio público) · Lugares: OpenBible.info (CC BY 4.0)",
+  "panelTitleAtlas": "Atlas",
+  "panelTitleCourses": "Cursos",
+  "panelTitleDocuments": "Documentos",
+  "panelTitleMedia": "Medios",
+  "panelTitleFavorites": "Favoritos",
+  "panelTitlePsalms": "Explorador de Salmos",
+  "toolsFavorites": "Favoritos",
+  "toolsPsalms": "Explorador de Salmos",
+  "atlasIntro": "Explora los mapas del Factbook y del comentario. Se dibujan sin conexión con la geometría de Natural Earth y las coordenadas de OpenBible.info.",
+  "mediaIntro": "Galería de contenido visual del catálogo. Cada ficha abre el mapa y la sección original que lo acompaña.",
+  "atlasSearchHint": "Buscar un mapa o un lugar",
+  "mediaSearchHint": "Buscar en los medios",
+  "atlasSourceAll": "Todas las fuentes",
+  "atlasSourceFactbook": "Factbook",
+  "atlasSourceCommentary": "Comentario",
+  "atlasLoadError": "No se pudo cargar esta entrada del catálogo.",
+  "mediaLoadError": "No se pudieron cargar los medios.",
+  "atlasEmpty": "Todavía no hay mapas en el catálogo empaquetado.",
+  "mediaEmpty": "Todavía no hay contenido visual en el catálogo empaquetado.",
+  "atlasAttribution": "Mapas propios del catálogo de Aletheia. La geometría y las coordenadas conservan su atribución.",
+  "atlasNoResults": "Ningún mapa coincide con la búsqueda.",
+  "atlasCount": "{count, plural, =1{1 entrada} other{{count} entradas}}",
+  "@atlasCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mediaOpenMap": "Abrir mapa",
+  "atlasOpenResource": "Abrir la sección",
+  "coursesIntro": "Rutas breves de estudio con lecturas de la RV1909. Elige una y avanza lección a lección.",
+  "coursesSearchHint": "Buscar un curso",
+  "coursesNoResults": "Ningún curso coincide con la búsqueda.",
+  "coursesLessons": "{count, plural, =1{1 lección} other{{count} lecciones}}",
+  "@coursesLessons": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courseCompleted": "Curso completado. Puedes repasar sus lecturas cuando quieras.",
+  "courseProgress": "Progreso: {done} de {total}",
+  "@courseProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "courseLessonRead": "Leer",
+  "coursePanoramaTitle": "Panorama bíblico",
+  "coursePanoramaDesc": "Tres paradas para recorrer la historia bíblica: creación, éxodo y monarquía.",
+  "coursePanoramaLesson1Title": "La creación y la alianza",
+  "coursePanoramaLesson1Detail": "Lee el comienzo de Génesis y observa cómo Dios ordena la creación y llama a la vida.",
+  "coursePanoramaLesson2Title": "Éxodo y liberación",
+  "coursePanoramaLesson2Detail": "La zarza ardiente presenta el nombre de Dios y el comienzo de la liberación de Egipto.",
+  "coursePanoramaLesson3Title": "Reyes y profetas",
+  "coursePanoramaLesson3Detail": "La elección de David abre una nueva etapa de la historia de Israel.",
+  "courseGospelsTitle": "Los Evangelios",
+  "courseGospelsDesc": "El anuncio del Reino, la misericordia y la resurrección en tres lecturas.",
+  "courseGospelsLesson1Title": "El Reino se acerca",
+  "courseGospelsLesson1Detail": "Jesús proclama el Reino y llama a la conversión en Galilea.",
+  "courseGospelsLesson2Title": "Parábolas y misericordia",
+  "courseGospelsLesson2Detail": "Las parábolas de Lucas 15 muestran el corazón del Padre que busca a los perdidos.",
+  "courseGospelsLesson3Title": "Cruz y resurrección",
+  "courseGospelsLesson3Detail": "La tumba vacía abre el Evangelio de Juan y la misión de la comunidad.",
+  "coursePrayerTitle": "Salmos y oración",
+  "coursePrayerDesc": "Tres salmos para orar con confianza, lamento y alabanza.",
+  "coursePrayerLesson1Title": "Confianza en el pastor",
+  "coursePrayerLesson1Detail": "El Salmo 23 acompaña la oración con la imagen del pastor que cuida.",
+  "coursePrayerLesson2Title": "El lamento sincero",
+  "coursePrayerLesson2Detail": "El Salmo 42 enseña a llevar la sed y la tristeza delante de Dios.",
+  "coursePrayerLesson3Title": "La alabanza de todo el pueblo",
+  "coursePrayerLesson3Detail": "El Salmo 100 invita a celebrar la fidelidad de Dios con gratitud.",
+  "documentsIntro": "Tres guías breves de estudio propias de Aletheia, pensadas para acompañar la lectura y la consulta del catálogo.",
+  "documentsSearchHint": "Buscar en los documentos",
+  "documentsNoResults": "Ningún documento coincide con la búsqueda.",
+  "documentsAttribution": "Documentos propios de Aletheia; no reproducen obras licenciadas de terceros.",
+  "documentReadingTitle": "Cómo leer la Biblia",
+  "documentReadingSubtitle": "Un método sencillo en cuatro pasos: observar, interpretar, aplicar y orar.",
+  "documentReadingBody": "## Antes de leer\n\nLa Biblia es una biblioteca de libros escritos en épocas distintas. Antes de buscar una aplicación inmediata, sitúa el pasaje: ¿quién escribe, a quién se dirige y qué problema o promesa aparece en el contexto?\n\n## Observar\n\nLee el texto despacio y anota lo que dice, no lo que esperas que diga. Fíjate en las palabras repetidas, las personas, los lugares, los contrastes y las órdenes. Una buena observación prepara una buena interpretación.\n\n## Interpretar\n\nPregunta qué significaba el pasaje para sus primeros lectores y cómo encaja en la historia bíblica. Compara traducciones y consulta el comentario o el diccionario cuando una palabra o una costumbre no sean claras.\n\n## Aplicar y orar\n\nLa aplicación nace del sentido del texto, no al revés. Termina convirtiendo lo que has visto en una oración: agradece, confiesa, pide ayuda y comprométete a un paso concreto.",
+  "documentTimelineTitle": "Cronología bíblica",
+  "documentTimelineSubtitle": "Cuatro etapas para orientarse en la historia del Antiguo y del Nuevo Testamento.",
+  "documentTimelineBody": "## Patriarcas y éxodo\n\nGénesis presenta a Abraham, Isaac y Jacob; Éxodo narra la liberación de Egipto y la alianza del Sinaí. Son relatos de llamada, promesa y formación de un pueblo.\n\n## Monarquía y profetas\n\nSamuel, Saúl y David inauguran la monarquía. Los profetas llaman al pueblo a la fidelidad a la alianza y anuncian juicio y esperanza.\n\n## Exilio y retorno\n\nLa caída de Jerusalén y el exilio en Babilonia marcan una crisis profunda. Esdras y Nehemías relatan la reconstrucción; los salmos y los profetas guardan la memoria de la espera.\n\n## Jesús y la iglesia\n\nLos Evangelios presentan a Jesús como el cumplimiento de las promesas. Hechos y las cartas describen la comunidad que anuncia su muerte y resurrección.",
+  "documentGlossaryTitle": "Glosario de estudio",
+  "documentGlossarySubtitle": "Cuatro términos que aparecen una y otra vez en la lectura bíblica.",
+  "documentGlossaryBody": "## Alianza\n\nUn vínculo establecido por Dios con su pueblo, con promesas y compromisos. No es un contrato entre iguales: Dios toma la iniciativa y sostiene la relación.\n\n## Gracia\n\nEl favor que Dios concede sin que sea una recompensa merecida. En el Nuevo Testamento es la base de la salvación y de la vida cristiana.\n\n## Justificación\n\nEl acto por el que Dios declara justo al pecador que cree, sobre la base de la obra de Cristo. No es una mejora moral previa, sino una nueva relación con Dios.\n\n## Mesianismo\n\nLa esperanza de un rey o enviado de Dios que restaure a su pueblo. Los Evangelios leen en Jesús el cumplimiento de esa espera, a la vez presente y futura.",
+  "favoritesIntro": "Guarda pasajes para volver a ellos. También puedes añadir una referencia directamente.",
+  "favoritesAddHint": "Referencia: Juan 3:16",
+  "favoritesAdd": "Añadir",
+  "favoritesInvalidReference": "No se reconoce esa referencia.",
+  "favoritesAlreadySaved": "Ese pasaje ya está en Favoritos.",
+  "favoritesPassageSubtitle": "Pasaje de la RV1909",
+  "favoritesSearchHint": "Buscar en Favoritos",
+  "favoritesEmpty": "Todavía no tienes favoritos. Usa la estrella del lector o añade una referencia.",
+  "favoritesNoResults": "Ningún favorito coincide con la búsqueda.",
+  "favoritesOpen": "Abrir favorito",
+  "favoritesRemove": "Quitar de Favoritos",
+  "favoritesAdded": "Añadido a Favoritos",
+  "favoritesRemoved": "Quitado de Favoritos",
+  "psalmsIntro": "Recorre los 150 salmos por género y abre cualquiera en el lector. Las categorías se solapan.",
+  "psalmsSearchHint": "Buscar un salmo o una palabra",
+  "psalmsCount": "{count, plural, =1{1 salmo} other{{count} salmos}}",
+  "@psalmsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "psalmsAll": "Todos",
+  "psalmsNoResults": "Ningún salmo coincide con la búsqueda.",
+  "psalmsAttribution": "Clasificación propia de Aletheia; el texto bíblico es la RV1909, de dominio público.",
+  "psalmOfDay": "Salmo del día",
+  "psalmNumber": "Salmo {number}",
+  "@psalmNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "psalmsOpen": "Leer",
+  "psalmsSubtitle": "Salmo de la RV1909",
+  "psalmCategoryPraise": "Alabanza",
+  "psalmCategoryLament": "Lamento",
+  "psalmCategoryTrust": "Confianza",
+  "psalmCategoryThanks": "Acción de gracias",
+  "psalmCategoryWisdom": "Sabiduría",
+  "psalmCategoryMessianic": "Mesiánicos",
+  "psalmCategoryPenitential": "Penitenciales",
+  "psalmCategoryPilgrimage": "Peregrinación"
 }

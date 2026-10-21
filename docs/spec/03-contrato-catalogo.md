@@ -309,6 +309,14 @@ tiene `ref`, al pulsarlo se abre el pasaje. Los mapas se definen una sola vez en
 `build_catalog.py` los inserta al final de `JHN.3`, `LUK.2`, `MAT.2` y `ACT.9`
 del comentario. No hay teselas, red ni dependencias de mapas.
 
+`sync_app_catalog.py` resume estos bloques en `map_sections.json` (23
+entradas: 19 del Factbook y 4 del comentario). Ese manifiesto empaquetado
+alimenta los ámbitos Mapas/Multimedia de la Búsqueda y las herramientas
+**Atlas** y **Medios** de la app (M6.5). **Cursos**, **Documentos**,
+**Favoritos** y la clasificación de **Salmos** son contenido propio de la app
+y no forman parte del contrato del catálogo; el Explorador de Salmos usa la
+RV1909 empaquetada.
+
 Para regenerar todo:
 
 ```bash

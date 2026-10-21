@@ -91,7 +91,7 @@ Derivado del reconocimiento de las fases 1–3. Las columnas:
 | 7.2 | Factbook: box "Topic or reference" + artículo con secciones, related topics | P2 | L1/L2 | **Hecho (M5)**: búsqueda, lentes, artículo, referencias y temas relacionados; ver §13 |
 | 7.3 | Study Assistant (research mode): chat con toolbar (Recent/New/Copy link/Copy all/…), input, adjuntos, scope "All books", respuestas con citas | P2 | L2 | Plugin IA opcional |
 | 7.4 | Guided study: Guides (Bible Word Study, Exegetical, Passage, Sermon Starter) + Workflows (Basic Bible Study, Devocional, Devotional, English Word Study, Estudio bíblico inductivo) | P2 | L3 | Sistema de plantillas guiadas |
-| 7.5 | Tools hub: Atlas, Courses, Documents, Factbook, Favorites, Information, Media, Psalms Explorer, Reading Plan Manager, Text Comparison | P2 | L3 | Registrar como endpoints canónicos |
+| 7.5 | Tools hub: Atlas, Courses, Documents, Factbook, Favorites, Information, Media, Psalms Explorer, Reading Plan Manager, Text Comparison | P2 | L3 | **Hecho (M6.5)**: Atlas, Cursos, Documentos, Medios, Favoritos y Explorador de Salmos son paneles propios; Factbook, Información, Comparación y Planes ya existían. Ver §21 |
 | 7.6 | Devocional del día (recurso fechado `dayofyear.MM.DD`) | P1 | L2 | **Hecho (M5)**: 366 secciones + 30 lecturas propias; ver §13 |
 | 7.7 | Reading plans (manager + "Start reading plan") | P2 | L3 | |
 | 7.8 | Dashboard | P1 | L1/L2 | En el original: vacío si no hay pestañas; banner configurable |
@@ -206,7 +206,7 @@ El flyout (`MarkersFlyout` ahora es `ConsumerWidget`, lee `notesProvider`) muest
 
 Recon del original (2026-10-19): diálogo `Guided Study` y hub de herramientas, además del plan por sub-hitos conservado con la evidencia de reconocimiento. Las capturas del clon se generan con `test/m6_screens.dart` en `/tmp/opencode/m6-app-*.png`.
 
-**Menú Herramientas (7.4–7.6).** El menú de la barra lateral y de la barra superior (`lib/shell/tools_menu.dart`) replica las filas del original con sus iconos: Atlas, Cursos, Documentos, Temas (Factbook), Información, Medios, Comparación de textos y Planes de lectura. Las cuatro que dependen de datos que el clon no tiene (Atlas, Cursos, Documentos, Medios) se muestran deshabilitadas con la etiqueta `Pronto` — mismo criterio que el original cuando una herramienta no está disponible en tu plan. `Temas` abre el Factbook, `Información` el panel de información, `Comparación` la comparación de textos y `Planes` el panel de planes de lectura.
+**Menú Herramientas (7.4–7.6).** El menú de la barra lateral y de la barra superior (`lib/shell/tools_menu.dart`) replica las filas del original con sus iconos: Atlas, Cursos, Documentos, Temas (Factbook), Información, Medios, Comparación de textos y Planes de lectura. Las seis herramientas que antes estaban deshabilitadas ya están implementadas (M6.5, §21); `Temas` abre el Factbook, `Información` el panel de información, `Comparación` la comparación de textos y `Planes` el panel de planes de lectura.
 
 **Estudio guiado (7.7).** El original es un diálogo con `Find`, secciones (`Workflows`, `Guías`) y filas con descripción y acción (`Start`). El clon lo convierte en **panel** (`lib/guides/`) con la misma estructura (caja `Find`, secciones y filas navegables) y con **plantillas propias** cuyos pasos abren herramientas reales:
 
@@ -265,3 +265,17 @@ Verificación de la mejora: `selftest.py` **52/52**, suite completa de Flutter y
 - **Corrección de runtime.** Los cuatro `Scrollbar` explícitos (devocional, Factbook, comparación y comentario/diccionario) usan ahora su propio `ScrollController`, eliminando el error «Scrollbar's ScrollController has no ScrollPosition attached» detectado en la prueba manual.
 
 **Pruebas.** `test/workspace_features_test.dart` (7): propagación y limpieza de link sets, ida y vuelta JSON, Tienda local (lista, filtro y apertura), pantalla completa con botón y con `Esc`, selector de link set y cambio de tema. `sqlite_persistence_test.dart` verifica `linkSet` y `themeMode` en SQLite. La suite completa incluye las pruebas de originales, léxico y estudio.
+
+## 21. M6.5 implementado — Atlas, Cursos, Documentos, Medios, Favoritos y Explorador de Salmos
+
+Las seis herramientas que quedaban pendientes en el menú **Herramientas** ya están implementadas con datos locales y abren paneles reales en el workspace (no hay etiquetas `Pronto`):
+
+- **Atlas y Medios** (`lib/maps/visual_library_panel.dart`, `visual_sections.dart`). Ambos leen `map_sections.json` (23 entradas: 19 artículos del Factbook con mapa y 4 capítulos del comentario). Atlas muestra una lista con filtros; Medios, una galería adaptativa (tarjetas o lista según el ancho). El detalle carga la sección de origen, dibuja el mapa con `BibleMap` (Natural Earth + OpenBible.info) y ofrece favorito del mapa y `Abrir la sección`.
+- **Cursos** (`lib/courses/`). Tres cursos propios (Panorama, Evangelios y Oración) con tres lecciones cada uno; cada lección tiene cuerpo, referencias y apertura en el lector. El progreso (`course_progress`, esquema SQLite v5) marca las lecciones completadas y sobrevive a la recarga, también en web.
+- **Documentos** (`lib/documents/`). Tres guías propias (lectura, línea de tiempo y glosario) con cuerpo markdown-lite y navegación interna; también enlazan al lector.
+- **Favoritos** (`lib/favorites/`). Alta por referencia con validación del parser (`Juan 3:16`), lista ordenada por fecha, apertura en el lector y borrado. Se guarda en la tabla `favorites` (esquema v5) con tipo `passage` o `map`; el mapa se puede guardar desde el detalle del Atlas y el pasaje desde la **estrella de la barra de ubicación** del lector (no en la toolbar principal, para no desplazar botones).
+- **Explorador de Salmos** (`lib/psalms/`). Los 150 salmos de la RV1909 con clasificación propia por géneros (alabanza, lamento, confianza, sabiduría, realeza y acción de gracias), búsqueda por título y texto, tarjeta de **Salmo del día** y apertura directa en el lector.
+
+**Móvil.** En ventanas estrechas elegir una herramienta pliega la barra lateral antes de navegar (`sidebarCollapsedProvider`, `lib/shell/sidebar_state.dart`), el menú Herramientas también la pliega y el rail se despliega con `Expandir barra lateral`. Las capturas y el smoke real en Chromium a 390×844 no muestran overflow ni errores de consola.
+
+**Pruebas.** `test/m6_tools_test.dart` (15): las seis herramientas abren y navegan, el favorito de mapa conserva su tipo, la estrella del lector guarda/quita el pasaje, el menú pliega la barra en móvil y las seis herramientas no desbordan a 390×844. `test/sqlite_persistence_test.dart` (5) añade la ida y vuelta de favoritos y del progreso de Cursos. La suite queda en **173 pruebas** y `flutter analyze` está limpio; el smoke de Playwright cubre escritorio y móvil con las seis herramientas.

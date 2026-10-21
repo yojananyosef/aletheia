@@ -77,6 +77,12 @@ class WorkspaceController extends Notifier<WorkspaceState> {
     PanelKind.search,
     PanelKind.settings,
     PanelKind.tools,
+    PanelKind.atlas,
+    PanelKind.courses,
+    PanelKind.documents,
+    PanelKind.media,
+    PanelKind.favorites,
+    PanelKind.psalmsExplorer,
     PanelKind.notes,
   };
 

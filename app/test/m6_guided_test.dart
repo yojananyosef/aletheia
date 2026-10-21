@@ -97,15 +97,21 @@ void main() {
     expect(find.text('Atlas'), findsOneWidget);
     expect(find.text('Cursos'), findsOneWidget);
     expect(find.text('Documentos'), findsOneWidget);
+    expect(find.text('Favoritos'), findsOneWidget);
     expect(find.text('Medios'), findsOneWidget);
+    expect(find.text('Explorador de Salmos'), findsOneWidget);
     expect(find.text('Planes de lectura'), findsOneWidget);
-    // Las que dependen de datos que no tenemos quedan deshabilitadas.
+    // Todas las filas abren una herramienta real.
     final atlas = tester.widget<PopupMenuItem<String>>(
       find.byKey(const ValueKey('tool-atlas')),
     );
-    expect(atlas.enabled, isFalse);
-    expect(find.text('Pronto'), findsWidgets);
+    expect(atlas.enabled, isTrue);
+    expect(find.text('Pronto'), findsNothing);
 
+    await _tap(tester, find.byKey(const ValueKey('tool-atlas')));
+    expect(_tab(container, PanelKind.atlas), isNotNull);
+
+    await _tap(tester, find.byKey(const ValueKey('tools-menu-sidebar')));
     await _tap(tester, find.byKey(const ValueKey('tool-factbook')));
     expect(_tab(container, PanelKind.factbook), isNotNull);
 

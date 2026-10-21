@@ -6,8 +6,13 @@ import '../catalog/catalog_gateway.dart';
 import '../catalog/catalog_models.dart';
 import '../core/localization.dart';
 import '../assistant/study_assistant_panel.dart';
+import '../courses/courses_panel.dart';
 import '../dashboard/dashboard_panel.dart';
+import '../documents/documents_panel.dart';
+import '../favorites/favorites_panel.dart';
 import '../guides/guided_study_panel.dart';
+import '../maps/visual_library_panel.dart';
+import '../psalms/psalms_explorer_panel.dart';
 import '../reading_plans/reading_plans_panel.dart';
 import '../core/panel_meta.dart';
 import '../core/theme.dart';
@@ -52,6 +57,20 @@ class PanelHost extends StatelessWidget {
       PanelKind.resource => CatalogResourcePanel(tile: tile, tab: tab),
       PanelKind.guidedStudy => GuidedStudyPanel(tile: tile, tab: tab),
       PanelKind.readingPlans => const ReadingPlansPanel(),
+      PanelKind.atlas => VisualLibraryPanel(
+        mode: VisualLibraryMode.atlas,
+        tile: tile,
+        tab: tab,
+      ),
+      PanelKind.media => VisualLibraryPanel(
+        mode: VisualLibraryMode.media,
+        tile: tile,
+        tab: tab,
+      ),
+      PanelKind.courses => CoursesPanel(tile: tile, tab: tab),
+      PanelKind.documents => DocumentsPanel(tile: tile, tab: tab),
+      PanelKind.favorites => const FavoritesPanel(),
+      PanelKind.psalmsExplorer => const PsalmsExplorerPanel(),
       _ => PlaceholderPanel(tab: tab),
     };
   }

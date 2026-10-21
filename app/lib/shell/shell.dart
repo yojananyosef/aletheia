@@ -11,22 +11,9 @@ import '../workspace/panel_fullscreen.dart';
 import '../workspace/workspace_controller.dart';
 import '../workspace/workspace_view.dart';
 import 'layouts_menu.dart';
-import 'tools_menu.dart';
 import 'omnibox.dart';
-
-/// Plegado manual de la barra lateral: `null` = automático según el ancho de
-/// la ventana; un valor explícito (elegido con la flecha del pie del rail)
-/// manda sobre el automatismo.
-class SidebarCollapsed extends Notifier<bool?> {
-  @override
-  bool? build() => null;
-
-  void setCollapsed(bool value) => state = value;
-}
-
-final sidebarCollapsedProvider = NotifierProvider<SidebarCollapsed, bool?>(
-  SidebarCollapsed.new,
-);
+import 'sidebar_state.dart';
+import 'tools_menu.dart';
 
 /// Definición de un ítem de navegación, compartida por la barra lateral
 /// (izquierda) y la barra horizontal (arriba, Ajustes 8.1).

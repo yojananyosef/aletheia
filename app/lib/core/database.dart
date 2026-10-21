@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:sqlite3/common.dart';
 
+import '../favorites/favorites_models.dart';
 import '../notes/notes_models.dart';
 import '../reading_plans/plan_models.dart';
 import '../workspace/models.dart';
@@ -30,7 +31,7 @@ class AletheiaDatabase {
   final CommonDatabase db;
 
   /// Versión del esquema. Subir y añadir el paso en [_migrate].
-  static const int schemaVersion = 3;
+  static const int schemaVersion = 5;
 
   static AletheiaDatabase open(String path) {
     final instance = AletheiaDatabase._(platform.openDatabaseFile(path));
@@ -159,6 +160,33 @@ class AletheiaDatabase {
 
     if (version < 3) {
       db.execute('ALTER TABLE tabs ADD COLUMN link_set TEXT');
+    }
+
+    if (version < 4) {
+      db.execute('''
+        CREATE TABLE favorites (
+          id TEXT PRIMARY KEY,
+          kind TEXT NOT NULL,
+          title TEXT NOT NULL,
+          subtitle TEXT,
+          resource_id TEXT,
+          reference TEXT,
+          created_at TEXT NOT NULL
+        );
+
+        CREATE INDEX favorites_created ON favorites(created_at DESC);
+      ''');
+    }
+
+    if (version < 5) {
+      db.execute('''
+        CREATE TABLE course_progress (
+          course_id TEXT NOT NULL,
+          lesson_id TEXT NOT NULL,
+          completed_at TEXT NOT NULL,
+          PRIMARY KEY (course_id, lesson_id)
+        );
+      ''');
     }
 
     db.userVersion = schemaVersion;
@@ -468,6 +496,86 @@ class AletheiaDatabase {
           plan.lastReadAt?.toIso8601String(),
         ],
       );
+    });
+  }
+
+  // -------------------------------------------------------------- favoritos
+
+  List<Favorite> loadFavorites() => [
+    for (final row in db.select(
+      'SELECT * FROM favorites ORDER BY created_at DESC',
+    ))
+      Favorite.fromJson({
+        'id': row['id'],
+        'kind': row['kind'],
+        'title': row['title'],
+        if (row['subtitle'] != null) 'subtitle': row['subtitle'],
+        if (row['resource_id'] != null) 'resourceId': row['resource_id'],
+        if (row['reference'] != null) 'reference': row['reference'],
+        'createdAt': row['created_at'],
+      }),
+  ];
+
+  void saveFavorites(List<Favorite> favorites) {
+    _transaction(() {
+      db.execute('DELETE FROM favorites');
+      final insert = db.prepare('''
+        INSERT INTO favorites (id, kind, title, subtitle, resource_id,
+          reference, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      ''');
+      try {
+        for (final favorite in favorites) {
+          insert.execute([
+            favorite.id,
+            favorite.kind.name,
+            favorite.title,
+            favorite.subtitle,
+            favorite.resourceId,
+            favorite.reference,
+            favorite.createdAt.toIso8601String(),
+          ]);
+        }
+      } finally {
+        insert.close();
+      }
+    });
+  }
+
+  // -------------------------------------------------------- progreso cursos
+
+  Map<String, Set<String>> loadCourseProgress() {
+    final result = <String, Set<String>>{};
+    for (final row in db.select(
+      'SELECT course_id, lesson_id FROM course_progress',
+    )) {
+      result
+          .putIfAbsent(row['course_id'] as String, () => <String>{})
+          .add(row['lesson_id'] as String);
+    }
+    return result;
+  }
+
+  void saveCourseProgress(Map<String, Set<String>> progress) {
+    _transaction(() {
+      db.execute('DELETE FROM course_progress');
+      final insert = db.prepare('''
+        INSERT INTO course_progress (course_id, lesson_id, completed_at)
+        VALUES (?, ?, ?)
+      ''');
+      try {
+        for (final entry in progress.entries) {
+          for (final lessonId in entry.value) {
+            insert.execute([
+              entry.key,
+              lessonId,
+              DateTime.now().toIso8601String(),
+            ]);
+          }
+        }
+      } finally {
+        insert.close();
+      }
     });
   }
 

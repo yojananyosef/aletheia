@@ -5,6 +5,9 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:aletheia/core/database.dart';
+import 'package:aletheia/favorites/favorites_models.dart';
+import 'package:aletheia/favorites/favorites_persistence.dart';
+import 'package:aletheia/courses/course_progress_persistence.dart';
 import 'package:aletheia/notes/notes_models.dart';
 import 'package:aletheia/notes/notes_persistence.dart';
 import 'package:aletheia/workspace/models.dart';
@@ -176,6 +179,57 @@ void main() {
       // Guardar de nuevo no duplica filas.
       db.saveNotes(restored);
       expect(NotesStore.onDatabase(db).initial.notes, hasLength(2));
+    });
+
+    test('los favoritos sobreviven y conservan su tipo y referencia', () {
+      final db = AletheiaDatabase.memory();
+      addTearDown(db.close);
+
+      db.saveFavorites([
+        Favorite(
+          id: 'f1',
+          kind: FavoriteKind.passage,
+          title: 'Juan 3:16',
+          subtitle: 'Pasaje de la RV1909',
+          resourceId: 'bible.rv1909',
+          reference: 'JHN.3.16',
+          createdAt: DateTime(2026, 4, 1),
+        ),
+        Favorite(
+          id: 'f2',
+          kind: FavoriteKind.map,
+          title: 'Belén y Jerusalén',
+          resourceId: 'factbook.core',
+          reference: 'fe',
+          createdAt: DateTime(2026, 4, 2),
+        ),
+      ]);
+
+      final restored = FavoritesStore.onDatabase(db).initial;
+      expect(restored, hasLength(2));
+      expect(restored.first.id, 'f2');
+      expect(restored.first.kind, FavoriteKind.map);
+      expect(restored.last.kind, FavoriteKind.passage);
+      expect(restored.last.reference, 'JHN.3.16');
+
+      db.saveFavorites(restored);
+      expect(FavoritesStore.onDatabase(db).initial, hasLength(2));
+    });
+
+    test('el progreso de Cursos sobrevive', () {
+      final db = AletheiaDatabase.memory();
+      addTearDown(db.close);
+
+      db.saveCourseProgress({
+        'panorama': {'creation', 'exodus'},
+        'gospels': {'kingdom'},
+      });
+      final restored = CourseProgressStore.onDatabase(db).initial;
+      expect(restored['panorama'], {'creation', 'exodus'});
+      expect(restored['gospels'], {'kingdom'});
+
+      db.saveCourseProgress(restored);
+      expect(CourseProgressStore.onDatabase(db).initial, hasLength(2));
     });
 
     test('importa los JSON antiguos una sola vez y los archiva', () async {

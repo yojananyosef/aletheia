@@ -2192,4 +2192,359 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mapAttribution =>
       'Geometry: Natural Earth (public domain) · Places: OpenBible.info (CC BY 4.0)';
+
+  @override
+  String get panelTitleAtlas => 'Atlas';
+
+  @override
+  String get panelTitleCourses => 'Courses';
+
+  @override
+  String get panelTitleDocuments => 'Documents';
+
+  @override
+  String get panelTitleMedia => 'Media';
+
+  @override
+  String get panelTitleFavorites => 'Favorites';
+
+  @override
+  String get panelTitlePsalms => 'Psalms Explorer';
+
+  @override
+  String get toolsFavorites => 'Favorites';
+
+  @override
+  String get toolsPsalms => 'Psalms Explorer';
+
+  @override
+  String get atlasIntro =>
+      'Explore the maps from the Factbook and the commentary. They are drawn offline with Natural Earth geometry and OpenBible.info coordinates.';
+
+  @override
+  String get mediaIntro =>
+      'A gallery of visual catalog content. Each card opens the map and the original section that accompanies it.';
+
+  @override
+  String get atlasSearchHint => 'Search for a map or place';
+
+  @override
+  String get mediaSearchHint => 'Search media';
+
+  @override
+  String get atlasSourceAll => 'All sources';
+
+  @override
+  String get atlasSourceFactbook => 'Factbook';
+
+  @override
+  String get atlasSourceCommentary => 'Commentary';
+
+  @override
+  String get atlasLoadError => 'Could not load this catalog entry.';
+
+  @override
+  String get mediaLoadError => 'Could not load the media.';
+
+  @override
+  String get atlasEmpty => 'There are no maps in the bundled catalog yet.';
+
+  @override
+  String get mediaEmpty =>
+      'There is no visual content in the bundled catalog yet.';
+
+  @override
+  String get atlasAttribution =>
+      'Maps from Aletheia\'s own catalog. Geometry and coordinates keep their attribution.';
+
+  @override
+  String get atlasNoResults => 'No map matches the search.';
+
+  @override
+  String atlasCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mediaOpenMap => 'Open map';
+
+  @override
+  String get atlasOpenResource => 'Open section';
+
+  @override
+  String get coursesIntro =>
+      'Short study paths with RV1909 readings. Pick one and move through it lesson by lesson.';
+
+  @override
+  String get coursesSearchHint => 'Search for a course';
+
+  @override
+  String get coursesNoResults => 'No course matches the search.';
+
+  @override
+  String coursesLessons(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lessons',
+      one: '1 lesson',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get courseCompleted =>
+      'Course complete. You can revisit its readings whenever you like.';
+
+  @override
+  String courseProgress(int done, int total) {
+    return 'Progress: $done of $total';
+  }
+
+  @override
+  String get courseLessonRead => 'Read';
+
+  @override
+  String get coursePanoramaTitle => 'Bible overview';
+
+  @override
+  String get coursePanoramaDesc =>
+      'Three stops through the biblical story: creation, exodus, and monarchy.';
+
+  @override
+  String get coursePanoramaLesson1Title => 'Creation and covenant';
+
+  @override
+  String get coursePanoramaLesson1Detail =>
+      'Read the beginning of Genesis and notice how God orders creation and calls forth life.';
+
+  @override
+  String get coursePanoramaLesson2Title => 'Exodus and liberation';
+
+  @override
+  String get coursePanoramaLesson2Detail =>
+      'The burning bush reveals God\'s name and begins the liberation from Egypt.';
+
+  @override
+  String get coursePanoramaLesson3Title => 'Kings and prophets';
+
+  @override
+  String get coursePanoramaLesson3Detail =>
+      'David\'s anointing opens a new stage in Israel\'s history.';
+
+  @override
+  String get courseGospelsTitle => 'The Gospels';
+
+  @override
+  String get courseGospelsDesc =>
+      'The announcement of the Kingdom, mercy, and resurrection in three readings.';
+
+  @override
+  String get courseGospelsLesson1Title => 'The Kingdom draws near';
+
+  @override
+  String get courseGospelsLesson1Detail =>
+      'Jesus proclaims the Kingdom and calls for repentance in Galilee.';
+
+  @override
+  String get courseGospelsLesson2Title => 'Parables and mercy';
+
+  @override
+  String get courseGospelsLesson2Detail =>
+      'The parables of Luke 15 show the Father\'s heart as he seeks the lost.';
+
+  @override
+  String get courseGospelsLesson3Title => 'Cross and resurrection';
+
+  @override
+  String get courseGospelsLesson3Detail =>
+      'The empty tomb opens John\'s Gospel and the mission of the community.';
+
+  @override
+  String get coursePrayerTitle => 'Psalms and prayer';
+
+  @override
+  String get coursePrayerDesc =>
+      'Three psalms for praying with trust, lament, and praise.';
+
+  @override
+  String get coursePrayerLesson1Title => 'Trust in the shepherd';
+
+  @override
+  String get coursePrayerLesson1Detail =>
+      'Psalm 23 accompanies prayer with the image of the shepherd who cares.';
+
+  @override
+  String get coursePrayerLesson2Title => 'Honest lament';
+
+  @override
+  String get coursePrayerLesson2Detail =>
+      'Psalm 42 teaches us to bring thirst and sorrow before God.';
+
+  @override
+  String get coursePrayerLesson3Title => 'The praise of all the people';
+
+  @override
+  String get coursePrayerLesson3Detail =>
+      'Psalm 100 invites us to celebrate God\'s faithfulness with gratitude.';
+
+  @override
+  String get documentsIntro =>
+      'Three short study guides written by Aletheia to accompany reading and catalog study.';
+
+  @override
+  String get documentsSearchHint => 'Search documents';
+
+  @override
+  String get documentsNoResults => 'No document matches the search.';
+
+  @override
+  String get documentsAttribution =>
+      'Original Aletheia documents; they do not reproduce licensed third-party works.';
+
+  @override
+  String get documentReadingTitle => 'How to read the Bible';
+
+  @override
+  String get documentReadingSubtitle =>
+      'A simple four-step method: observe, interpret, apply, and pray.';
+
+  @override
+  String get documentReadingBody =>
+      '## Before reading\n\nThe Bible is a library of books written in different periods. Before looking for an immediate application, locate the passage: who is writing, to whom, and what problem or promise appears in the context?\n\n## Observe\n\nRead slowly and write down what the text says, not what you expect it to say. Notice repeated words, people, places, contrasts, and commands. Good observation prepares good interpretation.\n\n## Interpret\n\nAsk what the passage meant to its first readers and how it fits the biblical story. Compare translations and consult the commentary or dictionary when a word or custom is unclear.\n\n## Apply and pray\n\nApplication grows from the meaning of the text, not the other way around. End by turning what you have seen into prayer: give thanks, confess, ask for help, and commit to one concrete step.';
+
+  @override
+  String get documentTimelineTitle => 'Biblical timeline';
+
+  @override
+  String get documentTimelineSubtitle =>
+      'Four stages to orient yourself in the history of the Old and New Testaments.';
+
+  @override
+  String get documentTimelineBody =>
+      '## Patriarchs and exodus\n\nGenesis presents Abraham, Isaac, and Jacob; Exodus narrates the liberation from Egypt and the covenant at Sinai. These are stories of calling, promise, and the formation of a people.\n\n## Monarchy and prophets\n\nSamuel, Saul, and David inaugurate the monarchy. The prophets call the people to covenant faithfulness and announce judgment and hope.\n\n## Exile and return\n\nThe fall of Jerusalem and the Babylonian exile mark a deep crisis. Ezra and Nehemiah tell of reconstruction; the psalms and prophets preserve the memory of waiting.\n\n## Jesus and the church\n\nThe Gospels present Jesus as the fulfillment of the promises. Acts and the letters describe the community that proclaims his death and resurrection.';
+
+  @override
+  String get documentGlossaryTitle => 'Study glossary';
+
+  @override
+  String get documentGlossarySubtitle =>
+      'Four terms that appear again and again in biblical reading.';
+
+  @override
+  String get documentGlossaryBody =>
+      '## Covenant\n\nA bond established by God with his people, with promises and commitments. It is not a contract between equals: God takes the initiative and sustains the relationship.\n\n## Grace\n\nThe favor God gives without it being a deserved reward. In the New Testament it is the basis of salvation and the Christian life.\n\n## Justification\n\nGod\'s act of declaring the sinner who believes to be righteous on the basis of Christ\'s work. It is not prior moral improvement but a new relationship with God.\n\n## Messianism\n\nThe hope for a king or envoy of God who will restore his people. The Gospels read Jesus as the fulfillment of that hope, both present and future.';
+
+  @override
+  String get favoritesIntro =>
+      'Save passages to return to them. You can also add a reference directly.';
+
+  @override
+  String get favoritesAddHint => 'Reference: John 3:16';
+
+  @override
+  String get favoritesAdd => 'Add';
+
+  @override
+  String get favoritesInvalidReference => 'That reference is not recognized.';
+
+  @override
+  String get favoritesAlreadySaved => 'That passage is already in Favorites.';
+
+  @override
+  String get favoritesPassageSubtitle => 'RV1909 passage';
+
+  @override
+  String get favoritesSearchHint => 'Search Favorites';
+
+  @override
+  String get favoritesEmpty =>
+      'No favorites yet. Use the star in the reader or add a reference.';
+
+  @override
+  String get favoritesNoResults => 'No favorite matches the search.';
+
+  @override
+  String get favoritesOpen => 'Open favorite';
+
+  @override
+  String get favoritesRemove => 'Remove from Favorites';
+
+  @override
+  String get favoritesAdded => 'Added to Favorites';
+
+  @override
+  String get favoritesRemoved => 'Removed from Favorites';
+
+  @override
+  String get psalmsIntro =>
+      'Browse the 150 psalms by genre and open any of them in the reader. Categories overlap.';
+
+  @override
+  String get psalmsSearchHint => 'Search for a psalm or a word';
+
+  @override
+  String psalmsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count psalms',
+      one: '1 psalm',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get psalmsAll => 'All';
+
+  @override
+  String get psalmsNoResults => 'No psalm matches the search.';
+
+  @override
+  String get psalmsAttribution =>
+      'Aletheia\'s own classification; the biblical text is the public-domain RV1909.';
+
+  @override
+  String get psalmOfDay => 'Psalm of the day';
+
+  @override
+  String psalmNumber(int number) {
+    return 'Psalm $number';
+  }
+
+  @override
+  String get psalmsOpen => 'Read';
+
+  @override
+  String get psalmsSubtitle => 'RV1909 psalm';
+
+  @override
+  String get psalmCategoryPraise => 'Praise';
+
+  @override
+  String get psalmCategoryLament => 'Lament';
+
+  @override
+  String get psalmCategoryTrust => 'Trust';
+
+  @override
+  String get psalmCategoryThanks => 'Thanksgiving';
+
+  @override
+  String get psalmCategoryWisdom => 'Wisdom';
+
+  @override
+  String get psalmCategoryMessianic => 'Messianic';
+
+  @override
+  String get psalmCategoryPenitential => 'Penitential';
+
+  @override
+  String get psalmCategoryPilgrimage => 'Pilgrimage';
 }

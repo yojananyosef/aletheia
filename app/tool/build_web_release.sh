@@ -59,7 +59,12 @@ flutter build web \
   --release \
   --base-href /aletheia/ \
   --no-web-resources-cdn \
+  --pwa-strategy=none \
   "${DEFINES[@]}"
+
+# El service worker propio (sw.js) reemplaza al de Flutter; se elimina el
+# artefacto por si una compilación anterior lo dejó en build/web.
+rm -f build/web/flutter_service_worker.js
 
 # Genera la lista de archivos que el service worker precarga para que la app
 # pueda arrancar sin red después de la primera visita.

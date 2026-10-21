@@ -21,6 +21,8 @@ import '../catalog/document_repository.dart';
 import '../core/localization.dart';
 import '../core/resource_colors.dart';
 import '../core/theme.dart';
+import '../favorites/favorites_controller.dart';
+import '../favorites/favorites_models.dart';
 import '../notes/notes_controller.dart';
 import '../notes/notes_models.dart';
 import '../notes/notes_ui.dart';
@@ -1159,14 +1161,33 @@ class _ReaderPanelState extends ConsumerState<ReaderPanel> {
   /// Biblia de traducción. Los propios originales no muestran el botón.
   String? _originalResourceId() {
     if (!widget.resourceId.startsWith('bible.')) return null;
-    if (widget.resourceId == 'bible.tahot' || widget.resourceId == 'bible.tagnt') {
+    if (widget.resourceId == 'bible.tahot' ||
+        widget.resourceId == 'bible.tagnt') {
       return null;
     }
     final parsed = parseReference(_reference);
     if (parsed == null) return null;
-    return isNewTestamentBook(parsed.bookCode)
-        ? 'bible.tagnt'
-        : 'bible.tahot';
+    return isNewTestamentBook(parsed.bookCode) ? 'bible.tagnt' : 'bible.tahot';
+  }
+
+  void _toggleFavorite() {
+    final l10n = context.l10n;
+    final parsed = parseReference(_reference);
+    final canonical = parsed?.canonical ?? _reference;
+    final title = parsed?.displayIn(context.l10nLang) ?? _reference;
+    final saved = ref
+        .read(favoritesProvider.notifier)
+        .togglePassage(
+          reference: canonical,
+          title: title,
+          subtitle: l10n.favoritesPassageSubtitle,
+        );
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+        content: Text(saved ? l10n.favoritesAdded : l10n.favoritesRemoved),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _openOriginal(String resourceId) {
@@ -1352,6 +1373,14 @@ class _ReaderPanelState extends ConsumerState<ReaderPanel> {
   }
 
   Widget _buildLocationBar(String bookCode, DocumentManifest? manifest) {
+    final canonical = parseReference(_reference)?.canonical ?? _reference;
+    final saved = ref
+        .watch(favoritesProvider)
+        .any(
+          (favorite) =>
+              favorite.kind == FavoriteKind.passage &&
+              favorite.reference == canonical,
+        );
     return Container(
       // Medido en el original (home2 y settle_bible): 36 px.
       height: 36,
@@ -1376,6 +1405,16 @@ class _ReaderPanelState extends ConsumerState<ReaderPanel> {
             ),
           ),
           const Spacer(),
+          IconButton(
+            key: const ValueKey('reader-favorite'),
+            tooltip: saved
+                ? context.l10n.favoritesRemove
+                : context.l10n.favoritesAdd,
+            iconSize: 16,
+            visualDensity: VisualDensity.compact,
+            onPressed: _toggleFavorite,
+            icon: Icon(saved ? Icons.star : Icons.star_border),
+          ),
           Tooltip(
             message: context.l10n.readerHideLocationBar,
             child: IconButton(
