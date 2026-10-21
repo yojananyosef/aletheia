@@ -313,7 +313,7 @@ Size _measureMarkerLabel(BuildContext context, String name) {
     textScaler: MediaQuery.textScalerOf(context),
   )..layout(maxWidth: 122);
   return Size(
-    math.max(20.0, painter.width.ceilToDouble() + 8),
+    math.max(30.0, painter.width.ceilToDouble() + 12),
     math.max(13.0, painter.height.ceilToDouble() + 2),
   );
 }
