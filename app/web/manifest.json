@@ -7,7 +7,7 @@
     "display": "standalone",
     "background_color": "#00042F",
     "theme_color": "#00042F",
-    "description": "Lector bíblico con catálogo local de dominio público, notas, referencias cruzadas y búsqueda sin conexión.",
+    "description": "Lector bíblico con catálogo de dominio público descargable, notas, referencias cruzadas, búsqueda y caché sin conexión.",
     "lang": "es",
     "dir": "ltr",
     "orientation": "any",

@@ -1,20 +1,21 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/services.dart' show AssetBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/common.dart';
 import 'package:sqlite3/sqlite3.dart';
+
+import 'catalog_asset_source.dart';
 
 const _indexAsset = 'assets/catalog/search.sqlite.gz';
 const _metaAsset = 'assets/catalog/search.meta.json';
 
 /// Extrae el índice comprimido al directorio de datos y lo abre en lectura.
 Future<CommonDatabase> openLocalSearchDatabase({
-  required AssetBundle bundle,
+  required CatalogAssetSource source,
   Future<String> Function()? cacheDirectoryProvider,
 }) async {
-  final meta = await _readMeta(bundle);
+  final meta = await _readMeta(source);
   final directoryPath = cacheDirectoryProvider != null
       ? await cacheDirectoryProvider()
       : (await getApplicationSupportDirectory()).path;
@@ -25,11 +26,7 @@ Future<CommonDatabase> openLocalSearchDatabase({
   final file = File(path);
 
   if (!await file.exists() || await file.length() != meta.bytes) {
-    final data = await bundle.load(_indexAsset);
-    final compressed = data.buffer.asUint8List(
-      data.offsetInBytes,
-      data.lengthInBytes,
-    );
+    final compressed = await source.loadBytes(_indexAsset);
     final bytes = gzip.decode(compressed);
     if (bytes.length != meta.bytes) {
       throw FormatException(
@@ -49,8 +46,8 @@ Future<CommonDatabase> openLocalSearchDatabase({
   return sqlite3.open(path, mode: OpenMode.readOnly);
 }
 
-Future<_IndexMeta> _readMeta(AssetBundle bundle) async {
-  final raw = await bundle.loadString(_metaAsset);
+Future<_IndexMeta> _readMeta(CatalogAssetSource source) async {
+  final raw = await source.loadText(_metaAsset);
   final json = jsonDecode(raw);
   if (json is! Map) {
     throw const FormatException('manifiesto del índice no válido');

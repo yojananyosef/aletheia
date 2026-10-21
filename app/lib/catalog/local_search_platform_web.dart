@@ -1,11 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' show min;
 import 'dart:typed_data';
 
-import 'package:flutter/services.dart' show AssetBundle;
 import 'package:sqlite3/common.dart';
 
 import '../core/web_sqlite.dart';
+import 'catalog_asset_source.dart';
 import 'gzip_platform.dart';
 
 const _indexAsset = 'assets/catalog/search.sqlite.gz';
@@ -13,18 +14,15 @@ const _metaAsset = 'assets/catalog/search.meta.json';
 
 var _nextFileSystem = 0;
 
-/// En web no hay un directorio de datos síncrono: se descomprime el índice y
-/// se monta en un VFS en memoria, que SQLite puede consultar con FTS5.
+/// En web no hay un directorio de datos síncrono: se descarga el índice, se
+/// descomprime y se monta en un VFS en memoria, que SQLite puede consultar con
+/// FTS5. El service worker conserva el `.gz` entre sesiones.
 Future<CommonDatabase> openLocalSearchDatabase({
-  required AssetBundle bundle,
+  required CatalogAssetSource source,
   Future<String> Function()? cacheDirectoryProvider,
 }) async {
-  final meta = await _readMeta(bundle);
-  final data = await bundle.load(_indexAsset);
-  final compressed = data.buffer.asUint8List(
-    data.offsetInBytes,
-    data.lengthInBytes,
-  );
+  final meta = await _readMeta(source);
+  final compressed = await source.loadBytes(_indexAsset);
   final bytes = await decompressGzip(compressed);
   if (bytes.length != meta.bytes) {
     throw FormatException(
@@ -118,8 +116,8 @@ final class _BytesFile extends BaseVfsFile {
   int xCheckReservedLock() => 0;
 }
 
-Future<_IndexMeta> _readMeta(AssetBundle bundle) async {
-  final raw = await bundle.loadString(_metaAsset);
+Future<_IndexMeta> _readMeta(CatalogAssetSource source) async {
+  final raw = await source.loadText(_metaAsset);
   final json = jsonDecode(raw);
   if (json is! Map) {
     throw const FormatException('manifiesto del índice no válido');

@@ -632,6 +632,31 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo abrir el índice de búsqueda local. Reinstala la app o vuelve a generar el catálogo.';
 
   @override
+  String get searchDownloadTitle => 'Primera búsqueda: descargando el índice';
+
+  @override
+  String searchDownloadBody(String size) {
+    return 'El índice pesa $size. Se guardará en la caché del navegador para las próximas búsquedas.';
+  }
+
+  @override
+  String searchDownloadProgress(String received, String total) {
+    return '$received de $total';
+  }
+
+  @override
+  String searchDownloadUnknown(String received) {
+    return '$received descargados';
+  }
+
+  @override
+  String get searchDownloadCancel => 'Cancelar';
+
+  @override
+  String get searchDownloadCancelled =>
+      'Descarga cancelada. La próxima búsqueda volverá a intentarlo.';
+
+  @override
   String get scopeAll => 'Todo';
 
   @override

@@ -11,10 +11,10 @@ library;
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:flutter/services.dart' show AssetBundle, rootBundle;
+import 'package:flutter/services.dart' show AssetBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'asset_json.dart';
+import 'catalog_asset_source.dart';
 import 'catalog_client.dart';
 import 'catalog_gateway.dart';
 import 'document_models.dart';
@@ -26,11 +26,12 @@ abstract class SectionsRepository {
   Future<CatalogSection?> loadSection(String resourceId, String sectionId);
 }
 
-/// Secciones incluidas como assets (`assets/catalog/<dir>/sections.json`).
+/// Secciones del catálogo leídas de una fuente (assets o `aletheia-mods`).
 class AssetSectionsRepository implements SectionsRepository {
-  AssetSectionsRepository({AssetBundle? bundle}) : _bundle = bundle ?? rootBundle;
+  AssetSectionsRepository({AssetBundle? bundle, CatalogAssetSource? source})
+    : _source = source ?? AssetCatalogSource(bundle: bundle);
 
-  final AssetBundle _bundle;
+  final CatalogAssetSource _source;
   final Map<String, List<Map<String, dynamic>>> _raw = {};
   final Map<String, CatalogSection?> _sections = {};
 
@@ -38,10 +39,7 @@ class AssetSectionsRepository implements SectionsRepository {
     final cached = _raw[resourceId];
     if (cached != null) return cached;
     final dir = AssetDocumentRepository.dirFor(resourceId);
-    final text = await loadCatalogAssetText(
-      _bundle,
-      'assets/catalog/$dir/sections.json',
-    );
+    final text = await _source.loadText('assets/catalog/$dir/sections.json.gz');
     final list = (jsonDecode(text) as List).cast<Map<String, dynamic>>();
     _raw[resourceId] = list;
     return list;
@@ -49,9 +47,9 @@ class AssetSectionsRepository implements SectionsRepository {
 
   @override
   Future<List<SectionSummary>> loadIndex(String resourceId) async => [
-        for (final entry in await _entries(resourceId))
-          SectionSummary.fromJson(entry),
-      ];
+    for (final entry in await _entries(resourceId))
+      SectionSummary.fromJson(entry),
+  ];
 
   @override
   Future<CatalogSection?> loadSection(
@@ -78,8 +76,7 @@ class AssetSectionsRepository implements SectionsRepository {
     }
     final dir = AssetDocumentRepository.dirFor(resourceId);
     try {
-      final text = await loadCatalogAssetText(
-        _bundle,
+      final text = await _source.loadText(
         'assets/catalog/$dir/sections/$sectionId.json',
       );
       final section = CatalogSection.fromJson(
@@ -156,7 +153,9 @@ class FallbackSectionsRepository implements SectionsRepository {
     try {
       return await call(remote);
     } on Exception catch (error) {
-      debugPrint('catálogo remoto no disponible ($error); uso secciones locales');
+      debugPrint(
+        'catálogo remoto no disponible ($error); uso secciones locales',
+      );
       return call(local);
     }
   }
@@ -172,7 +171,7 @@ class FallbackSectionsRepository implements SectionsRepository {
 
 final sectionsRepositoryProvider = Provider<SectionsRepository>((ref) {
   final gateway = ref.watch(catalogGatewayProvider);
-  final local = AssetSectionsRepository();
+  final local = AssetSectionsRepository(source: gateway.source);
   if (gateway.localOnly) return local;
   final remote = RemoteSectionsRepository(gateway.client);
   if (gateway.mode == 'remote') return remote;
@@ -181,12 +180,12 @@ final sectionsRepositoryProvider = Provider<SectionsRepository>((ref) {
 
 final sectionsIndexProvider =
     FutureProvider.family<List<SectionSummary>, String>(
-  (ref, resourceId) =>
-      ref.watch(sectionsRepositoryProvider).loadIndex(resourceId),
-);
+      (ref, resourceId) =>
+          ref.watch(sectionsRepositoryProvider).loadIndex(resourceId),
+    );
 
 final sectionProvider =
     FutureProvider.family<CatalogSection?, (String resourceId, String id)>(
-  (ref, key) =>
-      ref.watch(sectionsRepositoryProvider).loadSection(key.$1, key.$2),
-);
+      (ref, key) =>
+          ref.watch(sectionsRepositoryProvider).loadSection(key.$1, key.$2),
+    );

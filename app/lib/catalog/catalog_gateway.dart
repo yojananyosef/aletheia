@@ -10,17 +10,22 @@ import 'dart:convert';
 import 'dart:math' show min;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/services.dart' show AssetBundle, rootBundle;
+import 'package:flutter/services.dart' show AssetBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
 import '../workspace/workspace_controller.dart' show workspaceProvider;
+import 'catalog_asset_source.dart';
 import 'catalog_client.dart';
 import 'catalog_models.dart';
+import 'catalog_source_providers.dart';
 import 'local_catalog_index.dart';
 
 /// Detalle del error de búsqueda para la UI.
 String searchErrorMessage(AppLocalizations l10n, Object? error) {
+  if (error is CatalogDownloadCancelled) {
+    return l10n.searchDownloadCancelled;
+  }
   if (error is LocalSearchUnavailableException) {
     return l10n.searchIndexUnavailable;
   }
@@ -33,13 +38,22 @@ class CatalogGateway {
     required this.mode,
     required this.client,
     this.bundle,
+    CatalogAssetSource? source,
     LocalCatalogIndex? localIndex,
-  }) : localIndex = localIndex ?? LocalCatalogIndex(bundle: bundle);
+  }) : source = source ?? AssetCatalogSource(bundle: bundle),
+       localIndex =
+           localIndex ??
+           LocalCatalogIndex(
+             source: source ?? AssetCatalogSource(bundle: bundle),
+           );
 
   /// `auto` (servicio con respaldo local) | `local` | `remote`.
   final String mode;
   final CatalogClient client;
   final AssetBundle? bundle;
+
+  /// Fuente de los archivos locales o remotos del catálogo.
+  final CatalogAssetSource source;
   final LocalCatalogIndex localIndex;
 
   /// En web no hay servicio Python local: `auto` equivale a `local` para no
@@ -59,16 +73,30 @@ class CatalogGateway {
 
   Future<CatalogHealth> _localHealth() async {
     final resources = (await bundledResources()).length;
-    final verses = await localIndex.verseCount();
-    final sections = await localIndex.sectionCount();
-    final crossReferences = await localIndex.crossReferenceCount();
-    return CatalogHealth(
-      resources: resources,
-      verses: verses,
-      sections: sections,
-      crossReferences: crossReferences,
-      local: true,
-    );
+    // El manifiesto es pequeño y evita descargar/abrir el índice FTS5 solo
+    // para mostrar los contadores en Ajustes (importante en web).
+    try {
+      final raw = await source.loadText('assets/catalog/search.meta.json');
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      return CatalogHealth(
+        resources: resources,
+        verses: json['indexedVerses'] as int? ?? 0,
+        sections: json['indexedSections'] as int? ?? 0,
+        crossReferences: json['indexedCrossReferences'] as int? ?? 0,
+        local: true,
+      );
+    } on Object {
+      final verses = await localIndex.verseCount();
+      final sections = await localIndex.sectionCount();
+      final crossReferences = await localIndex.crossReferenceCount();
+      return CatalogHealth(
+        resources: resources,
+        verses: verses,
+        sections: sections,
+        crossReferences: crossReferences,
+        local: true,
+      );
+    }
   }
 
   Future<ResourceListing> listResources({
@@ -164,6 +192,7 @@ class CatalogGateway {
   void dispose() {
     client.close();
     localIndex.close();
+    source.dispose();
   }
 
   List<ResourceSummary>? _bundledCache;
@@ -171,9 +200,7 @@ class CatalogGateway {
   Future<List<ResourceSummary>> bundledResources() async {
     final cached = _bundledCache;
     if (cached != null) return cached;
-    final raw = await (bundle ?? rootBundle).loadString(
-      'assets/catalog/index.json',
-    );
+    final raw = await source.loadText('assets/catalog/index.json');
     final list = (jsonDecode(raw) as List)
         .map((e) => ResourceSummary.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -276,7 +303,11 @@ final catalogGatewayProvider = Provider<CatalogGateway>((ref) {
     workspaceProvider.select((s) => (s.catalogUrl, s.catalogMode)),
   );
   final client = CatalogClient(baseUrl: url);
-  final gateway = CatalogGateway(mode: mode, client: client);
+  final gateway = CatalogGateway(
+    mode: mode,
+    client: client,
+    source: ref.watch(catalogAssetSourceProvider),
+  );
   ref.onDispose(gateway.dispose);
   return gateway;
 });

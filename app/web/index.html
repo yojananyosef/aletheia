@@ -136,6 +136,14 @@
       var splash = document.getElementById('splash');
       if (splash) splash.remove();
     });
+
+    // PWA: cachea el shell y el catálogo de aletheia-mods. Si el navegador no
+    // soporta service workers, la app sigue funcionando con la red normal.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      });
+    }
   </script>
 </body>
 </html>

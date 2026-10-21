@@ -12,10 +12,10 @@ library;
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:flutter/services.dart' show AssetBundle, rootBundle;
+import 'package:flutter/services.dart' show AssetBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'asset_json.dart';
+import 'catalog_asset_source.dart';
 import 'catalog_client.dart';
 import 'catalog_gateway.dart';
 import 'document_models.dart';
@@ -26,11 +26,12 @@ abstract class DocumentRepository {
   Future<BookDocument> loadBook(String resourceId, String bookCode);
 }
 
-/// Recursos incluidos en la app como assets (formato del contrato).
+/// Recursos del catálogo leídos de una fuente (assets o `aletheia-mods`).
 class AssetDocumentRepository implements DocumentRepository {
-  AssetDocumentRepository({AssetBundle? bundle}) : _bundle = bundle ?? rootBundle;
+  AssetDocumentRepository({AssetBundle? bundle, CatalogAssetSource? source})
+    : _source = source ?? AssetCatalogSource(bundle: bundle);
 
-  final AssetBundle _bundle;
+  final CatalogAssetSource _source;
   final Map<String, DocumentManifest> _manifestCache = {};
   final Map<String, BookDocument> _bookCache = {};
 
@@ -54,12 +55,12 @@ class AssetDocumentRepository implements DocumentRepository {
   Future<DocumentManifest> loadManifest(String resourceId) async {
     final cached = _manifestCache[resourceId];
     if (cached != null) return cached;
-    final raw = await loadCatalogAssetText(
-      _bundle,
+    final raw = await _source.loadText(
       'assets/catalog/${dirFor(resourceId)}/manifest.json',
     );
-    final manifest =
-        DocumentManifest.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    final manifest = DocumentManifest.fromJson(
+      jsonDecode(raw) as Map<String, dynamic>,
+    );
     _manifestCache[resourceId] = manifest;
     return manifest;
   }
@@ -69,9 +70,8 @@ class AssetDocumentRepository implements DocumentRepository {
     final key = '$resourceId/$bookCode';
     final cached = _bookCache[key];
     if (cached != null) return cached;
-    final raw = await loadCatalogAssetText(
-      _bundle,
-      'assets/catalog/${dirFor(resourceId)}/books/$bookCode.json',
+    final raw = await _source.loadText(
+      'assets/catalog/${dirFor(resourceId)}/books/$bookCode.json.gz',
     );
     final book = BookDocument.fromJson(jsonDecode(raw) as Map<String, dynamic>);
     _bookCache[key] = book;
@@ -115,7 +115,9 @@ class FallbackDocumentRepository implements DocumentRepository {
     try {
       return await call(remote);
     } on Exception catch (error) {
-      debugPrint('catálogo remoto no disponible ($error); uso recursos locales');
+      debugPrint(
+        'catálogo remoto no disponible ($error); uso recursos locales',
+      );
       return call(local);
     }
   }
@@ -123,7 +125,7 @@ class FallbackDocumentRepository implements DocumentRepository {
 
 final documentRepositoryProvider = Provider<DocumentRepository>((ref) {
   final gateway = ref.watch(catalogGatewayProvider);
-  final local = AssetDocumentRepository();
+  final local = AssetDocumentRepository(source: gateway.source);
   if (gateway.localOnly) return local;
   final remote = RemoteDocumentRepository(gateway.client);
   if (gateway.mode == 'remote') return remote;
@@ -131,11 +133,12 @@ final documentRepositoryProvider = Provider<DocumentRepository>((ref) {
 });
 
 final manifestProvider = FutureProvider.family<DocumentManifest, String>(
-  (ref, resourceId) => ref.watch(documentRepositoryProvider).loadManifest(resourceId),
+  (ref, resourceId) =>
+      ref.watch(documentRepositoryProvider).loadManifest(resourceId),
 );
 
 final bookDocumentProvider =
     FutureProvider.family<BookDocument, (String resourceId, String code)>(
-  (ref, key) =>
-      ref.watch(documentRepositoryProvider).loadBook(key.$1, key.$2),
-);
+      (ref, key) =>
+          ref.watch(documentRepositoryProvider).loadBook(key.$1, key.$2),
+    );

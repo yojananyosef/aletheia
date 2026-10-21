@@ -302,6 +302,28 @@
   "searchPromptTitle": "Busca en el catálogo",
   "searchPromptBody": "Palabras, frases entre comillas, AND/OR/NOT, NEAR, WITHIN n WORDS y campos como bible:\"Jn 3\". Cada resultado abre el recurso en el pasaje exacto.",
   "searchIndexUnavailable": "No se pudo abrir el índice de búsqueda local. Reinstala la app o vuelve a generar el catálogo.",
+  "searchDownloadTitle": "Primera búsqueda: descargando el índice",
+  "searchDownloadBody": "El índice pesa {size}. Se guardará en la caché del navegador para las próximas búsquedas.",
+  "@searchDownloadBody": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "searchDownloadProgress": "{received} de {total}",
+  "@searchDownloadProgress": {
+    "placeholders": {
+      "received": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "searchDownloadUnknown": "{received} descargados",
+  "@searchDownloadUnknown": {
+    "placeholders": {
+      "received": { "type": "String" }
+    }
+  },
+  "searchDownloadCancel": "Cancelar",
+  "searchDownloadCancelled": "Descarga cancelada. La próxima búsqueda volverá a intentarlo.",
   "scopeAll": "Todo",
   "scopeBible": "Biblia",
   "scopeBooks": "Libros",

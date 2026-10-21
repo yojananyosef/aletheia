@@ -629,6 +629,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Search couldn\'t open the bundled index. Reinstall the app or rebuild the catalog.';
 
   @override
+  String get searchDownloadTitle => 'First search: downloading the index';
+
+  @override
+  String searchDownloadBody(String size) {
+    return 'The index is $size. It will be cached in your browser for future searches.';
+  }
+
+  @override
+  String searchDownloadProgress(String received, String total) {
+    return '$received of $total';
+  }
+
+  @override
+  String searchDownloadUnknown(String received) {
+    return '$received downloaded';
+  }
+
+  @override
+  String get searchDownloadCancel => 'Cancel';
+
+  @override
+  String get searchDownloadCancelled =>
+      'Download cancelled. The next search will try again.';
+
+  @override
   String get scopeAll => 'All';
 
   @override

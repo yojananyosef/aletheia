@@ -5,7 +5,8 @@ Aletheia distribuye contenido de **dominio público**, **CC BY 4.0** y
 uso comercial y distribución; no se incluye material con licencia
 No-Comercial (NC) ni activos de la aplicación original. Esta nota registra la
 procedencia, la atribución y la base de licencia de los recursos empaquetados
-en `app/assets/catalog/` y `app/assets/maps/`.
+en `app/assets/catalog/`, `app/assets/maps/` y en el catálogo publicado en
+[`aletheia-mods`](https://github.com/yojananyosef/aletheia-mods).
 
 ## 1. Recursos incluidos
 
@@ -84,8 +85,11 @@ estos textos.
   los salmos como versículo 0) y 305 417 palabras.
 - TAGNT: 27 libros, 260 capítulos, 7 953 versículos y 138 140 palabras.
 - Léxico Strong: 18 085 entradas (8 723 hebreas y 9 362 griegas).
-- Los assets ocupan **92 MB**, de los cuales 48,8 MB son el índice FTS5
-  comprimido. La geometría de los mapas añade unos 171 KB.
+- Los assets del escritorio ocupan **92 MB**, de los cuales 48,8 MB son el índice
+  FTS5 comprimido. La geometría de los mapas añade unos 171 KB. La web descarga
+  estos mismos artefactos desde
+  [`aletheia-mods`](https://github.com/yojananyosef/aletheia-mods); el build web
+  solo empaqueta mapas, `index.json`, RV1909 y morfología.
 
 La fecha de verificación de estas fuentes es **2026-10-20**. Para reproducir el
 catálogo, véase [`catalog/README.md`](catalog/README.md) y

@@ -86,6 +86,18 @@ La app apunta por defecto a `http://127.0.0.1:8787`; en **Ajustes → Catálogo*
 
 `app/assets/catalog/` incluye los **14 recursos** (nueve Biblias, dos diccionarios, comentario, devocional y Factbook) y un **índice FTS5 precompilado** (`search.sqlite.gz`, 48,8 MB; 272 503 entradas: 248 870 versículos + 23 633 secciones no bíblicas; 376 083 referencias cruzadas). Los libros y los índices de secciones se guardan comprimidos como `.json.gz`. El índice se extrae en el primer uso a `catalog.search.<hash>.sqlite` en el directorio de datos y la app lo abre en solo lectura. Así la Biblioteca, el lector, la comparación, los paneles de comentario/diccionario, «Ideas» y la Búsqueda funcionan **sin arrancar el servicio**; la búsqueda de estudio incluye `NEAR`, `WITHIN`, campos (`bible:`, `type:`, `language:`, `book:`) y facetas. `sync_app_catalog.py` mantiene sincronizados contenido e índice, y el hash del índice evita reutilizar copias viejas tras una actualización.
 
+### Catálogo web desacoplado
+
+La web no empaqueta esos 92 MB. `app/tool/build_web_release.sh` deja solo mapas, `index.json`, RV1909 y morfología, y publica el catálogo completo en [`aletheia-mods`](https://github.com/yojananyosef/aletheia-mods) (`docs/v1/`). Para actualizarlo:
+
+```bash
+cd ../aletheia-mods
+python3 tools/import_assets.py --source ../aletheia/app/assets/catalog
+git add docs/v1 && git commit -m "Catálogo: actualiza" && git push
+```
+
+El repositorio de mods sirve `mods.json`, `index.json`, `search.meta.json`, `search.sqlite.gz`, `morphology.json` y los recursos con CORS y `Accept-Ranges`. La app descarga bajo demanda, muestra progreso/cancelación y cachea con el service worker.
+
 ### Fuentes y licencias
 
 | Recurso | Fuente | Licencia |

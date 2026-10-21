@@ -1202,6 +1202,42 @@ abstract class AppLocalizations {
   /// **'No se pudo abrir el índice de búsqueda local. Reinstala la app o vuelve a generar el catálogo.'**
   String get searchIndexUnavailable;
 
+  /// No description provided for @searchDownloadTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Primera búsqueda: descargando el índice'**
+  String get searchDownloadTitle;
+
+  /// No description provided for @searchDownloadBody.
+  ///
+  /// In es, this message translates to:
+  /// **'El índice pesa {size}. Se guardará en la caché del navegador para las próximas búsquedas.'**
+  String searchDownloadBody(String size);
+
+  /// No description provided for @searchDownloadProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'{received} de {total}'**
+  String searchDownloadProgress(String received, String total);
+
+  /// No description provided for @searchDownloadUnknown.
+  ///
+  /// In es, this message translates to:
+  /// **'{received} descargados'**
+  String searchDownloadUnknown(String received);
+
+  /// No description provided for @searchDownloadCancel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar'**
+  String get searchDownloadCancel;
+
+  /// No description provided for @searchDownloadCancelled.
+  ///
+  /// In es, this message translates to:
+  /// **'Descarga cancelada. La próxima búsqueda volverá a intentarlo.'**
+  String get searchDownloadCancelled;
+
   /// No description provided for @scopeAll.
   ///
   /// In es, this message translates to:

@@ -32,16 +32,9 @@ jobs:
         working-directory: app
         run: flutter pub get
 
-      - name: Compilar web
+      - name: Compilar web con catálogo remoto
         working-directory: app
-        run: >-
-          flutter build web
-          --release
-          --base-href /aletheia/
-          --no-web-resources-cdn
-
-      - name: Desactivar Jekyll
-        run: touch app/build/web/.nojekyll
+        run: bash tool/build_web_release.sh
 
       - name: Configurar Pages
         uses: actions/configure-pages@v5

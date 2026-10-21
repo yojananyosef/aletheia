@@ -10,13 +10,15 @@
 /// resultados son idénticas en ambos modos.
 library;
 
+import 'dart:async' show unawaited;
 import 'dart:math' show max, min;
 
-import 'package:flutter/services.dart' show AssetBundle, rootBundle;
+import 'package:flutter/services.dart' show AssetBundle;
 import 'package:sqlite3/common.dart';
 
 import '../references/reference_parser.dart'
     show bookCodeForInput, parseReference;
+import 'catalog_asset_source.dart';
 import 'catalog_client.dart';
 import 'catalog_models.dart';
 import 'local_search_platform.dart';
@@ -34,10 +36,13 @@ class LocalSearchUnavailableException extends CatalogException {
 }
 
 class LocalCatalogIndex {
-  LocalCatalogIndex({AssetBundle? bundle, this.cacheDirectoryProvider})
-    : _bundle = bundle ?? rootBundle;
+  LocalCatalogIndex({
+    AssetBundle? bundle,
+    CatalogAssetSource? source,
+    this.cacheDirectoryProvider,
+  }) : _source = source ?? AssetCatalogSource(bundle: bundle);
 
-  final AssetBundle _bundle;
+  final CatalogAssetSource _source;
 
   /// Directorio de caché en plataformas nativas; `null` usa el directorio de
   /// datos de la app. En web se ignora (el índice vive en memoria).
@@ -47,12 +52,27 @@ class LocalCatalogIndex {
   Future<CommonDatabase>? _opening;
   CommonDatabase? _database;
 
-  Future<CommonDatabase> _db() => _opening ??= _open();
+  Future<CommonDatabase> _db() {
+    final existing = _opening;
+    if (existing != null) return existing;
+    final opening = _open();
+    _opening = opening;
+    // Si la descarga falla o se cancela, la próxima búsqueda debe reintentar.
+    unawaited(
+      opening.then<void>(
+        (_) {},
+        onError: (Object error, StackTrace stackTrace) {
+          if (identical(_opening, opening)) _opening = null;
+        },
+      ),
+    );
+    return opening;
+  }
 
   Future<CommonDatabase> _open() async {
     try {
       final db = await openLocalSearchDatabase(
-        bundle: _bundle,
+        source: _source,
         cacheDirectoryProvider: cacheDirectoryProvider,
       );
       db.execute('PRAGMA query_only = ON');
@@ -64,6 +84,8 @@ class LocalCatalogIndex {
       _database = db;
       return db;
     } on LocalSearchUnavailableException {
+      rethrow;
+    } on CatalogDownloadCancelled {
       rethrow;
     } catch (error) {
       throw LocalSearchUnavailableException(error);

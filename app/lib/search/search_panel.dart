@@ -11,6 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../catalog/catalog_gateway.dart';
 import '../catalog/catalog_models.dart';
+import '../catalog/catalog_source_providers.dart';
+import '../catalog/mods_catalog_source.dart';
 import '../core/localization.dart';
 import '../core/theme.dart';
 import '../references/reference_parser.dart';
@@ -533,6 +535,30 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
   }
 
   Widget _buildBody() {
+    final transfer = ref.watch(catalogTransferProvider);
+    if (transfer == null) return _buildBodyContent();
+    return ValueListenableBuilder<CatalogTransfer?>(
+      valueListenable: transfer,
+      builder: (context, value, child) {
+        final body = child ?? _buildBodyContent();
+        if (value == null) return body;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _DownloadBanner(
+              transfer: value,
+              onCancel: () =>
+                  ref.read(modsCatalogSourceProvider)?.cancelTransfer(),
+            ),
+            Expanded(child: body),
+          ],
+        );
+      },
+      child: _buildBodyContent(),
+    );
+  }
+
+  Widget _buildBodyContent() {
     final l10n = context.l10n;
     if (_loading) {
       return const Center(
@@ -833,6 +859,102 @@ class _ResourceGroupHeader extends StatelessWidget {
           Text(
             formatCount(count),
             style: TextStyle(fontSize: 11.5, color: kTextSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DownloadBanner extends StatelessWidget {
+  const _DownloadBanner({required this.transfer, required this.onCancel});
+
+  final CatalogTransfer transfer;
+  final VoidCallback onCancel;
+
+  String _size(int bytes, String lang) {
+    final value = (bytes / 1000000).toStringAsFixed(1);
+    return '${lang == 'es' ? value.replaceAll('.', ',') : value} MB';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final lang = context.l10nLang;
+    final total = transfer.total;
+    final received = _size(transfer.received, lang);
+    final progress = total == null
+        ? l10n.searchDownloadUnknown(received)
+        : l10n.searchDownloadProgress(received, _size(total, lang));
+    return Container(
+      key: const ValueKey('search-download-banner'),
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: kAccent.withValues(alpha: 0.07),
+        border: Border.all(color: kBorder),
+        borderRadius: BorderRadius.circular(9),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 1),
+            child: Icon(Icons.downloading, size: 18, color: kAccent),
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.searchDownloadTitle,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.searchDownloadBody(
+                    total == null ? '≈ 49 MB' : _size(total, lang),
+                  ),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    height: 1.35,
+                    color: kTextSecondary,
+                  ),
+                ),
+                const SizedBox(height: 7),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    minHeight: 4,
+                    value: transfer.fraction,
+                    backgroundColor: kBorder,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  progress,
+                  style: TextStyle(fontSize: 10.5, color: kTextSecondary),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+          TextButton(
+            key: const ValueKey('search-download-cancel'),
+            onPressed: onCancel,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: const Size(0, 30),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              l10n.searchDownloadCancel,
+              style: const TextStyle(fontSize: 11.5),
+            ),
           ),
         ],
       ),
