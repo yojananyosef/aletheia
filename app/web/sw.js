@@ -47,7 +47,9 @@ self.addEventListener('activate', (event) => {
     const names = await caches.keys();
     await Promise.all(
       names
-        .filter((name) => name.startsWith('aletheia-') && name !== SHELL_CACHE && name !== MODS_CACHE)
+        // Al cambiar la versión del worker se renueva el shell completo. El
+        // catálogo se conserva: sus URLs ya llevan la versión de mods.json.
+        .filter((name) => name.startsWith('aletheia-') && name !== MODS_CACHE)
         .map((name) => caches.delete(name)),
     );
     await self.clients.claim();

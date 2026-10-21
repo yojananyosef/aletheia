@@ -158,7 +158,10 @@ import sys
 root = Path(sys.argv[1])
 manifest = root / "sw-manifest.js"
 version = hashlib.sha256(
-    (root / "sw.js").read_bytes() + manifest.read_bytes()
+    (root / "sw.js").read_bytes()
+    + manifest.read_bytes()
+    + (root / "main.dart.js").read_bytes()
+    + (root / "flutter_bootstrap.js").read_bytes()
 ).hexdigest()[:12]
 index = root / "index.html"
 text = index.read_text(encoding="utf-8")

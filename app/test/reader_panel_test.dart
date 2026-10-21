@@ -240,7 +240,7 @@ void main() {
 
   testWidgets('la barra lateral se puede expandir en ventana estrecha',
       (tester) async {
-    _setWindow(tester, const Size(764, 900));
+    _setWindow(tester, const Size(390, 844));
     final gateway = FakeCatalogGateway();
     final container = _container(gateway);
     addTearDown(container.dispose);
@@ -259,10 +259,19 @@ void main() {
     expect(find.text('Biblia'), findsOneWidget);
     expect(find.text('Búsqueda'), findsOneWidget);
 
+    // Al abrir un destino en ventana estrecha, la barra vuelve a plegarse
+    // para que el panel use el ancho disponible.
+    await tester.tap(find.text('Búsqueda'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Expandir barra lateral'), findsOneWidget);
+    expect(find.byKey(const ValueKey('search-field')), findsOneWidget);
+
     // Y también se puede volver a plegar.
+    await tester.tap(find.byTooltip('Expandir barra lateral'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Colapsar barra lateral'));
     await tester.pumpAndSettle();
-    expect(find.text('Biblia'), findsNothing);
+    expect(find.byTooltip('Expandir barra lateral'), findsOneWidget);
   });
 
   testWidgets('los paneles se mantienen lado a lado a cualquier ancho',

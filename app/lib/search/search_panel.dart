@@ -304,115 +304,158 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
     final canBack = historyIndex > 0;
     final canForward = historyIndex >= 0 && historyIndex < history.length - 1;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
-      child: Row(
-        children: [
-          IconButton(
-            key: const ValueKey('search-back'),
-            iconSize: 18,
-            tooltip: l10n.searchBack,
-            onPressed: canBack ? () => _historyGo(historyIndex - 1) : null,
-            icon: const Icon(Icons.arrow_back),
-          ),
-          IconButton(
-            key: const ValueKey('search-forward'),
-            iconSize: 18,
-            tooltip: l10n.readerForward,
-            onPressed: canForward ? () => _historyGo(historyIndex + 1) : null,
-            icon: const Icon(Icons.arrow_forward),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: TextField(
-              key: const ValueKey('search-field'),
-              controller: _controller,
-              onSubmitted: (_) => _submit(),
-              style: const TextStyle(fontSize: 13),
-              decoration: InputDecoration(
-                hintText: l10n.searchTitle,
-                isDense: true,
-                prefixIcon: const Icon(Icons.search, size: 17),
-                suffixIcon: IconButton(
-                  key: const ValueKey('search-submit'),
-                  iconSize: 15,
-                  tooltip: l10n.libraryFind,
-                  icon: const Icon(Icons.arrow_forward),
-                  onPressed: _submit,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: kBorder),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: kBorder),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: kAccent),
-                ),
+    Widget back() => IconButton(
+      key: const ValueKey('search-back'),
+      iconSize: 18,
+      tooltip: l10n.searchBack,
+      onPressed: canBack ? () => _historyGo(historyIndex - 1) : null,
+      icon: const Icon(Icons.arrow_back),
+    );
+
+    Widget forward() => IconButton(
+      key: const ValueKey('search-forward'),
+      iconSize: 18,
+      tooltip: l10n.readerForward,
+      onPressed: canForward ? () => _historyGo(historyIndex + 1) : null,
+      icon: const Icon(Icons.arrow_forward),
+    );
+
+    Widget field({bool dense = false}) => TextField(
+      key: const ValueKey('search-field'),
+      controller: _controller,
+      onSubmitted: (_) => _submit(),
+      style: const TextStyle(fontSize: 13),
+      decoration: InputDecoration(
+        hintText: l10n.searchTitle,
+        isDense: true,
+        prefixIcon: dense ? null : const Icon(Icons.search, size: 17),
+        suffixIcon: dense
+            ? null
+            : IconButton(
+                key: const ValueKey('search-submit'),
+                iconSize: 15,
+                tooltip: l10n.libraryFind,
+                icon: const Icon(Icons.arrow_forward),
+                onPressed: _submit,
               ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: kBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: kBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: kAccent),
+        ),
+      ),
+    );
+
+    Widget historyButton() => PopupMenuButton<int>(
+      key: const ValueKey('search-history'),
+      tooltip: l10n.searchHistory,
+      iconSize: 19,
+      icon: const Icon(Icons.history),
+      onSelected: _historyGo,
+      itemBuilder: (context) => [
+        PopupMenuItem<int>(
+          enabled: false,
+          height: 30,
+          child: Text(
+            l10n.searchHistory,
+            style: TextStyle(fontSize: 11.5, color: kTextSecondary),
+          ),
+        ),
+        if (history.isEmpty)
+          PopupMenuItem<int>(
+            enabled: false,
+            child: Text(
+              l10n.searchHistoryEmpty,
+              style: const TextStyle(fontSize: 13),
             ),
           ),
-          const SizedBox(width: 6),
-          PopupMenuButton<int>(
-            key: const ValueKey('search-history'),
-            tooltip: l10n.searchHistory,
-            iconSize: 19,
-            icon: const Icon(Icons.history),
-            onSelected: _historyGo,
-            itemBuilder: (context) => [
-              PopupMenuItem<int>(
-                enabled: false,
-                height: 30,
-                child: Text(
-                  l10n.searchHistory,
-                  style: TextStyle(fontSize: 11.5, color: kTextSecondary),
+        for (var i = history.length - 1; i >= 0; i--)
+          PopupMenuItem<int>(
+            value: i,
+            child: Row(
+              children: [
+                Icon(
+                  i == historyIndex ? Icons.check : Icons.history,
+                  size: 14,
+                  color: i == historyIndex ? kAccent : kTextSecondary,
                 ),
-              ),
-              if (history.isEmpty)
-                PopupMenuItem<int>(
-                  enabled: false,
-                  child: Text(
-                    l10n.searchHistoryEmpty,
-                    style: const TextStyle(fontSize: 13),
+                const SizedBox(width: 8),
+                Text(
+                  history[i],
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: i == historyIndex
+                        ? FontWeight.w600
+                        : FontWeight.w400,
                   ),
                 ),
-              for (var i = history.length - 1; i >= 0; i--)
-                PopupMenuItem<int>(
-                  value: i,
-                  child: Row(
-                    children: [
-                      Icon(
-                        i == historyIndex ? Icons.check : Icons.history,
-                        size: 14,
-                        color: i == historyIndex ? kAccent : kTextSecondary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        history[i],
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: i == historyIndex
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+
+    Widget help() => IconButton(
+      key: const ValueKey('search-help'),
+      iconSize: 19,
+      tooltip: l10n.searchSyntaxTitle,
+      onPressed: _showSyntaxHelp,
+      icon: const Icon(Icons.help_outline),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 520;
+        // En el caso extremo (barra lateral expandida en un móvil) solo cabe
+        // el campo; las acciones siguen disponibles al plegar la barra.
+        if (constraints.maxWidth < 220) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+            child: field(dense: true),
+          );
+        }
+        if (compact) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    back(),
+                    forward(),
+                    const Spacer(),
+                    historyButton(),
+                    help(),
+                  ],
                 ),
+                const SizedBox(height: 4),
+                field(),
+              ],
+            ),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+          child: Row(
+            children: [
+              back(),
+              forward(),
+              const SizedBox(width: 4),
+              Expanded(child: field()),
+              const SizedBox(width: 6),
+              historyButton(),
+              help(),
             ],
           ),
-          IconButton(
-            key: const ValueKey('search-help'),
-            iconSize: 19,
-            tooltip: l10n.searchSyntaxTitle,
-            onPressed: _showSyntaxHelp,
-            icon: const Icon(Icons.help_outline),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -611,32 +654,35 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
 
     final result = _result;
     if (result == null) {
-      return Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.manage_search, size: 38, color: kTextSecondary),
-              const SizedBox(height: 12),
-              Text(
-                l10n.searchPromptTitle,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.manage_search, size: 38, color: kTextSecondary),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.searchPromptTitle,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                l10n.searchPromptBody,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  color: kTextSecondary,
-                  height: 1.45,
+                const SizedBox(height: 6),
+                Text(
+                  l10n.searchPromptBody,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: kTextSecondary,
+                    height: 1.45,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );

@@ -641,7 +641,7 @@ class _Sidebar extends ConsumerWidget {
                     collapsed,
                     item.icon,
                     item.label,
-                    item.onTap,
+                    () => _runSidebarAction(context, ref, item.onTap),
                     key: item.key,
                     selected: item.id == selectedId,
                   ),
@@ -673,7 +673,7 @@ class _Sidebar extends ConsumerWidget {
                       collapsed,
                       item.icon,
                       item.label,
-                      item.onTap,
+                      () => _runSidebarAction(context, ref, item.onTap),
                       key: item.key,
                       compact: true,
                     ),
@@ -683,7 +683,11 @@ class _Sidebar extends ConsumerWidget {
                   collapsed,
                   Icons.storefront,
                   l10n.navStore,
-                  () => ctrl.openTab(const TabSpec(kind: PanelKind.store)),
+                  () => _runSidebarAction(
+                    context,
+                    ref,
+                    () => ctrl.openTab(const TabSpec(kind: PanelKind.store)),
+                  ),
                   compact: true,
                 ),
                 if (!collapsed)
@@ -711,6 +715,25 @@ class _Sidebar extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// En ventanas estrechas la barra lateral se expande como panel temporal:
+/// tras abrir un destino se pliega para devolver el ancho al workspace.
+void _runSidebarAction(
+  BuildContext context,
+  WidgetRef ref,
+  VoidCallback action,
+) {
+  // Plegar antes de abrir el destino evita un fotograma intermedio con el
+  // panel comprimido entre la barra expandida y el borde de la ventana.
+  if (MediaQuery.sizeOf(context).width < kSidebarAutoCollapseWidth) {
+    ref.read(sidebarCollapsedProvider.notifier).setCollapsed(true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.mounted) action();
+    });
+    return;
+  }
+  action();
 }
 
 /// Id del ítem de navegación que corresponde al panel activo.
