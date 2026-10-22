@@ -27,8 +27,10 @@ import 'support/test_fakes.dart';
 /// Posición global del carácter `offset` de un párrafo (para gestos de texto).
 Offset _textOffsetToPosition(RenderParagraph paragraph, int offset) {
   const caret = Rect.fromLTWH(0, 0, 2, 20);
-  final local =
-      paragraph.getOffsetForCaret(TextPosition(offset: offset), caret);
+  final local = paragraph.getOffsetForCaret(
+    TextPosition(offset: offset),
+    caret,
+  );
   return paragraph.localToGlobal(local) + const Offset(1, 8);
 }
 
@@ -51,18 +53,19 @@ void _setWindow(WidgetTester tester, Size size) {
   addTearDown(tester.view.resetPhysicalSize);
 }
 
-Future<ProviderContainer> _pumpNotesPanel(WidgetTester tester,
-    {NotesState? notes}) async {
+Future<ProviderContainer> _pumpNotesPanel(
+  WidgetTester tester, {
+  NotesState? notes,
+}) async {
   _setWindow(tester, const Size(1400, 900));
   final container = _container(notes: notes);
   addTearDown(container.dispose);
-  container.read(workspaceProvider.notifier).openTab(
-        const TabSpec(kind: PanelKind.notes),
-      );
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: container,
-    child: const AletheiaApp(),
-  ));
+  container
+      .read(workspaceProvider.notifier)
+      .openTab(const TabSpec(kind: PanelKind.notes));
+  await tester.pumpWidget(
+    UncontrolledProviderScope(container: container, child: const AletheiaApp()),
+  );
   await tester.pumpAndSettle();
   return container;
 }
@@ -75,16 +78,19 @@ Future<ProviderContainer> _pumpReader(
   _setWindow(tester, const Size(1400, 900));
   final container = _container(notes: notes);
   addTearDown(container.dispose);
-  container.read(workspaceProvider.notifier).openTab(TabSpec(
-        kind: PanelKind.bible,
-        title: 'RV1909',
-        reference: reference,
-        resourceId: 'bible.rv1909',
-      ));
-  await tester.pumpWidget(UncontrolledProviderScope(
-    container: container,
-    child: const AletheiaApp(),
-  ));
+  container
+      .read(workspaceProvider.notifier)
+      .openTab(
+        TabSpec(
+          kind: PanelKind.bible,
+          title: 'RV1909',
+          reference: reference,
+          resourceId: 'bible.rv1909',
+        ),
+      );
+  await tester.pumpWidget(
+    UncontrolledProviderScope(container: container, child: const AletheiaApp()),
+  );
   await tester.pumpAndSettle();
   return container;
 }
@@ -107,32 +113,31 @@ Note _seedNote({
   DateTime? updatedAt,
   DateTime? deletedAt,
   String resourceId = 'bible.rv1909',
-}) =>
-    Note(
-      id: id,
-      kind: kind,
-      title: title,
-      body: body,
-      anchors: [
-        if (reference != null || bookCode != null)
-          NoteAnchor(
-            resourceId: resourceId,
-            reference: reference,
-            bookCode: bookCode,
-            chapter: chapter,
-            verse: verse,
-            startOffset: start,
-            endOffset: end,
-            quote: quote,
-          ),
-      ],
-      notebooks: notebooks,
-      tags: tags,
-      color: color,
-      createdAt: updatedAt ?? DateTime(2026, 1, 1),
-      updatedAt: updatedAt ?? DateTime(2026, 1, 1),
-      deletedAt: deletedAt,
-    );
+}) => Note(
+  id: id,
+  kind: kind,
+  title: title,
+  body: body,
+  anchors: [
+    if (reference != null || bookCode != null)
+      NoteAnchor(
+        resourceId: resourceId,
+        reference: reference,
+        bookCode: bookCode,
+        chapter: chapter,
+        verse: verse,
+        startOffset: start,
+        endOffset: end,
+        quote: quote,
+      ),
+  ],
+  notebooks: notebooks,
+  tags: tags,
+  color: color,
+  createdAt: updatedAt ?? DateTime(2026, 1, 1),
+  updatedAt: updatedAt ?? DateTime(2026, 1, 1),
+  deletedAt: deletedAt,
+);
 
 List<TextSpan> _flatten(InlineSpan? span) {
   final out = <TextSpan>[];
@@ -167,9 +172,13 @@ void main() {
       expect(find.byKey(const Key('note-title-field')), findsOneWidget);
 
       await tester.enterText(
-          find.byKey(const Key('note-title-field')), 'Mi primera nota');
+        find.byKey(const Key('note-title-field')),
+        'Mi primera nota',
+      );
       await tester.enterText(
-          find.byKey(const Key('note-body-field')), 'Contenido de prueba');
+        find.byKey(const Key('note-body-field')),
+        'Contenido de prueba',
+      );
       await tester.pump(const Duration(milliseconds: 600));
 
       final note = container.read(notesProvider).notes.single;
@@ -186,7 +195,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Aún no hay notas'), findsOneWidget);
       await tester.enterText(
-          find.byKey(const Key('notes-find-field')), 'primera');
+        find.byKey(const Key('notes-find-field')),
+        'primera',
+      );
       await tester.pumpAndSettle();
       expect(find.byKey(Key('note-card-${note.id}')), findsOneWidget);
     });
@@ -271,8 +282,9 @@ void main() {
       expect(find.byKey(const Key('note-card-h1')), findsNothing);
     });
 
-    testWidgets('cabecera con recuento, densidad y orden por cuaderno',
-        (tester) async {
+    testWidgets('cabecera con recuento, densidad y orden por cuaderno', (
+      tester,
+    ) async {
       final container = await _pumpNotesPanel(
         tester,
         notes: NotesState(
@@ -290,7 +302,9 @@ void main() {
       // Densidad: la lista compacta queda marcada en el propio control.
       await tester.tap(find.byKey(const Key('notes-density')));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(CheckedPopupMenuItem<bool>, 'Compacto'));
+      await tester.tap(
+        find.widgetWithText(CheckedPopupMenuItem<bool>, 'Compacto'),
+      );
       await tester.pumpAndSettle();
       expect(find.text('Compacto'), findsOneWidget);
 
@@ -331,19 +345,26 @@ void main() {
     testWidgets('el editor formatea y previsualiza el cuerpo', (tester) async {
       final container = await _pumpNotesPanel(
         tester,
-        notes: NotesState(notes: [_seedNote(id: 'n1', title: 'Formato')]),
+        notes: NotesState(
+          notes: [_seedNote(id: 'n1', title: 'Formato')],
+        ),
       );
       await tester.tap(find.byKey(const Key('note-card-n1')));
       await tester.pumpAndSettle();
 
       await tester.enterText(
-          find.byKey(const Key('note-body-field')), 'Hola mundo');
+        find.byKey(const Key('note-body-field')),
+        'Hola mundo',
+      );
       await tester.pump(const Duration(milliseconds: 400));
 
-      final field =
-          tester.widget<TextField>(find.byKey(const Key('note-body-field')));
-      field.controller!.selection =
-          const TextSelection(baseOffset: 0, extentOffset: 4);
+      final field = tester.widget<TextField>(
+        find.byKey(const Key('note-body-field')),
+      );
+      field.controller!.selection = const TextSelection(
+        baseOffset: 0,
+        extentOffset: 4,
+      );
       await tester.pump();
       await tester.tap(find.byKey(const Key('format-bold')));
       await tester.pump(const Duration(milliseconds: 500));
@@ -365,22 +386,28 @@ void main() {
           return null;
         },
       );
-      addTearDown(() => tester.binding.defaultBinaryMessenger
-          .setMockMethodCallHandler(SystemChannels.platform, null));
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
 
       await _pumpNotesPanel(
         tester,
-        notes: NotesState(notes: [
-          _seedNote(
-            id: 'n1',
-            title: 'Compartida',
-            body: 'Cuerpo',
-            reference: 'JHN.1.1',
-            bookCode: 'JHN',
-            chapter: 1,
-            verse: 1,
-          ),
-        ]),
+        notes: NotesState(
+          notes: [
+            _seedNote(
+              id: 'n1',
+              title: 'Compartida',
+              body: 'Cuerpo',
+              reference: 'JHN.1.1',
+              bookCode: 'JHN',
+              chapter: 1,
+              verse: 1,
+            ),
+          ],
+        ),
       );
       await tester.tap(find.byKey(const Key('note-card-n1')));
       await tester.pumpAndSettle();
@@ -403,28 +430,30 @@ void main() {
     testWidgets('marcadores, resaltados y modo Notas', (tester) async {
       final container = await _pumpReader(
         tester,
-        notes: NotesState(notes: [
-          _seedNote(
-            id: 'n1',
-            title: 'Nota anclada',
-            body: 'Sobre el versículo 2',
-            reference: 'JHN.1.2',
-            bookCode: 'JHN',
-            chapter: 1,
-            verse: 2,
-          ),
-          _seedNote(
-            id: 'h1',
-            kind: 'highlight',
-            color: 'yellow',
-            reference: 'JHN.1.1',
-            bookCode: 'JHN',
-            chapter: 1,
-            verse: 1,
-            start: 3,
-            end: 15,
-          ),
-        ]),
+        notes: NotesState(
+          notes: [
+            _seedNote(
+              id: 'n1',
+              title: 'Nota anclada',
+              body: 'Sobre el versículo 2',
+              reference: 'JHN.1.2',
+              bookCode: 'JHN',
+              chapter: 1,
+              verse: 2,
+            ),
+            _seedNote(
+              id: 'h1',
+              kind: 'highlight',
+              color: 'yellow',
+              reference: 'JHN.1.1',
+              bookCode: 'JHN',
+              chapter: 1,
+              verse: 1,
+              start: 3,
+              end: 15,
+            ),
+          ],
+        ),
       );
 
       // El texto del versículo 1 lleva el resaltado.
@@ -489,9 +518,7 @@ void main() {
       final verseText = find.textContaining('EN el principio era el Verbo');
       expect(verseText, findsOneWidget);
       final paragraph = tester.renderObject<RenderParagraph>(
-        find
-            .descendant(of: verseText, matching: find.byType(RichText))
-            .first,
+        find.descendant(of: verseText, matching: find.byType(RichText)).first,
       );
       final plain = paragraph.text.toPlainText();
       final wordStart = plain.indexOf('principio');
@@ -540,15 +567,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
     });
 
-    testWidgets('el menú de selección resalta con color y con subrayado',
-        (tester) async {
+    testWidgets('el menú de selección resalta con color y con subrayado', (
+      tester,
+    ) async {
       final container = await _pumpReader(tester, notes: const NotesState());
 
       final verseText = find.textContaining('EN el principio era el Verbo');
       final paragraph = tester.renderObject<RenderParagraph>(
-        find
-            .descendant(of: verseText, matching: find.byType(RichText))
-            .first,
+        find.descendant(of: verseText, matching: find.byType(RichText)).first,
       );
       final plain = paragraph.text.toPlainText();
       final wordStart = plain.indexOf('principio');
@@ -574,16 +600,205 @@ void main() {
       expect(notes.single.color, 'green');
       expect(notes.single.style, kHighlightStyleHighlight);
 
-      // Subrayado rojo (estilo del original distinto del fondo).
+      // Subrayado rojo sobre el mismo texto: actualiza el resaltado existente
+      // en vez de apilar otro encima (y el menú ya ofrece quitarlo).
       await select();
+      expect(
+        find.byKey(const Key('selection-highlight-remove')),
+        findsOneWidget,
+      );
       await tester.tap(find.byKey(const Key('selection-underline-red')));
       await tester.pumpAndSettle();
       notes = container.read(notesProvider).notes;
-      expect(notes, hasLength(2));
-      expect(notes.last.isUnderline, isTrue);
-      expect(notes.last.color, kDefaultUnderlineColor);
+      expect(notes, hasLength(1));
+      expect(notes.single.isUnderline, isTrue);
+      expect(notes.single.color, kDefaultUnderlineColor);
+
+      // Volver al fondo verde: sigue siendo el mismo resaltado.
+      await select();
+      await tester.tap(find.byKey(const Key('selection-highlight-green')));
+      await tester.pumpAndSettle();
+      notes = container.read(notesProvider).notes;
+      expect(notes, hasLength(1));
+      expect(notes.single.style, kHighlightStyleHighlight);
+      expect(notes.single.color, 'green');
+
+      // «Quitar resaltado» lo elimina de verdad (sin pasar por la papelera).
+      await select();
+      await tester.tap(find.byKey(const Key('selection-highlight-remove')));
+      await tester.pumpAndSettle();
+      expect(container.read(notesProvider).notes, isEmpty);
 
       await tester.pump(const Duration(milliseconds: 500));
     });
+
+    testWidgets(
+      'sólo se pintan los resaltados y marcadores del recurso del lector',
+      (tester) async {
+        final container = await _pumpReader(
+          tester,
+          notes: NotesState(
+            notes: [
+              _seedNote(
+                id: 'h-otra',
+                kind: 'highlight',
+                color: 'yellow',
+                reference: 'JHN.1.1',
+                bookCode: 'JHN',
+                chapter: 1,
+                verse: 1,
+                start: 0,
+                end: 30,
+                resourceId: 'bible.vbl',
+              ),
+              _seedNote(
+                id: 'n-otra',
+                title: 'Nota de otra versión',
+                reference: 'JHN.1.2',
+                bookCode: 'JHN',
+                chapter: 1,
+                verse: 2,
+                resourceId: 'bible.vbl',
+              ),
+              _seedNote(
+                id: 'h-propia',
+                kind: 'highlight',
+                color: 'green',
+                reference: 'JHN.1.1',
+                bookCode: 'JHN',
+                chapter: 1,
+                verse: 1,
+                start: 0,
+                end: 30,
+              ),
+            ],
+          ),
+        );
+
+        List<TextSpan> paintedBackgrounds() => tester
+            .widgetList<Text>(find.byType(Text))
+            .expand((t) => _flatten(t.textSpan))
+            .where((s) => s.style?.backgroundColor != null)
+            .toList();
+
+        final backgrounds = paintedBackgrounds();
+        expect(backgrounds, isNotEmpty);
+        expect(
+          backgrounds.every(
+            (s) => s.style!.backgroundColor == highlightColor('green'),
+          ),
+          isTrue,
+        );
+        // El marcador de una nota anclada a otra versión tampoco se pinta.
+        expect(find.byKey(const Key('verse-note-marker-n-otra')), findsNothing);
+
+        // «Quitar» actúa sólo sobre el resaltado de esta versión; la nota de
+        // la otra versión queda intacta y deja de pintarse en este lector.
+        final verseText = find.textContaining('EN el principio era el Verbo');
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.descendant(of: verseText, matching: find.byType(RichText)).first,
+        );
+        final plain = paragraph.text.toPlainText();
+        final wordStart = plain.indexOf('principio');
+        final gesture = await tester.startGesture(
+          _textOffsetToPosition(paragraph, wordStart + 2),
+        );
+        await tester.pump(const Duration(milliseconds: 600));
+        await gesture.moveTo(_textOffsetToPosition(paragraph, wordStart + 10));
+        await tester.pump();
+        await gesture.up();
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('selection-highlight-remove')));
+        await tester.pumpAndSettle();
+
+        expect(
+          container.read(notesProvider).notes.map((n) => n.id),
+          ['h-otra', 'n-otra'],
+        );
+        expect(paintedBackgrounds(), isEmpty);
+
+        await tester.pump(const Duration(milliseconds: 500));
+      },
+    );
+
+    testWidgets(
+      'resaltados solapados: el color se actualiza y «Quitar» los limpia',
+      (tester) async {
+        // Dos resaltados sobre el mismo rango, como los que dejaban versiones
+        // anteriores al apilar color sobre color.
+        final container = await _pumpReader(
+          tester,
+          notes: NotesState(
+            notes: [
+              _seedNote(
+                id: 'h1',
+                kind: 'highlight',
+                color: 'yellow',
+                bookCode: 'JHN',
+                chapter: 1,
+                verse: 1,
+                start: 0,
+                end: 30,
+              ),
+              _seedNote(
+                id: 'h2',
+                kind: 'highlight',
+                color: 'red',
+                bookCode: 'JHN',
+                chapter: 1,
+                verse: 1,
+                start: 0,
+                end: 30,
+              ),
+            ],
+          ),
+        );
+
+        final verseText = find.textContaining('EN el principio era el Verbo');
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.descendant(of: verseText, matching: find.byType(RichText)).first,
+        );
+        final plain = paragraph.text.toPlainText();
+        final wordStart = plain.indexOf('principio');
+
+        Future<void> select() async {
+          final gesture = await tester.startGesture(
+            _textOffsetToPosition(paragraph, wordStart + 2),
+          );
+          await tester.pump(const Duration(milliseconds: 600));
+          await gesture.moveTo(
+            _textOffsetToPosition(paragraph, wordStart + 10),
+          );
+          await tester.pump();
+          await gesture.up();
+          await tester.pumpAndSettle();
+        }
+
+        // Cambiar el color actualiza los dos resaltados solapados, sin crear
+        // un tercero.
+        await select();
+        await tester.tap(find.byKey(const Key('selection-highlight-blue')));
+        await tester.pumpAndSettle();
+        var notes = container.read(notesProvider).notes;
+        expect(notes, hasLength(2));
+        expect(notes.map((n) => n.color), everyElement('blue'));
+
+        // Quitar elimina todos los que cubren la selección.
+        await select();
+        await tester.tap(find.byKey(const Key('selection-highlight-remove')));
+        await tester.pumpAndSettle();
+        expect(container.read(notesProvider).notes, isEmpty);
+
+        // Y el texto deja de estar pintado: no queda ningún resaltado visual.
+        final painted = tester
+            .widgetList<Text>(find.byType(Text))
+            .expand((t) => _flatten(t.textSpan))
+            .where((s) => s.style?.backgroundColor != null);
+        expect(painted, isEmpty);
+
+        await tester.pump(const Duration(milliseconds: 500));
+      },
+    );
   });
 }

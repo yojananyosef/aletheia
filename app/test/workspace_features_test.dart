@@ -21,17 +21,13 @@ ProviderContainer _container({CatalogGateway? gateway}) => ProviderContainer(
   overrides: [
     workspaceStoreProvider.overrideWithValue(WorkspaceStore.inMemory()),
     notesStoreProvider.overrideWithValue(NotesStore.inMemory()),
-    catalogGatewayProvider.overrideWithValue(
-      gateway ?? FakeCatalogGateway(),
-    ),
+    catalogGatewayProvider.overrideWithValue(gateway ?? FakeCatalogGateway()),
     documentRepositoryProvider.overrideWithValue(FakeDocumentRepository()),
   ],
 );
 
-Widget _app(ProviderContainer container) => UncontrolledProviderScope(
-  container: container,
-  child: const AletheiaApp(),
-);
+Widget _app(ProviderContainer container) =>
+    UncontrolledProviderScope(container: container, child: const AletheiaApp());
 
 void _setWindow(WidgetTester tester, Size size) {
   tester.view.devicePixelRatio = 1.0;
@@ -59,8 +55,7 @@ void main() {
 
   tearDown(() => setActivePalette(AletheiaPalette.light));
 
-  test('link set: la navegación se propaga solo a Biblias del mismo grupo',
-      () {
+  test('link set: la navegación se propaga solo a Biblias del mismo grupo', () {
     final container = _container();
     addTearDown(container.dispose);
     final ctrl = container.read(workspaceProvider.notifier);
@@ -86,17 +81,26 @@ void main() {
     final rv = tabs.firstWhere((t) => t.resourceId == 'bible.rv1909');
     final kjv = tabs.firstWhere((t) => t.resourceId == 'bible.kjv');
     final search = tabs.firstWhere((t) => t.kind == PanelKind.search);
-    final tile = container
+    String tileOf(String tabId) => container
         .read(workspaceProvider)
         .tiles
-        .firstWhere((tile) => tile.tabs.any((t) => t.id == rv.id));
+        .firstWhere((tile) => tile.tabs.any((t) => t.id == tabId))
+        .id;
+    final tile = tileOf(rv.id);
+    // Las dos Biblias caen en paneles distintos: el vínculo las sincroniza
+    // cruzando los dos paneles.
+    expect(tileOf(kjv.id), isNot(tile));
 
-    ctrl.setTabLinkSet(tileId: tile.id, tabId: rv.id, linkSet: 'A');
-    ctrl.setTabLinkSet(tileId: tile.id, tabId: kjv.id, linkSet: 'A');
-    ctrl.setTabLinkSet(tileId: tile.id, tabId: search.id, linkSet: 'A');
+    ctrl.setTabLinkSet(tileId: tileOf(rv.id), tabId: rv.id, linkSet: 'A');
+    ctrl.setTabLinkSet(tileId: tileOf(kjv.id), tabId: kjv.id, linkSet: 'A');
+    ctrl.setTabLinkSet(
+      tileId: tileOf(search.id),
+      tabId: search.id,
+      linkSet: 'A',
+    );
 
     ctrl.navigateTabReference(
-      tileId: tile.id,
+      tileId: tile,
       tabId: rv.id,
       reference: 'JHN.3.16',
     );
@@ -111,9 +115,9 @@ void main() {
     // La búsqueda no es un panel bíblico: no participa en el vínculo.
     expect(searchAfter.reference, isNull);
 
-    ctrl.setTabLinkSet(tileId: tile.id, tabId: rv.id, linkSet: null);
+    ctrl.setTabLinkSet(tileId: tile, tabId: rv.id, linkSet: null);
     ctrl.navigateTabReference(
-      tileId: tile.id,
+      tileId: tile,
       tabId: rv.id,
       reference: 'ROM.8.28',
     );
@@ -171,9 +175,7 @@ void main() {
     expect(find.text('Comentario de prueba'), findsOneWidget);
     expect(find.text('Reina-Valera 1909'), findsNothing);
 
-    await tester.tap(
-      find.byKey(const ValueKey('store-open-commentary.test')),
-    );
+    await tester.tap(find.byKey(const ValueKey('store-open-commentary.test')));
     await tester.pump(const Duration(milliseconds: 450));
     final opened = _tabs(container).where(
       (t) => t.kind == PanelKind.resource && t.resourceId == 'commentary.test',
@@ -181,8 +183,9 @@ void main() {
     expect(opened, isNotEmpty);
   });
 
-  testWidgets('pantalla completa del panel oculta el chrome y se restaura',
-      (tester) async {
+  testWidgets('pantalla completa del panel oculta el chrome y se restaura', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1400, 900));
     final container = _container();
     addTearDown(container.dispose);
@@ -221,8 +224,9 @@ void main() {
     expect(find.byKey(const ValueKey('panel-fullscreen')), findsNothing);
   });
 
-  testWidgets('el selector de conjunto de vínculos actualiza la pestaña',
-      (tester) async {
+  testWidgets('el selector de conjunto de vínculos actualiza la pestaña', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1400, 900));
     final container = _container();
     addTearDown(container.dispose);
@@ -236,26 +240,33 @@ void main() {
     await tester.tap(find.text('A').last);
     await tester.pumpAndSettle();
 
-    expect(_tabs(container).firstWhere((t) => t.kind == PanelKind.bible).linkSet,
-        'A');
+    expect(
+      _tabs(container).firstWhere((t) => t.kind == PanelKind.bible).linkSet,
+      'A',
+    );
   });
 
-  testWidgets('tema oscuro: cambia la paleta y el brightness de MaterialApp',
-      (tester) async {
+  testWidgets('tema oscuro: cambia la paleta y el brightness de MaterialApp', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1200, 800));
     final container = _container();
     addTearDown(container.dispose);
     await tester.pumpWidget(_app(container));
     await tester.pumpAndSettle();
 
-    expect(Theme.of(tester.element(find.byType(Shell))).brightness,
-        Brightness.light);
+    expect(
+      Theme.of(tester.element(find.byType(Shell))).brightness,
+      Brightness.light,
+    );
 
     container.read(workspaceProvider.notifier).setThemeMode('dark');
     await tester.pumpAndSettle();
 
-    expect(Theme.of(tester.element(find.byType(Shell))).brightness,
-        Brightness.dark);
+    expect(
+      Theme.of(tester.element(find.byType(Shell))).brightness,
+      Brightness.dark,
+    );
     expect(activePalette.isDark, isTrue);
     expect(kPanelBg, AletheiaPalette.dark.panelBg);
     expect(kTextPrimary, AletheiaPalette.dark.textPrimary);

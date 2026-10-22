@@ -41,7 +41,10 @@ class NotesQuery {
   final NotesSort sort;
 
   int get activeFilterCount =>
-      kinds.length + notebooks.length + tags.length + (resourceId != null ? 1 : 0);
+      kinds.length +
+      notebooks.length +
+      tags.length +
+      (resourceId != null ? 1 : 0);
 
   NotesQuery copyWith({
     String? text,
@@ -52,16 +55,15 @@ class NotesQuery {
     String? resourceId,
     bool clearResource = false,
     NotesSort? sort,
-  }) =>
-      NotesQuery(
-        text: text ?? this.text,
-        trash: trash ?? this.trash,
-        kinds: kinds ?? this.kinds,
-        notebooks: notebooks ?? this.notebooks,
-        tags: tags ?? this.tags,
-        resourceId: clearResource ? null : (resourceId ?? this.resourceId),
-        sort: sort ?? this.sort,
-      );
+  }) => NotesQuery(
+    text: text ?? this.text,
+    trash: trash ?? this.trash,
+    kinds: kinds ?? this.kinds,
+    notebooks: notebooks ?? this.notebooks,
+    tags: tags ?? this.tags,
+    resourceId: clearResource ? null : (resourceId ?? this.resourceId),
+    sort: sort ?? this.sort,
+  );
 }
 
 bool _matchesText(Note note, String needle) {
@@ -145,10 +147,18 @@ List<String> anchoredResourceIds(Iterable<Note> notes) {
   return list;
 }
 
+/// Un ancla pertenece al recurso del lector cuando coincide con él.
+///
+/// Las anclas antiguas sin recurso se tratan como comodín para no ocultar
+/// notas que ya existían antes de que el anclaje guardara el recurso.
+bool anchorMatchesResource(NoteAnchor anchor, String resourceId) =>
+    anchor.resourceId.isEmpty || anchor.resourceId == resourceId;
+
 /// Notas ancladas a un versículo concreto (`versículo ─▶ notas`), sin
 /// resaltados (que se pintan en el texto) ni notas en la papelera.
 Map<int, List<Note>> notesByVerse(
   Iterable<Note> notes, {
+  required String resourceId,
   required String bookCode,
   required int chapter,
   bool includeHighlights = false,
@@ -158,7 +168,8 @@ Map<int, List<Note>> notesByVerse(
     if (note.isTrashed) continue;
     if (!includeHighlights && note.isHighlight) continue;
     for (final anchor in note.anchors) {
-      if (anchor.bookCode != bookCode ||
+      if (!anchorMatchesResource(anchor, resourceId) ||
+          anchor.bookCode != bookCode ||
           anchor.chapter != chapter ||
           anchor.verse == null) {
         continue;
@@ -190,8 +201,12 @@ class VerseHighlight {
 }
 
 /// Resaltados por versículo (`versículo ─▶ rangos`), listos para pintar.
+///
+/// Sólo se devuelven los del recurso del lector: los offsets pertenecen al
+/// texto de esa versión y no son comparables entre recursos distintos.
 Map<int, List<VerseHighlight>> highlightsByVerse(
   Iterable<Note> notes, {
+  required String resourceId,
   required String bookCode,
   required int chapter,
 }) {
@@ -199,13 +214,16 @@ Map<int, List<VerseHighlight>> highlightsByVerse(
   for (final note in notes) {
     if (note.isTrashed || !note.isHighlight) continue;
     for (final anchor in note.anchors) {
-      if (anchor.bookCode != bookCode ||
+      if (!anchorMatchesResource(anchor, resourceId) ||
+          anchor.bookCode != bookCode ||
           anchor.chapter != chapter ||
           anchor.verse == null ||
           !anchor.hasRange) {
         continue;
       }
-      map.putIfAbsent(anchor.verse!, () => []).add(
+      map
+          .putIfAbsent(anchor.verse!, () => [])
+          .add(
             VerseHighlight(
               noteId: note.id,
               start: anchor.startOffset!,
@@ -221,4 +239,37 @@ Map<int, List<VerseHighlight>> highlightsByVerse(
     ranges.sort((a, b) => a.start.compareTo(b.start));
   }
   return map;
+}
+
+/// Resaltados vigentes que se solapan con un rango de versículo.
+///
+/// Lo usan el lector (para marcar el color activo y ofrecer «Quitar») y el
+/// panel (para actualizar el color existente en vez de crear otro encima).
+List<Note> highlightsForRange(
+  Iterable<Note> notes, {
+  required String resourceId,
+  required String bookCode,
+  required int chapter,
+  required int verse,
+  required int start,
+  required int end,
+}) {
+  final result = <Note>[];
+  for (final note in notes) {
+    if (!note.isHighlight || note.isTrashed) continue;
+    for (final anchor in note.anchors) {
+      if (!anchorMatchesResource(anchor, resourceId) ||
+          anchor.bookCode != bookCode ||
+          anchor.chapter != chapter ||
+          anchor.verse != verse ||
+          !anchor.hasRange) {
+        continue;
+      }
+      if (anchor.startOffset! < end && anchor.endOffset! > start) {
+        result.add(note);
+        break;
+      }
+    }
+  }
+  return result;
 }

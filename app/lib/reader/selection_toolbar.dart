@@ -25,6 +25,9 @@ class SelectionToolbar extends StatelessWidget {
     required this.onNote,
     required this.onHighlight,
     required this.onVisualCopy,
+    this.activeColor,
+    this.canRemoveHighlight = false,
+    this.onRemoveHighlight,
   });
 
   /// `true` cuando la selección es una sola palabra (habilita `Consultar`,
@@ -38,6 +41,13 @@ class SelectionToolbar extends StatelessWidget {
   /// Color y estilo (`kHighlightStyleIds`) del resaltado elegido.
   final void Function(String color, String style) onHighlight;
   final VoidCallback onVisualCopy;
+
+  /// Color del resaltado que ya cubre la selección (se marca en la paleta).
+  final String? activeColor;
+
+  /// Hay un resaltado bajo la selección que se puede quitar.
+  final bool canRemoveHighlight;
+  final VoidCallback? onRemoveHighlight;
 
   @override
   Widget build(BuildContext context) {
@@ -99,8 +109,16 @@ class SelectionToolbar extends StatelessWidget {
                     key: Key('selection-highlight-$colorId'),
                     tooltip: l10n.highlightSwatch(_colorName(context, colorId)),
                     color: highlightColor(colorId),
+                    selected: activeColor == colorId,
                     onPressed: () =>
                         onHighlight(colorId, kHighlightStyleHighlight),
+                  ),
+                if (canRemoveHighlight)
+                  _IconAction(
+                    key: const Key('selection-highlight-remove'),
+                    tooltip: l10n.selectionRemoveHighlight,
+                    icon: Icons.format_color_reset,
+                    onPressed: onRemoveHighlight ?? () {},
                   ),
                 _IconAction(
                   key: const Key('selection-underline-red'),
@@ -190,10 +208,12 @@ class _Swatch extends StatelessWidget {
     required this.tooltip,
     required this.color,
     required this.onPressed,
+    this.selected = false,
   });
 
   final String tooltip;
   final Color color;
+  final bool selected;
   final VoidCallback onPressed;
 
   @override
@@ -213,7 +233,10 @@ class _Swatch extends StatelessWidget {
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: BorderRadius.circular(3),
-                border: Border.all(color: kBorder),
+                border: Border.all(
+                  color: selected ? kAccentDark : kBorder,
+                  width: selected ? 2.5 : 1,
+                ),
               ),
             ),
           ),

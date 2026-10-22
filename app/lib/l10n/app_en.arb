@@ -489,6 +489,9 @@
   "selectionMore": "Show more options",
   "selectionVisualCopy": "Visual copy",
   "selectionUnderlineRed": "Red underline",
+  "selectionRemoveHighlight": "Remove highlight",
+  "readerHighlightUpdated": "Highlight updated",
+  "readerHighlightRemoved": "Highlight removed",
   "highlightSwatch": "{color} highlight",
   "@highlightSwatch": {
     "placeholders": {

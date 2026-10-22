@@ -219,14 +219,100 @@ void main() {
           ),
         ],
       );
-      final all = [withHighlight, anchored, other];
-      final markers = notesByVerse(all, bookCode: 'JHN', chapter: 1);
+      // Mismo versículo y offsets, pero de otra versión: no debe pintarse ni
+      // poner marcador en el lector del recurso actual.
+      final foreignHighlight = _note(
+        id: 'x',
+        kind: 'highlight',
+        anchors: const [
+          NoteAnchor(
+            resourceId: 'otro',
+            bookCode: 'JHN',
+            chapter: 1,
+            verse: 1,
+            startOffset: 0,
+            endOffset: 5,
+            reference: 'JHN.1.1',
+          ),
+        ],
+      );
+      final foreignNote = _note(
+        id: 'xn',
+        anchors: const [
+          NoteAnchor(
+            resourceId: 'otro',
+            bookCode: 'JHN',
+            chapter: 1,
+            verse: 1,
+            reference: 'JHN.1.1',
+          ),
+        ],
+      );
+      final all = [withHighlight, anchored, other, foreignHighlight, foreignNote];
+      final markers = notesByVerse(
+        all,
+        resourceId: 'r',
+        bookCode: 'JHN',
+        chapter: 1,
+      );
       expect(markers[1]!.map((n) => n.id), ['n']);
-      final highlights = highlightsByVerse(all, bookCode: 'JHN', chapter: 1);
+      final highlights = highlightsByVerse(
+        all,
+        resourceId: 'r',
+        bookCode: 'JHN',
+        chapter: 1,
+      );
       expect(highlights[1]!.single.noteId, 'h');
       expect(highlights[1]!.single.start, 0);
       expect(highlights[1]!.single.end, 5);
-      expect(highlightsByVerse(all, bookCode: 'JHN', chapter: 1)[2], isNull);
+      expect(
+        highlightsByVerse(
+          all,
+          resourceId: 'r',
+          bookCode: 'JHN',
+          chapter: 1,
+        )[2],
+        isNull,
+      );
+      expect(
+        highlightsForRange(
+          all,
+          resourceId: 'r',
+          bookCode: 'JHN',
+          chapter: 1,
+          verse: 1,
+          start: 1,
+          end: 3,
+        ).map((n) => n.id),
+        ['h'],
+      );
+    });
+
+    test('las anclas sin recurso se tratan como comodín', () {
+      final legacy = _note(
+        id: 'legacy',
+        kind: 'highlight',
+        anchors: const [
+          NoteAnchor(
+            resourceId: '',
+            bookCode: 'JHN',
+            chapter: 1,
+            verse: 1,
+            startOffset: 0,
+            endOffset: 5,
+            reference: 'JHN.1.1',
+          ),
+        ],
+      );
+      expect(
+        highlightsByVerse(
+          [legacy],
+          resourceId: 'bible.rv1909',
+          bookCode: 'JHN',
+          chapter: 1,
+        )[1]!.single.noteId,
+        'legacy',
+      );
     });
   });
 

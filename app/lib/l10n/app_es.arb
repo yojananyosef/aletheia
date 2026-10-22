@@ -646,6 +646,9 @@
   "selectionMore": "Mostrar más opciones",
   "selectionVisualCopy": "Copia visual",
   "selectionUnderlineRed": "Subrayado rojo",
+  "selectionRemoveHighlight": "Quitar resaltado",
+  "readerHighlightUpdated": "Resaltado actualizado",
+  "readerHighlightRemoved": "Resaltado quitado",
   "highlightSwatch": "Resaltado {color}",
   "@highlightSwatch": {
     "placeholders": {

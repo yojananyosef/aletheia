@@ -97,7 +97,10 @@ class _InsightsDrawerState extends ConsumerState<InsightsDrawer> {
           Expanded(
             child: SingleChildScrollView(
               child: _tab == 0 || reference == null
-                  ? _BookInfoBody(resourceId: widget.resourceId)
+                  ? _BookInfoBody(
+                      resourceId: widget.resourceId,
+                      onOpenReadingPlan: widget.onClose,
+                    )
                   : _ReferenceInsights(
                       resourceId: widget.resourceId,
                       reference: reference,
@@ -142,7 +145,11 @@ class InfoDrawer extends StatelessWidget {
           Divider(height: 1, color: kBorder),
           Expanded(
             child: SingleChildScrollView(
-              child: _BookInfoBody(resourceId: resourceId, showAuxiliary: true),
+              child: _BookInfoBody(
+                resourceId: resourceId,
+                showAuxiliary: true,
+                onOpenReadingPlan: onClose,
+              ),
             ),
           ),
         ],
@@ -246,10 +253,18 @@ class _DrawerTab extends StatelessWidget {
 // ---------------------------------------------------------------------- ficha
 
 class _BookInfoBody extends ConsumerWidget {
-  const _BookInfoBody({required this.resourceId, this.showAuxiliary = false});
+  const _BookInfoBody({
+    required this.resourceId,
+    this.showAuxiliary = false,
+    this.onOpenReadingPlan,
+  });
 
   final String resourceId;
   final bool showAuxiliary;
+
+  /// Cierra el drawer al abrir el panel de planes (el plan se ve en el otro
+  /// panel del workspace).
+  final VoidCallback? onOpenReadingPlan;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -325,6 +340,7 @@ class _BookInfoBody extends ConsumerWidget {
           : licenseLabel(summary.licenseKind, lang: context.l10nLang),
       rows: rows,
       showAuxiliary: showAuxiliary,
+      onOpenReadingPlan: onOpenReadingPlan,
       auxiliary: [
         (l10n.insightsAuxId, summary.id),
         (l10n.insightsAuxType, summary.typeLabelIn(context.l10nLang)),
@@ -344,6 +360,7 @@ class _BookInfoContent extends ConsumerWidget {
     required this.rows,
     required this.showAuxiliary,
     required this.auxiliary,
+    this.onOpenReadingPlan,
   });
 
   final String title;
@@ -355,6 +372,7 @@ class _BookInfoContent extends ConsumerWidget {
   final List<(String, String)> rows;
   final bool showAuxiliary;
   final List<(String, String)> auxiliary;
+  final VoidCallback? onOpenReadingPlan;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -415,9 +433,12 @@ class _BookInfoContent extends ConsumerWidget {
           const SizedBox(height: 12),
           OutlinedButton(
             key: const ValueKey('insights-reading-plan'),
-            onPressed: () => ref
-                .read(workspaceProvider.notifier)
-                .openTab(const TabSpec(kind: PanelKind.readingPlans)),
+            onPressed: () {
+              ref
+                  .read(workspaceProvider.notifier)
+                  .openTab(const TabSpec(kind: PanelKind.readingPlans));
+              onOpenReadingPlan?.call();
+            },
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

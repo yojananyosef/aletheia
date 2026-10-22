@@ -1,0 +1,92 @@
+name: Release Linux
+
+# Publica el binario de escritorio de Linux (x64) en GitHub Releases.
+# Se dispara al etiquetar una versión: `git tag v1.0.0 && git push --tags`.
+# Sólo se publica Linux, la plataforma con la suite completa ejecutada y
+# probada con ventana real en este entorno (ver docs/spec/02 §10).
+on:
+  push:
+    tags: ['v*.*.*']
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.47.7'
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    name: Linux x64 · tests, build y release
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar dependencias de Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Dependencias
+        run: flutter pub get
+      - name: Análisis
+        run: flutter analyze
+      - name: Pruebas
+        run: flutter test
+      - name: Build Linux
+        run: flutter build linux --release
+      - name: Empaquetar tarball
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          name="aletheia-${version}-linux-x64"
+          stage="$(mktemp -d)/${name}"
+          mkdir -p "${stage}"
+          cp -r build/linux/x64/release/bundle/* "${stage}/"
+          cp ../NOTICE.md "${stage}/NOTICE.md" 2>/dev/null || true
+          cat > "${stage}/README.txt" <<'EOF'
+          Aletheia — lector bíblico de escritorio (Linux x64)
+
+          Ejecución:
+            ./aletheia
+
+          El bundle es autónomo; se necesita GTK 3 y lo habitual de un
+          escritorio Linux (en Debian/Ubuntu: libgtk-3-0, libglib2.0-0,
+          libegl1, libx11-6). Los datos del usuario (workspace, notas,
+          favoritos y progreso) viven en
+          ~/.local/share/dev.aletheia.aletheia/
+
+          Contenido y licencias: ver NOTICE.md adjunto.
+          EOF
+          tar -czf "${name}.tar.gz" -C "$(dirname "${stage}")" "${name}"
+          sha256sum "${name}.tar.gz" > "${name}.tar.gz.sha256"
+      - name: Publicar en GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Aletheia ${{ github.ref_name }} · Linux x64
+          body: |
+            Binario de escritorio para **Linux x64**, construido en CI desde
+            esta misma etiqueta con Flutter ${{ env.FLUTTER_VERSION }} tras
+            pasar `flutter analyze` y la suite completa de pruebas
+            (unitarias/widget).
+
+            La plataforma se probó además con ventana real y gestos de
+            selección/arrastre (`flutter test integration_test -d linux`).
+
+            **Instalación:** descomprime el tarball y ejecuta `./aletheia`
+            (necesita GTK 3). Los datos se guardan en
+            `~/.local/share/dev.aletheia.aletheia/`. Contenido y licencias en
+            `NOTICE.md` dentro del paquete.
+          files: |
+            app/aletheia-*.tar.gz
+            app/aletheia-*.tar.gz.sha256
+          fail_on_unmatched_files: true
+          generate_release_notes: true

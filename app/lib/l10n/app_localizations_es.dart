@@ -1439,6 +1439,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get selectionUnderlineRed => 'Subrayado rojo';
 
   @override
+  String get selectionRemoveHighlight => 'Quitar resaltado';
+
+  @override
+  String get readerHighlightUpdated => 'Resaltado actualizado';
+
+  @override
+  String get readerHighlightRemoved => 'Resaltado quitado';
+
+  @override
   String highlightSwatch(String color) {
     return 'Resaltado $color';
   }

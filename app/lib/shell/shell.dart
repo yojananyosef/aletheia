@@ -53,13 +53,21 @@ class Shell extends ConsumerWidget {
           final showBanner =
               state.layoutBannersVisible &&
               constraints.maxWidth >= kBannerMinWidth;
+          // Interactuar con el chrome (barra lateral, barra superior) olvida el
+          // panel activo: la pestaña nueva busca el primer panel libre en vez
+          // de abrirse sobre el panel que se estaba usando.
+          Widget chrome(Widget child) => Listener(
+            behavior: HitTestBehavior.translucent,
+            onPointerDown: (_) =>
+                ref.read(workspaceProvider.notifier).clearActiveTile(),
+            child: child,
+          );
           if (topToolbar) {
             // Ajuste «barra de aplicaciones arriba»: navegación horizontal,
             // sin barra lateral.
             return Column(
               children: [
-                const _TopHeader(),
-                const _TopNavBar(),
+                chrome(const Column(children: [_TopHeader(), _TopNavBar()])),
                 Expanded(child: _WorkspaceColumn(showBanner: showBanner)),
               ],
             );
@@ -73,7 +81,7 @@ class Shell extends ConsumerWidget {
             children: [
               SizedBox(
                 width: collapsed ? kSidebarRailWidth : kSidebarWidth,
-                child: _SidebarColumn(collapsed: collapsed),
+                child: chrome(_SidebarColumn(collapsed: collapsed)),
               ),
               Expanded(child: _WorkspaceColumn(showBanner: showBanner)),
             ],
@@ -183,7 +191,13 @@ class _WorkspaceColumn extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (showBanner) const _Banner(),
+        if (showBanner)
+          Listener(
+            behavior: HitTestBehavior.translucent,
+            onPointerDown: (_) =>
+                ref.read(workspaceProvider.notifier).clearActiveTile(),
+            child: const _Banner(),
+          ),
         Expanded(
           child: Stack(
             children: [

@@ -111,33 +111,72 @@ class _TileView extends ConsumerWidget {
     // La tira de pestañas vive sobre el chrome del workspace y el panel es
     // una tarjeta blanca aparte (como en el original): así la pestaña activa
     // «se apoya» en el panel y el fondo gris se ve alrededor.
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (tile.tabs.isNotEmpty) _TabStrip(tile: tile),
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              color: kPanelBg,
-              // Sin borde superior: la pestaña activa (blanca) se apoya en el
-              // panel y el conjunto se lee como una sola pieza, igual que en
-              // el original.
-              border: Border(
-                left: BorderSide(color: kBorder),
-                right: BorderSide(color: kBorder),
-                bottom: BorderSide(color: kBorder),
-              ),
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(6)),
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      // Tocar cualquier punto del panel lo vuelve el destino de las pestañas
+      // nuevas y de los arrastres.
+      onPointerDown: (_) =>
+          ref.read(workspaceProvider.notifier).focusTile(tile.id),
+      child: DragTarget<_TabDragData>(
+        onWillAcceptWithDetails: (details) => details.data.tileId != tile.id,
+        onAcceptWithDetails: (details) => ref
+            .read(workspaceProvider.notifier)
+            .moveTab(
+              fromTileId: details.data.tileId,
+              tabId: details.data.tabId,
+              toTileId: tile.id,
             ),
-            clipBehavior: Clip.antiAlias,
-            child: tab == null
-                ? const _EmptyTile()
-                : PanelHost(tile: tile, tab: tab),
-          ),
-        ),
-      ],
+        builder: (context, candidates, rejected) {
+          final hovering = candidates.isNotEmpty;
+          return Container(
+            // El borde de destino no altera el layout (foregroundDecoration).
+            foregroundDecoration: hovering
+                ? BoxDecoration(
+                    border: Border.all(color: kAccent, width: 2),
+                    borderRadius: BorderRadius.circular(6),
+                  )
+                : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (tile.tabs.isNotEmpty) _TabStrip(tile: tile),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: kPanelBg,
+                      // Sin borde superior: la pestaña activa (blanca) se apoya
+                      // en el panel y el conjunto se lee como una sola pieza,
+                      // igual que en el original.
+                      border: Border(
+                        left: BorderSide(color: kBorder),
+                        right: BorderSide(color: kBorder),
+                        bottom: BorderSide(color: kBorder),
+                      ),
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(6),
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: tab == null
+                        ? const _EmptyTile()
+                        : PanelHost(tile: tile, tab: tab),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
+}
+
+/// Datos que viajan al arrastrar una pestaña entre paneles.
+class _TabDragData {
+  const _TabDragData({required this.tileId, required this.tabId});
+
+  final String tileId;
+  final String tabId;
 }
 
 class _EmptyTile extends StatelessWidget {
@@ -331,7 +370,7 @@ class _TabChip extends ConsumerWidget {
               ? manifest.abbrev
               : fallbackAbbrev)
         : tabTitle(context, tab);
-    return InkWell(
+    final chip = InkWell(
       key: ValueKey('tab-chip-${tab.id}'),
       onTap: () =>
           ref.read(workspaceProvider.notifier).activateTab(tile.id, index),
@@ -402,6 +441,71 @@ class _TabChip extends ConsumerWidget {
           ],
         ),
       ),
+    );
+    // La pestaña se puede arrastrar a otro panel (el propio DragTarget del
+    // tile lo recibe). Se conserva el chip original cuando no se arrastra.
+    return Draggable<_TabDragData>(
+      data: _TabDragData(tileId: tile.id, tabId: tab.id),
+      maxSimultaneousDrags: 1,
+      feedback: Material(
+        color: Colors.transparent,
+        child: Container(
+          height: 36,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: kPanelBg,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(7),
+              topRight: Radius.circular(7),
+            ),
+            border: Border(top: BorderSide(color: accent, width: 3)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x33000000),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isResource)
+                Container(
+                  width: 16,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: accent,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: const Icon(
+                    Icons.menu_book,
+                    size: 10,
+                    color: Colors.white,
+                  ),
+                )
+              else
+                Icon(iconForKind(tab.kind), size: 16, color: kAccent),
+              const SizedBox(width: 7),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 190),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: kTextPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.4, child: chip),
+      child: chip,
     );
   }
 }

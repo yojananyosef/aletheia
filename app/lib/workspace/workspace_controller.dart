@@ -9,11 +9,31 @@ class WorkspaceController extends Notifier<WorkspaceState> {
   Timer? _saveTimer;
   int _seq = 0;
 
+  /// Panel que el usuario tocó por última vez. Es transitorio (no se
+  /// persiste): decide dónde abrir las pestañas nuevas mientras la sesión
+  /// siga viva.
+  String? _activeTileId;
+
   @override
   WorkspaceState build() {
     ref.onDispose(() => _saveTimer?.cancel());
+    _activeTileId = null;
     return ref.read(workspaceStoreProvider).initial;
   }
+
+  /// Marca [tileId] como panel activo sin persistir nada.
+  void focusTile(String tileId) {
+    if (state.tiles.every((tile) => tile.id != tileId)) return;
+    _activeTileId = tileId;
+  }
+
+  /// Olvida el panel activo (al interactuar con el chrome: barra lateral,
+  /// herramientas, etc.). Así una apertura desde el chrome usa el primer
+  /// panel libre y no el último que se tocó.
+  void clearActiveTile() => _activeTileId = null;
+
+  /// Último panel tocado (o `null` si todavía no hay uno).
+  String? get activeTileId => _activeTileId;
 
   String _newId(String prefix) =>
       '${prefix}_${DateTime.now().microsecondsSinceEpoch}_${_seq++}';
@@ -88,9 +108,41 @@ class WorkspaceController extends Notifier<WorkspaceState> {
 
   // ------------------------------------------------------------------ tabs
 
-  /// Abre una pestaña según la semántica del original:
-  /// herramientas (Search/Library/Dashboard/Settings/Store) → tile izquierdo;
-  /// recursos (Bible, Factbook, Notes, …) → tile derecho.
+  /// Panel donde abrir una pestaña nueva.
+  ///
+  /// El panel activo es el que el usuario está usando: abrir algo desde él
+  /// (un resultado de búsqueda, un paso de una guía) no debe taparlo, así que
+  /// se busca otro panel. Sin panel activo (apertura desde el chrome), el
+  /// primer panel vacío recibe la pestaña —el primer recurso cae a la
+  /// izquierda— y solo si todos están ocupados se usa el primero.
+  WorkspaceTile _openTargetTile(List<WorkspaceTile> tiles) {
+    WorkspaceTile? source;
+    for (final tile in tiles) {
+      if (tile.id == _activeTileId) {
+        source = tile;
+        break;
+      }
+    }
+    // Un panel vacío y activo es el destino natural.
+    if (source != null && source.tabs.isEmpty) return source;
+    // Preferir otro panel vacío para no tapar el panel de origen.
+    for (final tile in tiles) {
+      if (tile.id != source?.id && tile.tabs.isEmpty) return tile;
+    }
+    // Sin espacio libre: abrir desde un panel usa el otro panel.
+    if (source != null) {
+      for (final tile in tiles) {
+        if (tile.id != source.id) return tile;
+      }
+    }
+    for (final tile in tiles) {
+      if (tile.tabs.isEmpty) return tile;
+    }
+    return tiles.first;
+  }
+
+  /// Abre una pestaña en el panel activo o, si no hay uno claro, en el primer
+  /// panel libre; si no queda ninguno, en el primero.
   void openTab(TabSpec spec) {
     // Un workspace sin tiles (estado inicial mínimo) crea el suyo: así el
     // panel siempre tiene dónde abrirse.
@@ -138,14 +190,7 @@ class WorkspaceController extends Notifier<WorkspaceState> {
       }
     }
 
-    final preferLeft = const {
-      PanelKind.dashboard,
-      PanelKind.library,
-      PanelKind.store,
-      PanelKind.search,
-      PanelKind.settings,
-    }.contains(spec.kind);
-    final target = preferLeft ? tiles[0] : tiles[tiles.length - 1];
+    final target = _openTargetTile(tiles);
 
     // El historial de una pestaña de búsqueda guarda consultas.
     final seed = spec.kind == PanelKind.search ? spec.query : spec.reference;
@@ -172,6 +217,7 @@ class WorkspaceController extends Notifier<WorkspaceState> {
   }
 
   void activateTab(String tileId, int index) {
+    _activeTileId = tileId;
     final newTiles = [
       for (final t in state.tiles)
         t.id == tileId ? _tileWith(t, activeIndex: index) : t,
@@ -250,6 +296,69 @@ class WorkspaceController extends Notifier<WorkspaceState> {
       for (final t in state.tiles) _tileWith(t, tabs: const [], activeIndex: 0),
     ];
     _commit(_copy(tiles: newTiles));
+  }
+
+  /// Mueve una pestaña a otro panel (arrastrar entre paneles).
+  ///
+  /// Si el destino es el mismo panel, la pestaña se reordena en [toIndex]
+  /// (sin índice, al final). El panel destino queda activo para las siguientes
+  /// aperturas.
+  void moveTab({
+    required String fromTileId,
+    required String tabId,
+    required String toTileId,
+    int? toIndex,
+  }) {
+    final fromTile = state.tiles
+        .where((tile) => tile.id == fromTileId)
+        .firstOrNull;
+    final toTile = state.tiles.where((tile) => tile.id == toTileId).firstOrNull;
+    if (fromTile == null || toTile == null) return;
+    final fromIndex = fromTile.tabs.indexWhere((tab) => tab.id == tabId);
+    if (fromIndex < 0) return;
+    final tab = fromTile.tabs[fromIndex];
+
+    if (fromTileId == toTileId) {
+      final tabs = [...fromTile.tabs]..removeAt(fromIndex);
+      final index = (toIndex ?? tabs.length).clamp(0, tabs.length);
+      tabs.insert(index, tab);
+      final newTiles = [
+        for (final t in state.tiles)
+          t.id == fromTileId ? _tileWith(t, tabs: tabs, activeIndex: index) : t,
+      ];
+      _commit(_copy(tiles: newTiles));
+      _activeTileId = toTileId;
+      return;
+    }
+
+    final tabs = [...toTile.tabs];
+    final index = (toIndex ?? tabs.length).clamp(0, tabs.length);
+    tabs.insert(index, tab);
+
+    // Índice activo del panel de origen tras perder una pestaña.
+    final remaining = fromTile.tabs.length - 1;
+    var sourceActive = fromTile.activeIndex;
+    if (fromIndex < sourceActive) {
+      sourceActive -= 1;
+    } else if (fromIndex == sourceActive) {
+      sourceActive = sourceActive.clamp(0, remaining == 0 ? 0 : remaining - 1);
+    }
+
+    final newTiles = [
+      for (final t in state.tiles)
+        if (t.id == fromTileId)
+          _tileWith(
+            t,
+            tabs: [...t.tabs]..removeAt(fromIndex),
+            activeIndex: sourceActive,
+          )
+        else if (t.id == toTileId)
+          _tileWith(t, tabs: tabs, activeIndex: index)
+        else
+          t,
+    ];
+    _commit(_copy(tiles: newTiles));
+    _activeTileId = toTileId;
   }
 
   /// Actualiza la consulta y/o la referencia de una pestaña (Estudio guiado).

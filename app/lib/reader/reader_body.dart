@@ -38,6 +38,7 @@ class ReaderBody extends ConsumerStatefulWidget {
     this.limitedView = false,
     this.onNoteSelection,
     this.onHighlightSelection,
+    this.onRemoveHighlightSelection,
     this.onSearchSelection,
     this.onOpenVerseNotes,
     this.citationBuilder,
@@ -68,6 +69,9 @@ class ReaderBody extends ConsumerStatefulWidget {
     String style,
   )?
   onHighlightSelection;
+
+  /// Quita los resaltados que cubren la selección.
+  final void Function(SelectionMatch match)? onRemoveHighlightSelection;
   final ValueChanged<String>? onSearchSelection;
   final void Function(List<Note> notes)? onOpenVerseNotes;
 
@@ -192,11 +196,15 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
   /// Anotaciones de Notas (M4) por capítulo («LIBRO.capítulo»).
   Map<String, _ChapterNotes> _annotations = const {};
 
-  static Map<String, _ChapterNotes> _buildAnnotations(Iterable<Note> notes) {
+  static Map<String, _ChapterNotes> _buildAnnotations(
+    Iterable<Note> notes,
+    String resourceId,
+  ) {
     final pairs = <(String, int)>{};
     for (final note in notes) {
       if (note.isTrashed) continue;
       for (final anchor in note.anchors) {
+        if (!anchorMatchesResource(anchor, resourceId)) continue;
         final book = anchor.bookCode;
         final chapter = anchor.chapter;
         if (book != null && chapter != null) pairs.add((book, chapter));
@@ -205,8 +213,18 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     final map = <String, _ChapterNotes>{};
     for (final (book, chapter) in pairs) {
       map['$book.$chapter'] = _ChapterNotes(
-        byVerse: notesByVerse(notes, bookCode: book, chapter: chapter),
-        highlights: highlightsByVerse(notes, bookCode: book, chapter: chapter),
+        byVerse: notesByVerse(
+          notes,
+          resourceId: resourceId,
+          bookCode: book,
+          chapter: chapter,
+        ),
+        highlights: highlightsByVerse(
+          notes,
+          resourceId: resourceId,
+          bookCode: book,
+          chapter: chapter,
+        ),
       );
     }
     return map;
@@ -474,6 +492,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       notes.where(
         (note) => widget.display.markerFilterMatches(note.notebooks, note.tags),
       ),
+      widget.resourceId,
     );
 
     final error = _error;
@@ -509,26 +528,28 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
 
     if (_paged) return _withDirectionality(_buildPaged(context));
 
-    return _withDirectionality(SelectionArea(
-      contextMenuBuilder: _selectionMenu,
-      onSelectionChanged: (content) =>
-          _selectionText = content?.plainText ?? '',
-      child: SingleChildScrollView(
-        controller: _scroll,
-        padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (final section in _sections)
-              _buildChapterSection(
-                section,
-                isTarget: _isTargetSection(section),
-              ),
-            _buildFooter(),
-          ],
+    return _withDirectionality(
+      SelectionArea(
+        contextMenuBuilder: _selectionMenu,
+        onSelectionChanged: (content) =>
+            _selectionText = content?.plainText ?? '',
+        child: SingleChildScrollView(
+          controller: _scroll,
+          padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final section in _sections)
+                _buildChapterSection(
+                  section,
+                  isTarget: _isTargetSection(section),
+                ),
+              _buildFooter(),
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 
   Widget _withDirectionality(Widget child) => _rtl
@@ -1229,8 +1250,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
           text: text,
           style: style,
           recognizer: recognizer,
-          mouseCursor:
-              recognizer == null ? null : SystemMouseCursors.click,
+          mouseCursor: recognizer == null ? null : SystemMouseCursors.click,
         ),
       );
       return;
@@ -1248,8 +1268,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
             text: text.substring(cursor - start, from - start),
             style: style,
             recognizer: recognizer,
-            mouseCursor:
-                recognizer == null ? null : SystemMouseCursors.click,
+            mouseCursor: recognizer == null ? null : SystemMouseCursors.click,
           ),
         );
       }
@@ -1266,8 +1285,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
                   backgroundColor: highlightColor(range.color),
                 ),
           recognizer: recognizer,
-          mouseCursor:
-              recognizer == null ? null : SystemMouseCursors.click,
+          mouseCursor: recognizer == null ? null : SystemMouseCursors.click,
         ),
       );
       cursor = to;
@@ -1278,8 +1296,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
           text: text.substring(cursor - start),
           style: style,
           recognizer: recognizer,
-          mouseCursor:
-              recognizer == null ? null : SystemMouseCursors.click,
+          mouseCursor: recognizer == null ? null : SystemMouseCursors.click,
         ),
       );
     }
@@ -1298,10 +1315,8 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     if (!mounted) return;
     showDialog<void>(
       context: context,
-      builder: (_) => WordStudyDialog(
-        word: word,
-        sourceResourceId: widget.resourceId,
-      ),
+      builder: (_) =>
+          WordStudyDialog(word: word, sourceResourceId: widget.resourceId),
     );
   }
 
@@ -1344,6 +1359,10 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
   Widget _selectionMenu(BuildContext context, SelectableRegionState state) {
     final text = _selectionText.trim();
     if (text.isEmpty) return const SizedBox.shrink();
+    final match = _resolveSelection(text);
+    final highlights = match == null
+        ? const <Note>[]
+        : _highlightsForMatch(match);
     final anchors = state.contextMenuAnchors;
     const screenPadding = 8.0;
     return Padding(
@@ -1359,6 +1378,16 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
         ),
         child: SelectionToolbar(
           singleWord: !text.contains(RegExp(r'\s')),
+          activeColor: _activeHighlightColor(highlights),
+          canRemoveHighlight: highlights.isNotEmpty,
+          onRemoveHighlight: highlights.isEmpty
+              ? null
+              : () {
+                  state.hideToolbar();
+                  if (match != null) {
+                    widget.onRemoveHighlightSelection?.call(match);
+                  }
+                },
           onCopy: () {
             state.hideToolbar();
             Clipboard.setData(ClipboardData(text: text));
@@ -1386,6 +1415,34 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
         ),
       ),
     );
+  }
+
+  /// Resaltados que se solapan con la selección en el mismo versículo y
+  /// recurso. Se usan para cambiar su color en vez de crear otro encima y para
+  /// ofrecer la acción de quitarlos.
+  List<Note> _highlightsForMatch(SelectionMatch match) => highlightsForRange(
+    ref.read(notesProvider).notes,
+    resourceId: widget.resourceId,
+    bookCode: match.bookCode,
+    chapter: match.chapter,
+    verse: match.verse,
+    start: match.start,
+    end: match.end,
+  );
+
+  /// Color activo de la selección cuando todos los resaltados solapados
+  /// comparten color y son de fondo (`null` si hay estilos mezclados).
+  static String? _activeHighlightColor(List<Note> highlights) {
+    String? color;
+    for (final note in highlights) {
+      if (note.isUnderline) return null;
+      if (color == null) {
+        color = note.color;
+      } else if (color != note.color) {
+        return null;
+      }
+    }
+    return color;
   }
 
   /// Resuelve una selección a un versículo y rango del texto (o `null`).

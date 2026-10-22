@@ -96,7 +96,7 @@ evaluados sobre el ancho de **ventana** (no hardware):
 
 ## Pruebas
 
-- `flutter test` — **173 pruebas** unitarias y de widgets (guía `flutter-add-widget-test`): parser de referencias y sintaxis FTS (`BEFORE`), layout de tiles y **ausencia de overflow** con ventanas de 320 a 1532 px, repositorio de documentos, lector, teclado griego/hebreo, ámbitos de búsqueda, morfología, mapas y las seis herramientas (Atlas, Cursos, Documentos, Medios, Favoritos y Salmos), incluida su navegación en móvil. El workflow `.github/workflows/desktop.yml` repite la suite en Linux, Windows y macOS y compila los tres escritorios.
+- `flutter test` — **182 pruebas** unitarias y de widgets (guía `flutter-add-widget-test`): parser de referencias y sintaxis FTS (`BEFORE`), layout de tiles y **ausencia de overflow** con ventanas de 320 a 1532 px, repositorio de documentos, lector, teclado griego/hebreo, ámbitos de búsqueda, morfología, mapas, las seis herramientas (Atlas, Cursos, Documentos, Medios, Favoritos y Salmos), incluida su navegación en móvil, el destino/arrastre de pestañas y los resaltados por recurso. El workflow `.github/workflows/desktop.yml` repite la suite en Linux, Windows y macOS y compila los tres escritorios; `.github/workflows/release.yml` publica el binario de Linux en GitHub Releases al etiquetar.
 - `flutter test integration_test -d linux` — prueba de integración sobre el binario real
   (guía `flutter-add-integration-test`): arranca la app completa (assets, `path_provider`,
   persistencia) y comprueba que el workspace se restaura en un segundo arranque

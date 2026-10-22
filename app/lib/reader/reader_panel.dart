@@ -25,6 +25,7 @@ import '../favorites/favorites_controller.dart';
 import '../favorites/favorites_models.dart';
 import '../notes/notes_controller.dart';
 import '../notes/notes_models.dart';
+import '../notes/notes_query.dart';
 import '../notes/notes_ui.dart';
 import '../notes/reader_notes_view.dart';
 import '../notes/selection_resolver.dart';
@@ -561,24 +562,68 @@ class _ReaderPanelState extends ConsumerState<ReaderPanel> {
     _openNotes(noteId: id);
   }
 
-  /// Resaltado creado desde una selección (sin abrir el editor).
+  /// Resaltados vigentes que se solapan con la selección.
+  List<Note> _highlightsForMatch(SelectionMatch match) => highlightsForRange(
+    ref.read(notesProvider).notes,
+    resourceId: widget.resourceId,
+    bookCode: match.bookCode,
+    chapter: match.chapter,
+    verse: match.verse,
+    start: match.start,
+    end: match.end,
+  );
+
+  /// Resaltado creado o actualizado desde una selección (sin abrir el editor).
+  ///
+  /// Si la selección ya tiene resaltados, cambia su color y estilo en vez de
+  /// apilar otro encima (el original cambia el resaltado existente).
   void _createHighlightFromSelection(
     SelectionMatch match,
     String quote,
     String color,
     String style,
   ) {
-    ref
-        .read(notesProvider.notifier)
-        .createHighlight(
-          anchor: _anchorForMatch(match, quote),
-          color: color,
-          style: style,
-        );
+    final notifier = ref.read(notesProvider.notifier);
+    final existing = _highlightsForMatch(match);
+    if (existing.isNotEmpty) {
+      for (final note in existing) {
+        notifier.updateNote(note.id, color: color, style: style);
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.readerHighlightUpdated),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    notifier.createHighlight(
+      anchor: _anchorForMatch(match, quote),
+      color: color,
+      style: style,
+    );
     if (!mounted) return;
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
       SnackBar(
         content: Text(context.l10n.readerHighlightCreated),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  /// Quita los resaltados que cubren la selección.
+  void _removeHighlightFromSelection(SelectionMatch match) {
+    final notifier = ref.read(notesProvider.notifier);
+    final existing = _highlightsForMatch(match);
+    if (existing.isEmpty) return;
+    for (final note in existing) {
+      notifier.purgeNote(note.id);
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.readerHighlightRemoved),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -742,6 +787,8 @@ class _ReaderPanelState extends ConsumerState<ReaderPanel> {
                                       onNoteSelection: _createNoteFromSelection,
                                       onHighlightSelection:
                                           _createHighlightFromSelection,
+                                      onRemoveHighlightSelection:
+                                          _removeHighlightFromSelection,
                                       onSearchSelection: _searchSelection,
                                       onOpenVerseNotes: _showVerseNotes,
                                     ),

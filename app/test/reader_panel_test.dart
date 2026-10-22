@@ -24,19 +24,17 @@ import 'support/test_fakes.dart';
 
 // --------------------------------------------------------------- utilidades
 
-Widget _app(ProviderContainer container) => UncontrolledProviderScope(
-      container: container,
-      child: const AletheiaApp(),
-    );
+Widget _app(ProviderContainer container) =>
+    UncontrolledProviderScope(container: container, child: const AletheiaApp());
 
 ProviderContainer _container(CatalogGateway gateway) => ProviderContainer(
-      overrides: [
-        workspaceStoreProvider.overrideWithValue(WorkspaceStore.inMemory()),
-notesStoreProvider.overrideWithValue(NotesStore.inMemory()),
-        catalogGatewayProvider.overrideWithValue(gateway),
-        documentRepositoryProvider.overrideWithValue(FakeDocumentRepository()),
-      ],
-    );
+  overrides: [
+    workspaceStoreProvider.overrideWithValue(WorkspaceStore.inMemory()),
+    notesStoreProvider.overrideWithValue(NotesStore.inMemory()),
+    catalogGatewayProvider.overrideWithValue(gateway),
+    documentRepositoryProvider.overrideWithValue(FakeDocumentRepository()),
+  ],
+);
 
 void _setWindow(WidgetTester tester, Size size) {
   tester.view.devicePixelRatio = 1.0;
@@ -59,20 +57,25 @@ void main() {
   binding.platformDispatcher
     ..localeTestValue = const Locale('es')
     ..localesTestValue = const [Locale('es')];
-  testWidgets('cambiar de versión en la misma pestaña recarga el texto',
-      (tester) async {
+  testWidgets('cambiar de versión en la misma pestaña recarga el texto', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1400, 900));
     final gateway = FakeCatalogGateway();
     final container = _container(gateway);
     addTearDown(container.dispose);
     addTearDown(gateway.client.close);
 
-    container.read(workspaceProvider.notifier).openTab(const TabSpec(
-          kind: PanelKind.bible,
-          title: 'RV1909',
-          reference: 'JHN.1.1',
-          resourceId: 'bible.rv1909',
-        ));
+    container
+        .read(workspaceProvider.notifier)
+        .openTab(
+          const TabSpec(
+            kind: PanelKind.bible,
+            title: 'RV1909',
+            reference: 'JHN.1.1',
+            resourceId: 'bible.rv1909',
+          ),
+        );
 
     await tester.pumpWidget(_app(container));
     await tester.pumpAndSettle();
@@ -87,7 +90,9 @@ void main() {
         .read(workspaceProvider)
         .tiles
         .firstWhere((t) => t.tabs.any((x) => x.id == tab.id));
-    container.read(workspaceProvider.notifier).switchBibleResource(
+    container
+        .read(workspaceProvider.notifier)
+        .switchBibleResource(
           tileId: tile.id,
           tabId: tab.id,
           resourceId: 'bible.kjv',
@@ -105,8 +110,9 @@ void main() {
     );
   });
 
-  testWidgets('buscar dentro del panel: consulta, resultados y navegación',
-      (tester) async {
+  testWidgets('buscar dentro del panel: consulta, resultados y navegación', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1400, 900));
     final gateway = FakeCatalogGateway(
       searchResult: SearchResult(
@@ -116,10 +122,16 @@ void main() {
         page: 1,
         pageSize: 20,
         hits: [
-          testHit('JHN.1.1', 'Juan 1:1',
-              'EN el <em>principio</em> era el Verbo.'),
-          testHit('JHN.1.2', 'Juan 1:2',
-              'Este era en el <em>principio</em> con Dios.'),
+          testHit(
+            'JHN.1.1',
+            'Juan 1:1',
+            'EN el <em>principio</em> era el Verbo.',
+          ),
+          testHit(
+            'JHN.1.2',
+            'Juan 1:2',
+            'Este era en el <em>principio</em> con Dios.',
+          ),
         ],
       ),
     );
@@ -127,12 +139,16 @@ void main() {
     addTearDown(container.dispose);
     addTearDown(gateway.client.close);
 
-    container.read(workspaceProvider.notifier).openTab(const TabSpec(
-          kind: PanelKind.bible,
-          title: 'RV1909',
-          reference: 'JHN.2.1',
-          resourceId: 'bible.rv1909',
-        ));
+    container
+        .read(workspaceProvider.notifier)
+        .openTab(
+          const TabSpec(
+            kind: PanelKind.bible,
+            title: 'RV1909',
+            reference: 'JHN.2.1',
+            resourceId: 'bible.rv1909',
+          ),
+        );
 
     await tester.pumpWidget(_app(container));
     await tester.pumpAndSettle();
@@ -143,7 +159,9 @@ void main() {
     expect(find.byKey(const ValueKey('reader-search-field')), findsOneWidget);
 
     await tester.enterText(
-        find.byKey(const ValueKey('reader-search-field')), 'principio');
+      find.byKey(const ValueKey('reader-search-field')),
+      'principio',
+    );
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
 
@@ -160,31 +178,41 @@ void main() {
     final bible = _tabOfKind(container, PanelKind.bible);
     expect(bible.reference, 'JHN.1.2');
     expect(
-      find.textContaining('Este era en el principio con Dios.',
-          findRichText: true),
+      find.textContaining(
+        'Este era en el principio con Dios.',
+        findRichText: true,
+      ),
       findsOneWidget,
     );
     final refBox = tester.widget<TextField>(
-        find.byKey(const ValueKey('reader-reference-box')));
+      find.byKey(const ValueKey('reader-reference-box')),
+    );
     expect(refBox.controller!.text, 'Juan 1:2');
   });
 
-  testWidgets('búsqueda en el panel sin servicio: aviso y reintento',
-      (tester) async {
+  testWidgets('búsqueda en el panel sin servicio: aviso y reintento', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1400, 900));
     final gateway = FakeCatalogGateway(
-      searchError: CatalogException('El servicio de catálogo no está disponible.'),
+      searchError: CatalogException(
+        'El servicio de catálogo no está disponible.',
+      ),
     );
     final container = _container(gateway);
     addTearDown(container.dispose);
     addTearDown(gateway.client.close);
 
-    container.read(workspaceProvider.notifier).openTab(const TabSpec(
-          kind: PanelKind.bible,
-          title: 'RV1909',
-          reference: 'JHN.1.1',
-          resourceId: 'bible.rv1909',
-        ));
+    container
+        .read(workspaceProvider.notifier)
+        .openTab(
+          const TabSpec(
+            kind: PanelKind.bible,
+            title: 'RV1909',
+            reference: 'JHN.1.1',
+            resourceId: 'bible.rv1909',
+          ),
+        );
 
     await tester.pumpWidget(_app(container));
     await tester.pumpAndSettle();
@@ -192,7 +220,9 @@ void main() {
     await tester.tap(find.text('Buscar'));
     await tester.pumpAndSettle();
     await tester.enterText(
-        find.byKey(const ValueKey('reader-search-field')), 'Verbo');
+      find.byKey(const ValueKey('reader-search-field')),
+      'Verbo',
+    );
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
 
@@ -205,41 +235,49 @@ void main() {
     addTearDown(container.dispose);
     final ctrl = container.read(workspaceProvider.notifier);
 
-    ctrl.openTab(const TabSpec(
+    ctrl.openTab(
+      const TabSpec(
         kind: PanelKind.bible,
         title: 'RV1909',
         reference: 'GEN.1.1',
-        resourceId: 'bible.rv1909'));
+        resourceId: 'bible.rv1909',
+      ),
+    );
     // Otra versión en la misma referencia: pestaña nueva, no se reemplaza la
     // que ya estaba abierta.
-    ctrl.openTab(const TabSpec(
+    ctrl.openTab(
+      const TabSpec(
         kind: PanelKind.bible,
         title: 'KJV',
         reference: 'GEN.1.1',
-        resourceId: 'bible.kjv'));
-
-    final bibles =
-        _tabs(container).where((t) => t.kind == PanelKind.bible).toList();
-    expect(bibles.length, 2);
-    expect(
-      bibles.map((t) => t.resourceId).toSet(),
-      {'bible.rv1909', 'bible.kjv'},
+        resourceId: 'bible.kjv',
+      ),
     );
 
+    final bibles = _tabs(container)
+        .where((t) => t.kind == PanelKind.bible)
+        .toList();
+    expect(bibles.length, 2);
+    expect(bibles.map((t) => t.resourceId).toSet(), {
+      'bible.rv1909',
+      'bible.kjv',
+    });
+
     // La misma versión y la misma referencia sí se reutiliza.
-    ctrl.openTab(const TabSpec(
+    ctrl.openTab(
+      const TabSpec(
         kind: PanelKind.bible,
         title: 'RV1909',
         reference: 'GEN.1.1',
-        resourceId: 'bible.rv1909'));
-    expect(
-      _tabs(container).where((t) => t.kind == PanelKind.bible).length,
-      2,
+        resourceId: 'bible.rv1909',
+      ),
     );
+    expect(_tabs(container).where((t) => t.kind == PanelKind.bible).length, 2);
   });
 
-  testWidgets('la barra lateral se puede expandir en ventana estrecha',
-      (tester) async {
+  testWidgets('la barra lateral se puede expandir en ventana estrecha', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(390, 844));
     final gateway = FakeCatalogGateway();
     final container = _container(gateway);
@@ -274,20 +312,25 @@ void main() {
     expect(find.byTooltip('Expandir barra lateral'), findsOneWidget);
   });
 
-  testWidgets('los paneles se mantienen lado a lado a cualquier ancho',
-      (tester) async {
+  testWidgets('los paneles se mantienen lado a lado a cualquier ancho', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1000, 900));
     final gateway = FakeCatalogGateway();
     final container = _container(gateway);
     addTearDown(container.dispose);
     addTearDown(gateway.client.close);
 
-    container.read(workspaceProvider.notifier).openTab(const TabSpec(
-          kind: PanelKind.bible,
-          title: 'RV1909',
-          reference: 'GEN.1.1',
-          resourceId: 'bible.rv1909',
-        ));
+    container
+        .read(workspaceProvider.notifier)
+        .openTab(
+          const TabSpec(
+            kind: PanelKind.bible,
+            title: 'RV1909',
+            reference: 'GEN.1.1',
+            resourceId: 'bible.rv1909',
+          ),
+        );
     await tester.pumpWidget(_app(container));
     await tester.pumpAndSettle();
 
@@ -301,77 +344,94 @@ void main() {
     // de apilado dependía del ancho del workspace).
     await tester.tap(find.byTooltip('Colapsar barra lateral'));
     await tester.pumpAndSettle();
-    final firstAfter = tester.getRect(find.byKey(const ValueKey('tile-tile_0')));
-    final secondAfter =
-        tester.getRect(find.byKey(const ValueKey('tile-tile_1')));
+    final firstAfter = tester.getRect(
+      find.byKey(const ValueKey('tile-tile_0')),
+    );
+    final secondAfter = tester.getRect(
+      find.byKey(const ValueKey('tile-tile_1')),
+    );
     expect(firstAfter.top, secondAfter.top);
     expect(firstAfter.left, lessThan(secondAfter.left));
 
     // Ventana que no da para dos paneles legibles: queda visible el que tiene
-    // la pestaña abierta (la Biblia vive en el último tile) y el tile vacío se
-    // oculta. Los paneles nunca se apilan.
+    // la pestaña abierta (la primera Biblia abre en el primer tile) y el tile
+    // vacío se oculta. Los paneles nunca se apilan.
     tester.view.physicalSize = const Size(520, 700);
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('tile-tile_1')), findsOneWidget);
-    expect(find.byKey(const ValueKey('tile-tile_0')), findsNothing);
-    final only = tester.getRect(find.byKey(const ValueKey('tile-tile_1')));
+    expect(find.byKey(const ValueKey('tile-tile_0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tile-tile_1')), findsNothing);
+    final only = tester.getRect(find.byKey(const ValueKey('tile-tile_0')));
     expect(only.width, greaterThanOrEqualTo(320 - 0.5));
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('el círculo oculta la barra secundaria y el ⋮ abre los comandos',
-      (tester) async {
-    _setWindow(tester, const Size(1400, 900));
-    final gateway = FakeCatalogGateway();
-    final container = _container(gateway);
-    addTearDown(container.dispose);
-    addTearDown(gateway.client.close);
+  testWidgets(
+    'el círculo oculta la barra secundaria y el ⋮ abre los comandos',
+    (tester) async {
+      _setWindow(tester, const Size(1400, 900));
+      final gateway = FakeCatalogGateway();
+      final container = _container(gateway);
+      addTearDown(container.dispose);
+      addTearDown(gateway.client.close);
 
-    container.read(workspaceProvider.notifier).openTab(const TabSpec(
-          kind: PanelKind.bible,
-          title: 'RV1909',
-          reference: 'JHN.1.1',
-          resourceId: 'bible.rv1909',
-        ));
-    await tester.pumpWidget(_app(container));
-    await tester.pumpAndSettle();
+      container
+          .read(workspaceProvider.notifier)
+          .openTab(
+            const TabSpec(
+              kind: PanelKind.bible,
+              title: 'RV1909',
+              reference: 'JHN.1.1',
+              resourceId: 'bible.rv1909',
+            ),
+          );
+      await tester.pumpWidget(_app(container));
+      await tester.pumpAndSettle();
 
-    // La barra de ubicación titula el artículo «San Juan» (home2), pero la
-    // referencia del lector sigue siendo «Juan».
-    expect(find.text('San Juan'), findsOneWidget);
+      // La barra de ubicación titula el artículo «San Juan» (home2), pero la
+      // referencia del lector sigue siendo «Juan».
+      expect(find.text('San Juan'), findsOneWidget);
 
-    // Círculo «^»: oculta la barra secundaria y lo recuerda en la pestaña.
-    expect(find.byKey(const ValueKey('reader-insights')), findsOneWidget);
-    await tester
-        .tap(find.byKey(const ValueKey('reader-secondary-toolbar-toggle')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('reader-insights')), findsNothing);
-    expect(_tabOfKind(container, PanelKind.bible).display.secondaryToolbar,
-        isFalse);
-    expect(find.byTooltip('Mostrar la barra secundaria'), findsOneWidget);
+      // Círculo «^»: oculta la barra secundaria y lo recuerda en la pestaña.
+      expect(find.byKey(const ValueKey('reader-insights')), findsOneWidget);
+      await tester.tap(
+        find.byKey(const ValueKey('reader-secondary-toolbar-toggle')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('reader-insights')), findsNothing);
+      expect(
+        _tabOfKind(container, PanelKind.bible).display.secondaryToolbar,
+        isFalse,
+      );
+      expect(find.byTooltip('Mostrar la barra secundaria'), findsOneWidget);
 
-    await tester
-        .tap(find.byKey(const ValueKey('reader-secondary-toolbar-toggle')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('reader-insights')), findsOneWidget);
-    expect(_tabOfKind(container, PanelKind.bible).display.secondaryToolbar,
-        isTrue);
+      await tester.tap(
+        find.byKey(const ValueKey('reader-secondary-toolbar-toggle')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('reader-insights')), findsOneWidget);
+      expect(
+        _tabOfKind(container, PanelKind.bible).display.secondaryToolbar,
+        isTrue,
+      );
 
-    // ⋮ «Comandos del panel»: duplicar y cerrar pestañas.
-    await tester.tap(find.byKey(const ValueKey('reader-panel-commands')));
-    await tester.pumpAndSettle();
-    // La barra lateral repite «Cerrar todas las pestañas»: se busca dentro
-    // del menú.
-    final menu = find.byType(PopupMenuItem<String>);
-    for (final label in [
-      'Duplicar esta pestaña',
-      'Cerrar esta pestaña',
-      'Cerrar pestañas a la derecha',
-      'Cerrar otras pestañas',
-      'Cerrar todas las pestañas',
-    ]) {
-      expect(find.descendant(of: menu, matching: find.text(label)),
-          findsOneWidget);
-    }
-  });
+      // ⋮ «Comandos del panel»: duplicar y cerrar pestañas.
+      await tester.tap(find.byKey(const ValueKey('reader-panel-commands')));
+      await tester.pumpAndSettle();
+      // La barra lateral repite «Cerrar todas las pestañas»: se busca dentro
+      // del menú.
+      final menu = find.byType(PopupMenuItem<String>);
+      for (final label in [
+        'Duplicar esta pestaña',
+        'Cerrar esta pestaña',
+        'Cerrar pestañas a la derecha',
+        'Cerrar otras pestañas',
+        'Cerrar todas las pestañas',
+      ]) {
+        expect(
+          find.descendant(of: menu, matching: find.text(label)),
+          findsOneWidget,
+        );
+      }
+    },
+  );
 }

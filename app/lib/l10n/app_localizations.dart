@@ -2636,6 +2636,24 @@ abstract class AppLocalizations {
   /// **'Subrayado rojo'**
   String get selectionUnderlineRed;
 
+  /// No description provided for @selectionRemoveHighlight.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar resaltado'**
+  String get selectionRemoveHighlight;
+
+  /// No description provided for @readerHighlightUpdated.
+  ///
+  /// In es, this message translates to:
+  /// **'Resaltado actualizado'**
+  String get readerHighlightUpdated;
+
+  /// No description provided for @readerHighlightRemoved.
+  ///
+  /// In es, this message translates to:
+  /// **'Resaltado quitado'**
+  String get readerHighlightRemoved;
+
   /// No description provided for @highlightSwatch.
   ///
   /// In es, this message translates to:

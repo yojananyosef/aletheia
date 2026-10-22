@@ -62,7 +62,9 @@ class NotesController extends Notifier<NotesState> {
       createdAt: now,
       updatedAt: now,
     );
-    _commit(NotesState(notes: [...state.notes, note], notebooks: state.notebooks));
+    _commit(
+      NotesState(notes: [...state.notes, note], notebooks: state.notebooks),
+    );
     return note.id;
   }
 
@@ -72,14 +74,13 @@ class NotesController extends Notifier<NotesState> {
     String color = kDefaultHighlightColor,
     String style = kHighlightStyleHighlight,
     List<String> notebooks = const [],
-  }) =>
-      createNote(
-        kind: 'highlight',
-        anchors: [anchor],
-        color: color,
-        style: style,
-        notebooks: notebooks,
-      );
+  }) => createNote(
+    kind: 'highlight',
+    anchors: [anchor],
+    color: color,
+    style: style,
+    notebooks: notebooks,
+  );
 
   void updateNote(
     String id, {
@@ -89,24 +90,28 @@ class NotesController extends Notifier<NotesState> {
     List<String>? notebooks,
     List<String>? tags,
     String? color,
+    String? style,
   }) {
-    _commit(NotesState(
-      notes: [
-        for (final note in state.notes)
-          note.id == id
-              ? note.copyWith(
-                  title: title,
-                  body: body,
-                  anchors: anchors,
-                  notebooks: notebooks,
-                  tags: tags,
-                  color: color,
-                  updatedAt: DateTime.now(),
-                )
-              : note,
-      ],
-      notebooks: state.notebooks,
-    ));
+    _commit(
+      NotesState(
+        notes: [
+          for (final note in state.notes)
+            note.id == id
+                ? note.copyWith(
+                    title: title,
+                    body: body,
+                    anchors: anchors,
+                    notebooks: notebooks,
+                    tags: tags,
+                    color: color,
+                    style: style,
+                    updatedAt: DateTime.now(),
+                  )
+                : note,
+        ],
+        notebooks: state.notebooks,
+      ),
+    );
   }
 
   void addAnchor(String id, NoteAnchor anchor) {
@@ -136,50 +141,58 @@ class NotesController extends Notifier<NotesState> {
   }
 
   void trashNote(String id) {
-    _commit(NotesState(
-      notes: [
-        for (final note in state.notes)
-          note.id == id
-              ? note.copyWith(
-                  deletedAt: DateTime.now(),
-                  updatedAt: DateTime.now(),
-                )
-              : note,
-      ],
-      notebooks: state.notebooks,
-    ));
+    _commit(
+      NotesState(
+        notes: [
+          for (final note in state.notes)
+            note.id == id
+                ? note.copyWith(
+                    deletedAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                  )
+                : note,
+        ],
+        notebooks: state.notebooks,
+      ),
+    );
   }
 
   void restoreNote(String id) {
-    _commit(NotesState(
-      notes: [
-        for (final note in state.notes)
-          note.id == id
-              ? note.copyWith(clearDeletedAt: true, updatedAt: DateTime.now())
-              : note,
-      ],
-      notebooks: state.notebooks,
-    ));
+    _commit(
+      NotesState(
+        notes: [
+          for (final note in state.notes)
+            note.id == id
+                ? note.copyWith(clearDeletedAt: true, updatedAt: DateTime.now())
+                : note,
+        ],
+        notebooks: state.notebooks,
+      ),
+    );
   }
 
   void purgeNote(String id) {
-    _commit(NotesState(
-      notes: [
-        for (final note in state.notes)
-          if (note.id != id) note,
-      ],
-      notebooks: state.notebooks,
-    ));
+    _commit(
+      NotesState(
+        notes: [
+          for (final note in state.notes)
+            if (note.id != id) note,
+        ],
+        notebooks: state.notebooks,
+      ),
+    );
   }
 
   void emptyTrash() {
-    _commit(NotesState(
-      notes: [
-        for (final note in state.notes)
-          if (!note.isTrashed) note,
-      ],
-      notebooks: state.notebooks,
-    ));
+    _commit(
+      NotesState(
+        notes: [
+          for (final note in state.notes)
+            if (!note.isTrashed) note,
+        ],
+        notebooks: state.notebooks,
+      ),
+    );
   }
 
   /// Duplica una nota (título «(copia)», sin cuadernos del original).
@@ -198,7 +211,9 @@ class NotesController extends Notifier<NotesState> {
       createdAt: now,
       updatedAt: now,
     );
-    _commit(NotesState(notes: [...state.notes, copy], notebooks: state.notebooks));
+    _commit(
+      NotesState(notes: [...state.notes, copy], notebooks: state.notebooks),
+    );
     return copy.id;
   }
 
@@ -243,41 +258,48 @@ class NotesController extends Notifier<NotesState> {
       name: clean.isEmpty ? 'Cuaderno' : clean,
       createdAt: now,
     );
-    _commit(NotesState(
-      notes: state.notes,
-      notebooks: [...state.notebooks, notebook],
-    ));
+    _commit(
+      NotesState(notes: state.notes, notebooks: [...state.notebooks, notebook]),
+    );
     return notebook.id;
   }
 
   void renameNotebook(String id, String name) {
     final clean = name.trim();
     if (clean.isEmpty) return;
-    _commit(NotesState(
-      notes: state.notes,
-      notebooks: [
-        for (final notebook in state.notebooks)
-          notebook.id == id
-              ? Notebook(id: notebook.id, name: clean, createdAt: notebook.createdAt)
-              : notebook,
-      ],
-    ));
+    _commit(
+      NotesState(
+        notes: state.notes,
+        notebooks: [
+          for (final notebook in state.notebooks)
+            notebook.id == id
+                ? Notebook(
+                    id: notebook.id,
+                    name: clean,
+                    createdAt: notebook.createdAt,
+                  )
+                : notebook,
+        ],
+      ),
+    );
   }
 
   /// Elimina un cuaderno y lo quita de las notas.
   void deleteNotebook(String id) {
-    _commit(NotesState(
-      notes: [
-        for (final note in state.notes)
-          note.notebooks.contains(id)
-              ? note.copyWith(notebooks: [...note.notebooks]..remove(id))
-              : note,
-      ],
-      notebooks: [
-        for (final notebook in state.notebooks)
-          if (notebook.id != id) notebook,
-      ],
-    ));
+    _commit(
+      NotesState(
+        notes: [
+          for (final note in state.notes)
+            note.notebooks.contains(id)
+                ? note.copyWith(notebooks: [...note.notebooks]..remove(id))
+                : note,
+        ],
+        notebooks: [
+          for (final notebook in state.notebooks)
+            if (notebook.id != id) notebook,
+        ],
+      ),
+    );
   }
 
   Notebook? notebookById(String id) {
