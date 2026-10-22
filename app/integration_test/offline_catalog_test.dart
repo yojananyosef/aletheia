@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:aletheia/main.dart';
 import 'package:aletheia/notes/notes_persistence.dart';
+import 'support/catalog_fixture.dart';
 import 'package:aletheia/workspace/models.dart';
 import 'package:aletheia/workspace/persistence.dart';
 import 'package:aletheia/workspace/workspace_controller.dart';
@@ -32,6 +33,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          catalogDiskOverride,
           workspaceStoreProvider.overrideWithValue(store),
           notesStoreProvider.overrideWithValue(NotesStore.inMemory()),
         ],

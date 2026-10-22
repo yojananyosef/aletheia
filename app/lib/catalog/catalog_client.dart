@@ -13,7 +13,7 @@ import 'package:http/http.dart' as http;
 import 'catalog_models.dart';
 
 class CatalogException implements Exception {
-  CatalogException(this.message, {this.status});
+  const CatalogException(this.message, {this.status});
 
   final String message;
   final int? status;

@@ -1,3 +1,5 @@
+import 'dart:io' show Directory;
+
 import 'package:sqlite3/wasm.dart';
 
 import 'database.dart';
@@ -11,4 +13,8 @@ Future<AletheiaDatabase> openAppDatabase() async {
   sqlite.registerVirtualFileSystem(fileSystem, makeDefault: true);
   final database = sqlite.open('aletheia.db');
   return AletheiaDatabase.fromDatabase(database);
+}
+
+Future<Directory> openAppSupportDirectory() {
+  throw UnsupportedError('La web no instala módulos: los cachea el service worker.');
 }

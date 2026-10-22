@@ -1,9 +1,10 @@
 /// Fuentes de lectura del catálogo.
 ///
-/// La app puede leer el catálogo de dos sitios sin cambiar los repositorios:
-/// los assets empaquetados (escritorio y pruebas) o los archivos estáticos
-/// publicados en `aletheia-mods` (web). Las rutas lógicas son las mismas que
-/// usa el contrato del catálogo, por ejemplo:
+/// La app puede leer el catálogo de varios sitios sin cambiar los
+/// repositorios: los assets empaquetados (siempre disponibles), los archivos
+/// estáticos publicados en `aletheia-mods` (web) y los módulos instalados en
+/// disco (escritorio). Las rutas lógicas son las mismas que usa el contrato
+/// del catálogo, por ejemplo:
 ///
 ///   assets/catalog/rv1909/manifest.json
 ///   assets/catalog/rv1909/books/GEN.json.gz
@@ -17,7 +18,10 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 
 import 'asset_json.dart';
+import 'catalog_client.dart' show CatalogException;
 import 'gzip_platform.dart';
+
+export 'catalog_client.dart' show CatalogException;
 
 /// La descarga se canceló desde la interfaz.
 class CatalogDownloadCancelled implements Exception {
@@ -25,6 +29,44 @@ class CatalogDownloadCancelled implements Exception {
 
   @override
   String toString() => 'descarga del catálogo cancelada';
+}
+
+/// Prefijo lógico de todas las rutas del catálogo.
+const kCatalogAssetsPrefix = 'assets/catalog/';
+
+/// Ruta relativa al catálogo de una ruta lógica
+/// (`assets/catalog/asv/manifest.json` → `asv/manifest.json`).
+String catalogRelativePath(String logicalPath) =>
+    logicalPath.startsWith(kCatalogAssetsPrefix)
+    ? logicalPath.substring(kCatalogAssetsPrefix.length)
+    : logicalPath;
+
+/// El contenido pedido pertenece a un módulo del catálogo desacoplado que no
+/// está instalado (y no viene empaquetado con la app).
+///
+/// El lector y la búsqueda lo traducen en una tarjeta con un CTA «Instalar en
+/// la Tienda» en vez de un error crudo: guiar a la Tienda es parte del flujo
+/// normal de un catálogo desacoplado.
+class CatalogNotInstalledException extends CatalogException {
+  const CatalogNotInstalledException({
+    required this.moduleId,
+    this.path,
+  }) : super('módulo no instalado: $moduleId');
+
+  /// Id del módulo (`bible.asv`, `catalog.search`, …).
+  final String moduleId;
+
+  /// Ruta lógica del archivo que se intentó leer, si aplica.
+  final String? path;
+}
+
+/// El archivo no existe en ninguna fuente (p. ej. un módulo instalado al que
+/// le falta un archivo). Distinto de [CatalogNotInstalledException]: el
+/// remedio es reinstalar el módulo, no instalarlo.
+class FileNotFoundError extends CatalogException {
+  const FileNotFoundError(this.path) : super('no se encontró $path');
+
+  final String path;
 }
 
 abstract class CatalogAssetSource {

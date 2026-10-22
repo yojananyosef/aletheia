@@ -47,6 +47,8 @@ dependencies:
   sqlite3: ^3.7.1
   http: ^1.6.0
   web: ^1.1.1
+  # Verificación sha256 de los módulos descargados de la Tienda.
+  crypto: ^3.0.6
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -72,45 +74,19 @@ flutter:
   # La aplicación usa Material Icons.
   uses-material-design: true
 
-  # Documentos del catálogo (M1: RV1909 empaquetada, dominio público).
+  # Catálogo desacoplado: solo lo esencial se empaqueta (lectura en frío);
+  # el resto se instala desde la Tienda en `<datos>/modules`. El bundle
+  # web lo reescribe tool/build_web_release.sh.
   assets:
     - assets/maps/
     - assets/catalog/index.json
-    - assets/catalog/search.sqlite.gz
-    - assets/catalog/search.meta.json
     - assets/catalog/map_sections.json
+    - assets/catalog/morphology.json
     - assets/catalog/rv1909/
     - assets/catalog/rv1909/books/
-    # KJV empaquetada (mejora de autonomía): catálogo y comparación offline.
-    - assets/catalog/kjv/
-    - assets/catalog/kjv/books/
-    # Traducciones adicionales de dominio público (mejora de profundidad).
-    - assets/catalog/asv/
-    - assets/catalog/asv/books/
-    - assets/catalog/bll/
-    - assets/catalog/bll/books/
-    # Textos originales y Biblias españolas adicionales.
-    - assets/catalog/tahot/
-    - assets/catalog/tahot/books/
-    - assets/catalog/tagnt/
-    - assets/catalog/tagnt/books/
-    - assets/catalog/sblm/
-    - assets/catalog/sblm/books/
-    - assets/catalog/bes/
-    - assets/catalog/bes/books/
-    - assets/catalog/vbl/
-    - assets/catalog/vbl/books/
-    # Léxico Strong y descripciones de morfología.
+    # Léxico Strong: el estudio de palabras del Griego/Hebreo funciona en
+    # frío sin instalar nada más.
     - assets/catalog/lexicon.strongs/
-    - assets/catalog/morphology.json
-    # Recursos de M5: devocional fechado y Factbook (secciones embebidas).
-    - assets/catalog/devotional.daily/
-    - assets/catalog/factbook.core/
-    # Comentario y diccionario: índice + cuerpo por sección.
-    - assets/catalog/matthew-henry-concise/
-    - assets/catalog/matthew-henry-concise/sections/
-    - assets/catalog/easton/
-    - assets/catalog/easton/sections/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

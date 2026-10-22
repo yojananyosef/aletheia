@@ -12,6 +12,7 @@ import 'package:aletheia/main.dart';
 import 'package:aletheia/notes/notes_controller.dart';
 import 'package:aletheia/notes/notes_models.dart';
 import 'package:aletheia/notes/notes_persistence.dart';
+import 'support/catalog_fixture.dart';
 import 'package:aletheia/workspace/models.dart';
 import 'package:aletheia/workspace/persistence.dart';
 import 'package:aletheia/workspace/workspace_controller.dart';
@@ -29,6 +30,7 @@ Offset _textOffsetToPosition(RenderParagraph paragraph, int offset) {
 Future<ProviderContainer> _launch(WidgetTester tester) async {
   final container = ProviderContainer(
     overrides: [
+      catalogDiskOverride,
       workspaceStoreProvider.overrideWithValue(WorkspaceStore.inMemory()),
       notesStoreProvider.overrideWithValue(NotesStore.inMemory()),
     ],

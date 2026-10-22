@@ -1,25 +1,29 @@
 import 'dart:io';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:aletheia/catalog/catalog_client.dart';
 import 'package:aletheia/catalog/catalog_gateway.dart';
 import 'package:aletheia/catalog/document_models.dart';
 import 'package:aletheia/catalog/local_catalog_index.dart';
-import 'package:aletheia/catalog/sections_repository.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'support/catalog_fixtures.dart';
 
 void main() {
-  // El binding es necesario para leer los assets incluidos (`rootBundle`).
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory directory;
   late CatalogGateway gateway;
 
   setUpAll(() async {
+    // El catálogo íntegro vive en el repositorio (el bundle ya es ligero):
+    // el gateway y el índice FTS5 leen de ahí con la fuente de disco.
     directory = await Directory.systemTemp.createTemp('aletheia-index-');
     gateway = CatalogGateway(
       mode: 'local',
       client: CatalogClient(baseUrl: 'http://127.0.0.1:1'),
+      source: repoCatalogSource(),
       localIndex: LocalCatalogIndex(
+        source: repoCatalogSource(),
         cacheDirectoryProvider: () async => directory.path,
       ),
     );
@@ -432,7 +436,9 @@ void main() {
       final automatic = CatalogGateway(
         mode: 'auto',
         client: CatalogClient(baseUrl: 'http://127.0.0.1:1'),
+        source: repoCatalogSource(),
         localIndex: LocalCatalogIndex(
+          source: repoCatalogSource(),
           cacheDirectoryProvider: () async => directory.path,
         ),
       );
@@ -451,7 +457,7 @@ void main() {
   );
 
   test('las secciones embebidas de M5 se leen de los assets', () async {
-    final sections = AssetSectionsRepository();
+    final sections = repoSectionsRepository();
 
     final devotional = await sections.loadIndex('devotional.daily');
     expect(devotional.length, 366, reason: 'incluye el 29 de febrero');
@@ -485,7 +491,7 @@ void main() {
   test(
     'comentario y diccionario se cargan por sección desde los assets',
     () async {
-      final sections = AssetSectionsRepository();
+      final sections = repoSectionsRepository();
 
       final commentary = await sections.loadIndex(
         'commentary.matthew-henry-concise',

@@ -18,6 +18,7 @@ import 'package:aletheia/workspace/models.dart';
 import 'package:aletheia/workspace/persistence.dart';
 import 'package:aletheia/workspace/workspace_controller.dart';
 import 'package:aletheia/notes/notes_persistence.dart';
+import 'support/catalog_fixture.dart';
 
 const _baseUrl = 'http://127.0.0.1:8787';
 
@@ -39,6 +40,7 @@ void main() {
 
     await tester.pumpWidget(ProviderScope(
       overrides: [
+        catalogDiskOverride,
         workspaceStoreProvider.overrideWithValue(store),
         notesStoreProvider.overrideWithValue(NotesStore.inMemory()),
       ],

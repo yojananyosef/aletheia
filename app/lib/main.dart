@@ -1,6 +1,10 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'catalog/catalog_source_providers.dart';
+import 'catalog/install/modules_store.dart';
+import 'catalog/mods_catalog_source.dart';
 import 'core/app_database.dart';
 import 'core/localization.dart';
 import 'core/theme.dart';
@@ -24,9 +28,23 @@ Future<void> main() async {
   final readingPlans = ReadingPlansStore.onDatabase(database);
   final favorites = FavoritesStore.onDatabase(database);
   final courseProgress = CourseProgressStore.onDatabase(database);
+
+  // Catálogo desacoplado (solo escritorio): los módulos se instalan a
+  // `<datos>/modules` desde la Tienda; en web el service worker cachea.
+  ModsCatalogSource? mods;
+  ModulesStore? modules;
+  if (!kIsWeb) {
+    mods = ModsCatalogSource();
+    modules = await _openModulesStore(mods);
+  }
+
   runApp(
     ProviderScope(
       overrides: [
+        if (!kIsWeb) ...[
+          modsCatalogSourceProvider.overrideWithValue(mods!),
+          modulesStoreProvider.overrideWithValue(modules!),
+        ],
         workspaceStoreProvider.overrideWithValue(store),
         notesStoreProvider.overrideWithValue(notes),
         readingPlansStoreProvider.overrideWithValue(readingPlans),
@@ -36,6 +54,17 @@ Future<void> main() async {
       child: const AletheiaApp(),
     ),
   );
+}
+
+/// Store de módulos con el directorio real de datos ya cargado en memoria.
+Future<ModulesStore> _openModulesStore(ModsCatalogSource mods) async {
+  final support = await openAppSupportDirectory();
+  final modules = ModulesStore(
+    baseDirectory: '${support.path}/modules',
+    loadManifest: mods.loadManifest,
+  );
+  await modules.load();
+  return modules;
 }
 
 class AletheiaApp extends ConsumerWidget {

@@ -2091,15 +2091,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Panels with the same letter follow the same reference.';
 
   @override
-  String get storeTitle => 'Local store';
+  String get storeTitle => 'Module store';
 
   @override
   String get storeIntro =>
-      'Public-domain resources included in this installation. No purchases or external downloads.';
+      'The decoupled catalog splits content into public-domain and Creative Commons modules. Choose what to install: downloads run with progress and, once installed, reading works without the network.';
 
   @override
   String storeCount(int count) {
-    return '$count resources included';
+    return '$count resources available';
   }
 
   @override
@@ -2556,4 +2556,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get psalmCategoryPilgrimage => 'Pilgrimage';
+
+  @override
+  String get moduleInstall => 'Install';
+
+  @override
+  String get moduleCancel => 'Cancel install';
+
+  @override
+  String moduleSize(String size) {
+    return '$size';
+  }
+
+  @override
+  String get moduleAvailableBody =>
+      'This resource lives in the decoupled catalog: install it to read it without depending on the network afterwards.';
+
+  @override
+  String get moduleInstallFailed =>
+      'The install did not finish. Check your connection and try again.';
+
+  @override
+  String moduleDownloading(String received) {
+    return 'Downloading… $received';
+  }
+
+  @override
+  String get moduleInstallUnavailable =>
+      'This resource downloads when opened; desktop app manages modules explicitly.';
+
+  @override
+  String readerBookNotAvailable(String book, String resource) {
+    return '$book is not available in $resource. The decoupled catalog ships only part of the books per resource.';
+  }
+
+  @override
+  String readerOpenEquivalent(String book, String resource) {
+    return 'Open $book in $resource';
+  }
+
+  @override
+  String get storeInstallButton => 'Install';
+
+  @override
+  String get storeInstalledBadge => 'Installed';
+
+  @override
+  String get storeUpdateBadge => 'Update available';
+
+  @override
+  String get storeUninstallButton => 'Uninstall';
+
+  @override
+  String get storeCancelInstall => 'Cancel';
+
+  @override
+  String get storeConfirmUninstall =>
+      'Remove the module from this device? You can reinstall it from here later.';
+
+  @override
+  String get storeRemovedTitle => 'Module removed';
+
+  @override
+  String storeUninstalledSnackbar(String module) {
+    return '$module removed.';
+  }
+
+  @override
+  String get storeInstallErrorTitle => 'Install failed';
+
+  @override
+  String get storeSectionInstalled => 'Installed';
+
+  @override
+  String get storeSectionAvailable => 'Available';
+
+  @override
+  String get storeSearchModuleHint =>
+      'The local search index is a module too: without it search falls back to the service instead of working offline.';
+
+  @override
+  String get libraryNotInstalledChip => 'Not installed';
+
+  @override
+  String get libraryInstalledChip => 'Installed';
 }

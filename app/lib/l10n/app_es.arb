@@ -940,9 +940,9 @@
   "assistantFailed": "No se pudo obtener respuesta del proveedor.",
   "readerLinkSetNone": "Sin conjunto",
   "readerLinkSetHelp": "Los paneles con la misma letra siguen la misma referencia.",
-  "storeTitle": "Tienda local",
-  "storeIntro": "Recursos de dominio público incluidos en esta instalación. No hay compras ni descargas externas.",
-  "storeCount": "{count} recursos incluidos",
+  "storeTitle": "Tienda de módulos",
+  "storeIntro": "El catálogo desacoplado reparte el contenido en módulos del dominio público y Creative Commons. Elige qué instalar: se descarga con progreso y luego se lee sin depender de la red.",
+  "storeCount": "{count} recursos disponibles",
   "@storeCount": {
     "placeholders": {
       "count": {
@@ -1119,5 +1119,69 @@
   "psalmCategoryWisdom": "Sabiduría",
   "psalmCategoryMessianic": "Mesiánicos",
   "psalmCategoryPenitential": "Penitenciales",
-  "psalmCategoryPilgrimage": "Peregrinación"
+  "psalmCategoryPilgrimage": "Peregrinación",
+  "moduleInstall": "Instalar",
+  "moduleCancel": "Cancelar instalación",
+  "moduleSize": "{size}",
+  "@moduleSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "moduleAvailableBody": "Este recurso vive en el catálogo desacoplado: instálalo para leerlo sin depender de la red después.",
+  "moduleInstallFailed": "No se pudo completar la instalación. Revisa la conexión y vuelve a intentarlo.",
+  "moduleDownloading": "Descargando… {received}",
+  "@moduleDownloading": {
+    "placeholders": {
+      "received": {
+        "type": "String"
+      }
+    }
+  },
+  "moduleInstallUnavailable": "Este recurso se descarga al abrirse; para gestionarlo como módulo usa la app de escritorio.",
+  "readerBookNotAvailable": "{book} no está disponible en {resource}. El catálogo desacoplado trae solo una parte de los libros en cada recurso.",
+  "@readerBookNotAvailable": {
+    "placeholders": {
+      "book": {
+        "type": "String"
+      },
+      "resource": {
+        "type": "String"
+      }
+    }
+  },
+  "readerOpenEquivalent": "Abrir {book} en {resource}",
+  "@readerOpenEquivalent": {
+    "placeholders": {
+      "book": {
+        "type": "String"
+      },
+      "resource": {
+        "type": "String"
+      }
+    }
+  },
+  "storeInstallButton": "Instalar",
+  "storeInstalledBadge": "Instalado",
+  "storeUpdateBadge": "Actualización disponible",
+  "storeUninstallButton": "Desinstalar",
+  "storeCancelInstall": "Cancelar",
+  "storeConfirmUninstall": "¿Quitar el módulo de este dispositivo? Podrás volver a instalarlo desde aquí.",
+  "storeRemovedTitle": "Módulo quitado",
+  "storeUninstalledSnackbar": "Se quitó {module}.",
+  "@storeUninstalledSnackbar": {
+    "placeholders": {
+      "module": {
+        "type": "String"
+      }
+    }
+  },
+  "storeInstallErrorTitle": "La instalación falló",
+  "storeSectionInstalled": "Instalados",
+  "storeSectionAvailable": "Disponibles",
+  "storeSearchModuleHint": "El índice de búsqueda local también es un módulo: sin él la búsqueda funciona con el servicio, no en frío.",
+  "libraryNotInstalledChip": "No instalado",
+  "libraryInstalledChip": "Instalado"
 }

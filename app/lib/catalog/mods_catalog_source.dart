@@ -14,8 +14,8 @@ import 'package:flutter/foundation.dart' show ValueNotifier, debugPrint;
 import 'package:http/http.dart' as http;
 
 import 'catalog_asset_source.dart';
-import 'catalog_client.dart' show CatalogException;
 import 'gzip_platform.dart';
+import 'install/mods_manifest.dart';
 
 /// URL del catálogo desacoplado.
 ///
@@ -175,6 +175,21 @@ class ModsCatalogSource implements CatalogAssetSource {
 
   void _setTransfer(CatalogTransfer? value) {
     if (!_disposed) transfer.value = value;
+  }
+
+  /// Descarga y parsea el manifiesto del catálogo remoto (mods.json v2).
+  ///
+  /// Devuelve `null` sin red o si el publicado aún no trae el listado de
+  /// archivos por módulo: en ese caso la Tienda avisa en su tarjeta.
+  Future<CatalogModulesManifest?> loadManifest() async {
+    await _loadVersion();
+    try {
+      final bytes = await _download(_uri('mods.json'), progress: false);
+      return CatalogModulesManifest.fromJson(jsonDecode(utf8.decode(bytes)));
+    } on Object catch (error) {
+      debugPrint('no se pudo cargar mods.json: $error');
+      return null;
+    }
   }
 
   /// Cancela la transferencia en curso. La siguiente búsqueda puede reintentar.

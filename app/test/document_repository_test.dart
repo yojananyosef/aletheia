@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:aletheia/catalog/document_models.dart';
-import 'package:aletheia/catalog/document_repository.dart';
-import 'package:aletheia/catalog/sections_repository.dart';
+
+import 'support/catalog_fixtures.dart';
 
 String _plainText(Verse verse) =>
     verse.inlines.whereType<TextInline>().map((i) => i.text).join();
@@ -10,7 +10,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('el manifest de la RV1909 trae 66 libros e índice de capítulos', () async {
-    final manifest = await AssetDocumentRepository().loadManifest('bible.rv1909');
+    final manifest = await repoDocumentRepository().loadManifest('bible.rv1909');
     expect(manifest.title, 'Reina-Valera 1909');
     expect(manifest.license, contains('Dominio'));
     expect(manifest.books, hasLength(66));
@@ -24,7 +24,7 @@ void main() {
   });
 
   test('Juan 1:1 llega como versículos numerados', () async {
-    final book = await AssetDocumentRepository().loadBook('bible.rv1909', 'JHN');
+    final book = await repoDocumentRepository().loadBook('bible.rv1909', 'JHN');
     final chapter = book.chapter(1)!;
     expect(chapter.blocks.first, isA<ChapterNumberBlock>());
     final verses = chapter.blocks
@@ -37,7 +37,7 @@ void main() {
   });
 
   test('las adiciones USFM (\\add) se convierten en spans itálicos', () async {
-    final book = await AssetDocumentRepository().loadBook('bible.rv1909', 'OBA');
+    final book = await repoDocumentRepository().loadBook('bible.rv1909', 'OBA');
     final verse = book
         .chapter(1)!
         .blocks
@@ -53,7 +53,7 @@ void main() {
   });
 
   test('la KJV también se lee de los assets (autonomía local)', () async {
-    final repository = AssetDocumentRepository();
+    final repository = repoDocumentRepository();
     final manifest = await repository.loadManifest('bible.kjv');
     expect(manifest.title, 'King James Version');
     expect(manifest.abbrev, 'KJV');
@@ -71,7 +71,7 @@ void main() {
   });
 
   test('nextLocation/previousLocation recorren libros y capítulos', () async {
-    final manifest = await AssetDocumentRepository().loadManifest('bible.rv1909');
+    final manifest = await repoDocumentRepository().loadManifest('bible.rv1909');
     expect(manifest.nextLocation('JHN', 1), (book: 'JHN', chapter: 2));
     expect(manifest.nextLocation('GEN', 50), (book: 'EXO', chapter: 1));
     expect(manifest.previousLocation('EXO', 1), (book: 'GEN', chapter: 50));
@@ -87,7 +87,7 @@ void main() {
 void _studyTests() {
   test('TAHOT conserva el hebreo, la morfología y los títulos de los salmos',
       () async {
-    final repository = AssetDocumentRepository();
+    final repository = repoDocumentRepository();
     final manifest = await repository.loadManifest('bible.tahot');
     expect(manifest.rtl, isTrue);
     expect(manifest.books, hasLength(39));
@@ -116,7 +116,7 @@ void _studyTests() {
   });
 
   test('TAGNT trae griego, Strong desambiguado, lema y glosa', () async {
-    final repository = AssetDocumentRepository();
+    final repository = repoDocumentRepository();
     final manifest = await repository.loadManifest('bible.tagnt');
     expect(manifest.rtl, isFalse);
     expect(manifest.books, hasLength(27));
@@ -139,7 +139,7 @@ void _studyTests() {
   });
 
   test('el léxico Strong embebido sirve hebreo y griego', () async {
-    final sections = AssetSectionsRepository();
+    final sections = repoSectionsRepository();
     final hebrew = await sections.loadSection('lexicon.strongs', 'H0430');
     expect(hebrew, isNotNull);
     expect(hebrew!.summary.title, contains('H0430'));

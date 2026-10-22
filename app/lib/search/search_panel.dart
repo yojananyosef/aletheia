@@ -10,8 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../catalog/catalog_gateway.dart';
+import '../catalog/catalog_asset_source.dart' show CatalogNotInstalledException;
 import '../catalog/catalog_models.dart';
 import '../catalog/catalog_source_providers.dart';
+import '../catalog/install/module_install_card.dart';
 import '../catalog/mods_catalog_source.dart';
 import '../core/localization.dart';
 import '../core/theme.dart';
@@ -715,6 +717,27 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
       );
     }
     if (_error != null) {
+      // Módulo de búsqueda no instalado (catálogo desacoplado): tarjeta con
+      // CTA de instalación en lugar del error crudo.
+      if (_error case final CatalogNotInstalledException missing) {
+        return Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 30),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: ModuleInstallCard(
+                key: const ValueKey('search-module-missing'),
+                moduleId: missing.moduleId,
+                description: context.l10n.storeSearchModuleHint,
+                onDone: () {
+                  final query = widget.tab.query?.trim();
+                  if (query != null && query.isNotEmpty) _run(query, page: 1);
+                },
+              ),
+            ),
+          ),
+        );
+      }
       return Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),

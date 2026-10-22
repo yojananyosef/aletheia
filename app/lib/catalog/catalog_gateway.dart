@@ -29,6 +29,10 @@ String searchErrorMessage(AppLocalizations l10n, Object? error) {
   if (error is LocalSearchUnavailableException) {
     return l10n.searchIndexUnavailable;
   }
+  // Catálogo desacoplado: el índice FTS5 llega como módulo de la Tienda.
+  if (error is CatalogNotInstalledException) {
+    return l10n.storeSearchModuleHint;
+  }
   if (error is CatalogException) return error.message;
   return '$error';
 }
@@ -75,8 +79,14 @@ class CatalogGateway {
     final resources = (await bundledResources()).length;
     // El manifiesto es pequeño y evita descargar/abrir el índice FTS5 solo
     // para mostrar los contadores en Ajustes (importante en web).
+    String? raw;
     try {
-      final raw = await source.loadText('assets/catalog/search.meta.json');
+      raw = await source.loadText('assets/catalog/search.meta.json');
+    } on Object {
+      // Sin módulo de búsqueda instalado (catálogo desacoplado): Ajustes
+      // muestra los contadores en 0 y la Tienda ofrece instalarlo.
+    }
+    if (raw != null) {
       final json = jsonDecode(raw) as Map<String, dynamic>;
       return CatalogHealth(
         resources: resources,
@@ -85,18 +95,23 @@ class CatalogGateway {
         crossReferences: json['indexedCrossReferences'] as int? ?? 0,
         local: true,
       );
-    } on Object {
-      final verses = await localIndex.verseCount();
-      final sections = await localIndex.sectionCount();
-      final crossReferences = await localIndex.crossReferenceCount();
-      return CatalogHealth(
-        resources: resources,
-        verses: verses,
-        sections: sections,
-        crossReferences: crossReferences,
-        local: true,
-      );
     }
+    int verses = 0, sections = 0, crossReferences = 0;
+    try {
+      verses = await localIndex.verseCount();
+      sections = await localIndex.sectionCount();
+      crossReferences = await localIndex.crossReferenceCount();
+    } on Object {
+      // Sin índice instalado: contadores a 0 en Ajustes (la Tienda puede
+      // instalar el módulo `catalog.search`).
+    }
+    return CatalogHealth(
+      resources: resources,
+      verses: verses,
+      sections: sections,
+      crossReferences: crossReferences,
+      local: true,
+    );
   }
 
   Future<ResourceListing> listResources({

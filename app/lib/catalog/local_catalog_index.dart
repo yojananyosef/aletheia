@@ -14,13 +14,12 @@ import 'dart:async' show unawaited;
 import 'dart:convert' show jsonDecode;
 import 'dart:math' show max, min;
 
-import 'package:flutter/services.dart' show AssetBundle, rootBundle;
+import 'package:flutter/services.dart' show AssetBundle;
 import 'package:sqlite3/common.dart';
 
 import '../references/reference_parser.dart'
     show bookCodeForInput, parseReference;
 import 'catalog_asset_source.dart';
-import 'catalog_client.dart';
 import 'catalog_models.dart';
 import 'local_search_platform.dart';
 import 'local_search_query.dart';
@@ -176,9 +175,7 @@ class LocalCatalogIndex {
     if (cached != null) return cached;
     final loading = () async {
       try {
-        final text = await rootBundle.loadString(
-          'assets/catalog/map_sections.json',
-        );
+        final text = await _source.loadText('assets/catalog/map_sections.json');
         final raw = jsonDecode(text) as Map<String, dynamic>;
         return {
           for (final key in const ['maps', 'media'])

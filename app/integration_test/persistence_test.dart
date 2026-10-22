@@ -14,6 +14,7 @@ import 'package:aletheia/main.dart';
 import 'package:aletheia/notes/notes_persistence.dart';
 import 'package:aletheia/workspace/models.dart';
 import 'package:aletheia/workspace/persistence.dart';
+import 'support/catalog_fixture.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,7 @@ void main() {
           // providers nuevo que lea el estado desde SQLite.
           key: ValueKey('launch-$launches'),
           overrides: [
+            catalogDiskOverride,
             workspaceStoreProvider
                 .overrideWithValue(WorkspaceStore.onDatabase(database)),
             notesStoreProvider.overrideWithValue(NotesStore.onDatabase(database)),
@@ -83,6 +85,7 @@ void main() {
         ProviderScope(
           key: ValueKey('notes-launch-$launches'),
           overrides: [
+            catalogDiskOverride,
             workspaceStoreProvider
                 .overrideWithValue(WorkspaceStore.onDatabase(database)),
             notesStoreProvider.overrideWithValue(NotesStore.onDatabase(database)),

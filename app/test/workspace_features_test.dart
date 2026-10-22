@@ -162,8 +162,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('store-panel')), findsOneWidget);
-    expect(find.text('Tienda local'), findsOneWidget);
-    expect(find.text('2 recursos incluidos'), findsOneWidget);
+    expect(find.text('Tienda de módulos'), findsOneWidget);
+    expect(find.text('2 recursos disponibles'), findsOneWidget);
     expect(find.text('Reina-Valera 1909'), findsOneWidget);
     expect(find.text('Comentario de prueba'), findsOneWidget);
 

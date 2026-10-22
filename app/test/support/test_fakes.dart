@@ -193,6 +193,12 @@ class FakeCatalogGateway extends CatalogGateway {
 
 /// Documentos sintéticos (sin E/S) para el lector.
 class FakeDocumentRepository implements DocumentRepository {
+  /// Manifest sintético por id, para pruebas que necesitan el mismo dato
+  /// (p. ej. TAGNT con libros del NT solamente).
+  static DocumentManifest manifestOf(String resourceId) =>
+      _manifests[resourceId] ??
+      (throw ArgumentError('no hay manifest de prueba para $resourceId'));
+
   static final Map<String, DocumentManifest> _manifests = {
     'bible.rv1909': DocumentManifest.fromJson({
       'resourceId': 'bible.rv1909',

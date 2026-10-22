@@ -3779,19 +3779,19 @@ abstract class AppLocalizations {
   /// No description provided for @storeTitle.
   ///
   /// In es, this message translates to:
-  /// **'Tienda local'**
+  /// **'Tienda de módulos'**
   String get storeTitle;
 
   /// No description provided for @storeIntro.
   ///
   /// In es, this message translates to:
-  /// **'Recursos de dominio público incluidos en esta instalación. No hay compras ni descargas externas.'**
+  /// **'El catálogo desacoplado reparte el contenido en módulos del dominio público y Creative Commons. Elige qué instalar: se descarga con progreso y luego se lee sin depender de la red.'**
   String get storeIntro;
 
   /// No description provided for @storeCount.
   ///
   /// In es, this message translates to:
-  /// **'{count} recursos incluidos'**
+  /// **'{count} recursos disponibles'**
   String storeCount(int count);
 
   /// No description provided for @storeIncluded.
@@ -4585,6 +4585,144 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Peregrinación'**
   String get psalmCategoryPilgrimage;
+
+  /// No description provided for @moduleInstall.
+  ///
+  /// In es, this message translates to:
+  /// **'Instalar'**
+  String get moduleInstall;
+
+  /// No description provided for @moduleCancel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar instalación'**
+  String get moduleCancel;
+
+  /// No description provided for @moduleSize.
+  ///
+  /// In es, this message translates to:
+  /// **'{size}'**
+  String moduleSize(String size);
+
+  /// No description provided for @moduleAvailableBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Este recurso vive en el catálogo desacoplado: instálalo para leerlo sin depender de la red después.'**
+  String get moduleAvailableBody;
+
+  /// No description provided for @moduleInstallFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo completar la instalación. Revisa la conexión y vuelve a intentarlo.'**
+  String get moduleInstallFailed;
+
+  /// No description provided for @moduleDownloading.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargando… {received}'**
+  String moduleDownloading(String received);
+
+  /// No description provided for @moduleInstallUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Este recurso se descarga al abrirse; para gestionarlo como módulo usa la app de escritorio.'**
+  String get moduleInstallUnavailable;
+
+  /// No description provided for @readerBookNotAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'{book} no está disponible en {resource}. El catálogo desacoplado trae solo una parte de los libros en cada recurso.'**
+  String readerBookNotAvailable(String book, String resource);
+
+  /// No description provided for @readerOpenEquivalent.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir {book} en {resource}'**
+  String readerOpenEquivalent(String book, String resource);
+
+  /// No description provided for @storeInstallButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Instalar'**
+  String get storeInstallButton;
+
+  /// No description provided for @storeInstalledBadge.
+  ///
+  /// In es, this message translates to:
+  /// **'Instalado'**
+  String get storeInstalledBadge;
+
+  /// No description provided for @storeUpdateBadge.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualización disponible'**
+  String get storeUpdateBadge;
+
+  /// No description provided for @storeUninstallButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Desinstalar'**
+  String get storeUninstallButton;
+
+  /// No description provided for @storeCancelInstall.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar'**
+  String get storeCancelInstall;
+
+  /// No description provided for @storeConfirmUninstall.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Quitar el módulo de este dispositivo? Podrás volver a instalarlo desde aquí.'**
+  String get storeConfirmUninstall;
+
+  /// No description provided for @storeRemovedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Módulo quitado'**
+  String get storeRemovedTitle;
+
+  /// No description provided for @storeUninstalledSnackbar.
+  ///
+  /// In es, this message translates to:
+  /// **'Se quitó {module}.'**
+  String storeUninstalledSnackbar(String module);
+
+  /// No description provided for @storeInstallErrorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'La instalación falló'**
+  String get storeInstallErrorTitle;
+
+  /// No description provided for @storeSectionInstalled.
+  ///
+  /// In es, this message translates to:
+  /// **'Instalados'**
+  String get storeSectionInstalled;
+
+  /// No description provided for @storeSectionAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Disponibles'**
+  String get storeSectionAvailable;
+
+  /// No description provided for @storeSearchModuleHint.
+  ///
+  /// In es, this message translates to:
+  /// **'El índice de búsqueda local también es un módulo: sin él la búsqueda funciona con el servicio, no en frío.'**
+  String get storeSearchModuleHint;
+
+  /// No description provided for @libraryNotInstalledChip.
+  ///
+  /// In es, this message translates to:
+  /// **'No instalado'**
+  String get libraryNotInstalledChip;
+
+  /// No description provided for @libraryInstalledChip.
+  ///
+  /// In es, this message translates to:
+  /// **'Instalado'**
+  String get libraryInstalledChip;
 }
 
 class _AppLocalizationsDelegate

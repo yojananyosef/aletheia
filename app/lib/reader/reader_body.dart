@@ -16,6 +16,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../catalog/document_models.dart';
 import '../catalog/document_repository.dart';
+import '../catalog/catalog_asset_source.dart';
+import '../catalog/install/module_install_card.dart';
 import '../core/localization.dart';
 import '../core/theme.dart';
 import '../notes/notes_controller.dart';
@@ -23,6 +25,7 @@ import '../notes/notes_models.dart';
 import '../notes/notes_query.dart';
 import '../notes/selection_resolver.dart';
 import '../references/reference_parser.dart';
+import '../workspace/workspace_controller.dart';
 import 'selection_toolbar.dart';
 import '../workspace/models.dart';
 import 'reader_style.dart';
@@ -182,6 +185,57 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
   bool _loading = false;
   bool _atEnd = false;
   String? _error;
+
+  /// El recurso existe pero el libro no está en su manifest (p. ej. un
+  /// Antiguo Testamento pedido en TAGNT): mensaje claro y CTA equivalente.
+  bool _bookUnavailable = false;
+
+  /// El módulo del recurso no está instalado (catálogo desacoplado): se
+  /// muestra la tarjeta de instalación con progreso.
+  CatalogNotInstalledException? _notInstalled;
+
+  /// Manifest del recurso actual, cacheado por el repositorio entre
+  /// navegaciones.
+  DocumentManifest? _manifest;
+
+  String? get _resourceTitle => _manifest?.title;
+
+  /// Nombre del libro para los mensajes de indisponibilidad.
+  String get _bookNameForDisplay {
+    final book = _targetBook;
+    final name = _manifest?.bookByCode(book ?? '')?.name;
+    if (name != null && name.isNotEmpty) return name;
+    // El manifest del recurso puede no contener el libro (es justamente el
+    // caso de la tarjeta): nombre canónico del canon, o el código.
+    return bookDisplayName(book ?? '', lang: context.l10nLang);
+  }
+
+  /// Contrapartida de idioma original si esta pestaña es TAHOT/TAGNT: el
+  /// libro ausente casi siempre significa «viajaste al testamento equivocado».
+  String? _equivalentResourceId() {
+    if (widget.resourceId == 'bible.tahot') return 'bible.tagnt';
+    if (widget.resourceId == 'bible.tagnt') return 'bible.tahot';
+    return null;
+  }
+
+  /// Abre (o reactiva) la pestaña del recurso equivalente en el mismo
+  /// pasaje, punto de entrada del CTA de la tarjeta.
+  void _openInEquivalent(String resourceId) {
+    final ctrl = ref.read(workspaceProvider.notifier);
+    final reference = '$_targetBook.$_targetChapter.1';
+    if (ctrl.openInResource(resourceId: resourceId, reference: reference)) {
+      return;
+    }
+    ctrl.openTab(
+      TabSpec(
+        kind: PanelKind.bible,
+        title: resourceId == 'bible.tagnt' ? 'TAGNT' : 'TAHOT',
+        reference: reference,
+        resourceType: 'bible',
+        resourceId: resourceId,
+      ),
+    );
+  }
   int _limit = 60;
   int _navToken = 0;
   int _pageIndex = 0;
@@ -309,6 +363,8 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       final parsed = parseReference(reference);
       if (parsed == null) {
         _error = context.l10n.readerInvalidReference(reference);
+        _bookUnavailable = false;
+        _notInstalled = null;
         return;
       }
       _navToken++;
@@ -320,6 +376,8 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       _sections.clear();
       _atEnd = false;
       _error = null;
+      _bookUnavailable = false;
+      _notInstalled = null;
       _loading = true;
     }
 
@@ -335,6 +393,20 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     final book = _targetBook!;
     final chapter = _targetChapter!;
     try {
+      // Catálogo desacoplado: comprueba primero si el recurso contiene el
+      // libro (TAGNT no trae Génesis y el error no debe ser «asset no
+      // encontrado»). El manifest queda cacheado en el repositorio.
+      final repository = ref.read(documentRepositoryProvider);
+      final manifest = await repository.loadManifest(widget.resourceId);
+      if (!mounted || token != _navToken) return;
+      _manifest = manifest;
+      if (manifest.bookByCode(book) == null) {
+        setState(() {
+          _loading = false;
+          _bookUnavailable = true;
+        });
+        return;
+      }
       final section = await _loadSection(book, chapter);
       if (!mounted || token != _navToken) return;
       setState(() {
@@ -347,6 +419,12 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       });
       _jumpToVerseIfNeeded();
       _maybeFill();
+    } on CatalogNotInstalledException catch (issue) {
+      if (!mounted || token != _navToken) return;
+      setState(() {
+        _loading = false;
+        _notInstalled = issue;
+      });
     } catch (e) {
       if (!mounted || token != _navToken) return;
       setState(() {
@@ -495,21 +573,80 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       widget.resourceId,
     );
 
-    final error = _error;
-    if (error != null) {
+    final notInstalled = _notInstalled;
+    if (notInstalled != null) {
       return Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: ModuleInstallCard(
+              key: const ValueKey('reader-module-missing'),
+              moduleId: notInstalled.moduleId,
+              onDone: () => _beginReset(widget.reference, notify: false),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final error = _error;
+    if (error != null || _bookUnavailable) {
+      final l10n = context.l10n;
+      final altResourceId = _equivalentResourceId();
+      final bookName = _bookNameForDisplay;
+      return Center(
+        key: const ValueKey('reader-book-unavailable'),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 30, color: kTextSecondary),
+              Icon(Icons.inventory_2_outlined, size: 30, color: kTextSecondary),
               const SizedBox(height: 10),
-              Text(
-                error,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: kTextSecondary),
-              ),
+              if (_bookUnavailable)
+                Text(
+                  l10n.readerBookNotAvailable(
+                    bookName,
+                    _resourceTitle ?? widget.resourceId,
+                  ),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.4,
+                    color: kTextSecondary,
+                  ),
+                )
+              else
+                Text(
+                  error ?? '',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: kTextSecondary),
+                ),
+              if (altResourceId != null && _bookUnavailable) ...[
+                const SizedBox(height: 14),
+                FilledButton.tonal(
+                  key: const ValueKey('reader-open-equivalent'),
+                  onPressed: () => _openInEquivalent(altResourceId),
+                  style: FilledButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    textStyle: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  child: Text(
+                    l10n.readerOpenEquivalent(
+                      bookName,
+                      altResourceId == 'bible.tagnt'
+                          ? 'TAGNT'
+                          : altResourceId == 'bible.tahot'
+                          ? 'TAHOT'
+                          : altResourceId,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

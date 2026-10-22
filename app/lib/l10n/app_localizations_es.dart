@@ -2096,15 +2096,15 @@ class AppLocalizationsEs extends AppLocalizations {
       'Los paneles con la misma letra siguen la misma referencia.';
 
   @override
-  String get storeTitle => 'Tienda local';
+  String get storeTitle => 'Tienda de módulos';
 
   @override
   String get storeIntro =>
-      'Recursos de dominio público incluidos en esta instalación. No hay compras ni descargas externas.';
+      'El catálogo desacoplado reparte el contenido en módulos del dominio público y Creative Commons. Elige qué instalar: se descarga con progreso y luego se lee sin depender de la red.';
 
   @override
   String storeCount(int count) {
-    return '$count recursos incluidos';
+    return '$count recursos disponibles';
   }
 
   @override
@@ -2563,4 +2563,88 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get psalmCategoryPilgrimage => 'Peregrinación';
+
+  @override
+  String get moduleInstall => 'Instalar';
+
+  @override
+  String get moduleCancel => 'Cancelar instalación';
+
+  @override
+  String moduleSize(String size) {
+    return '$size';
+  }
+
+  @override
+  String get moduleAvailableBody =>
+      'Este recurso vive en el catálogo desacoplado: instálalo para leerlo sin depender de la red después.';
+
+  @override
+  String get moduleInstallFailed =>
+      'No se pudo completar la instalación. Revisa la conexión y vuelve a intentarlo.';
+
+  @override
+  String moduleDownloading(String received) {
+    return 'Descargando… $received';
+  }
+
+  @override
+  String get moduleInstallUnavailable =>
+      'Este recurso se descarga al abrirse; para gestionarlo como módulo usa la app de escritorio.';
+
+  @override
+  String readerBookNotAvailable(String book, String resource) {
+    return '$book no está disponible en $resource. El catálogo desacoplado trae solo una parte de los libros en cada recurso.';
+  }
+
+  @override
+  String readerOpenEquivalent(String book, String resource) {
+    return 'Abrir $book en $resource';
+  }
+
+  @override
+  String get storeInstallButton => 'Instalar';
+
+  @override
+  String get storeInstalledBadge => 'Instalado';
+
+  @override
+  String get storeUpdateBadge => 'Actualización disponible';
+
+  @override
+  String get storeUninstallButton => 'Desinstalar';
+
+  @override
+  String get storeCancelInstall => 'Cancelar';
+
+  @override
+  String get storeConfirmUninstall =>
+      '¿Quitar el módulo de este dispositivo? Podrás volver a instalarlo desde aquí.';
+
+  @override
+  String get storeRemovedTitle => 'Módulo quitado';
+
+  @override
+  String storeUninstalledSnackbar(String module) {
+    return 'Se quitó $module.';
+  }
+
+  @override
+  String get storeInstallErrorTitle => 'La instalación falló';
+
+  @override
+  String get storeSectionInstalled => 'Instalados';
+
+  @override
+  String get storeSectionAvailable => 'Disponibles';
+
+  @override
+  String get storeSearchModuleHint =>
+      'El índice de búsqueda local también es un módulo: sin él la búsqueda funciona con el servicio, no en frío.';
+
+  @override
+  String get libraryNotInstalledChip => 'No instalado';
+
+  @override
+  String get libraryInstalledChip => 'Instalado';
 }
