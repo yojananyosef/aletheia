@@ -332,6 +332,7 @@ class MapBlock extends BookBlock {
     required this.lonSpan,
     this.caption,
     this.markers = const [],
+    this.routes = const [],
   });
 
   final String title;
@@ -342,6 +343,12 @@ class MapBlock extends BookBlock {
   final double lonSpan;
   final List<MapMarker> markers;
 
+  /// Rutas trazadas sobre el mapa (viajes, itinerarios).
+  ///
+  /// Cada ruta es una secuencia ordenada de paradas; el pintor dibuja la
+  /// polilínea con flechas de dirección y numera las paradas.
+  final List<MapRoute> routes;
+
   static MapBlock fromJson(Map<String, dynamic> json) {
     double number(Object? value, double fallback) =>
         value is num ? value.toDouble() : fallback;
@@ -351,6 +358,10 @@ class MapBlock extends BookBlock {
         .whereType<Map<String, dynamic>>()
         .map(MapMarker.fromJson)
         .toList();
+    final routes = ((json['routes'] as List?) ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(MapRoute.fromJson)
+        .toList();
     return MapBlock(
       title: json['title'] as String? ?? '',
       caption: json['caption'] as String?,
@@ -359,6 +370,7 @@ class MapBlock extends BookBlock {
       latSpan: number(json['latSpan'], 4),
       lonSpan: number(json['lonSpan'], 4),
       markers: markers,
+      routes: routes,
     );
   }
 }
@@ -383,6 +395,25 @@ class MapMarker {
         lat: (json['lat'] as num?)?.toDouble() ?? 0,
         lon: (json['lon'] as num?)?.toDouble() ?? 0,
         ref: json['ref'] as String?,
+      );
+}
+
+/// Un itinerario trazado sobre el mapa: etiqueta y paradas ordenadas.
+///
+/// Las paradas reutilizan [MapMarker]; la polilínea pasa por sus coordenadas
+/// en orden y el pintor añade flechas de dirección y numeración de paradas.
+class MapRoute {
+  const MapRoute({required this.label, required this.stops});
+
+  final String label;
+  final List<MapMarker> stops;
+
+  static MapRoute fromJson(Map<String, dynamic> json) => MapRoute(
+        label: json['label'] as String? ?? '',
+        stops: ((json['stops'] as List?) ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .map(MapMarker.fromJson)
+            .toList(),
       );
 }
 

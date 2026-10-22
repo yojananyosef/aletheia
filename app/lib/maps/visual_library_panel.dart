@@ -10,13 +10,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../catalog/document_models.dart';
-import '../catalog/sections_repository.dart';
-import '../core/localization.dart';
-import '../core/theme.dart';
-import '../favorites/favorites_controller.dart';
-import '../favorites/favorites_models.dart';
-import '../panels/section_view.dart';
-import '../workspace/models.dart';
+import 'package:aletheia/catalog/sections_repository.dart';
+import 'package:aletheia/core/localization.dart';
+import 'package:aletheia/core/theme.dart';
+import 'package:aletheia/favorites/favorites_controller.dart';
+import 'package:aletheia/favorites/favorites_models.dart';
+import 'package:aletheia/panels/section_view.dart';
+import 'package:aletheia/references/reference_parser.dart';
+import 'package:aletheia/workspace/models.dart';
 import '../workspace/workspace_controller.dart';
 import 'bible_map.dart';
 import 'visual_sections.dart';
@@ -83,7 +84,7 @@ class _VisualLibraryPanelState extends ConsumerState<VisualLibraryPanel> {
   }
 
   bool _matchesSource(VisualSectionEntry entry) => switch (_source) {
-    'factbook' => !entry.isCommentary,
+    'factbook' => !entry.isCommentary && entry.kind != 'journey',
     'commentary' => entry.isCommentary,
     _ => true,
   };
@@ -332,10 +333,12 @@ class _VisualLibraryPanelState extends ConsumerState<VisualLibraryPanel> {
               ),
             ),
             data: (catalog) {
-              final all = _isAtlas ? catalog.maps : catalog.media;
-              final visible = _visible(all);
-              final selected = _selected(all);
-              if (all.isEmpty) {
+              final entries = _isAtlas
+                  ? [...catalog.journeys.map((journey) => journey.entry), ...catalog.maps]
+                  : catalog.media;
+              final visible = _visible(entries);
+              final selected = _selected(entries);
+              if (entries.isEmpty) {
                 return SectionEmptyState(
                   icon: _isAtlas ? Icons.public_off : Icons.perm_media_outlined,
                   title: _isAtlas ? l10n.atlasEmpty : l10n.mediaEmpty,
@@ -347,7 +350,7 @@ class _VisualLibraryPanelState extends ConsumerState<VisualLibraryPanel> {
                   final wide = constraints.maxWidth >= 720;
                   if (selected != null) {
                     final list = _buildList(visible, selected, l10n);
-                    final detail = _buildDetail(selected, l10n);
+                    final detail = _buildDetail(selected, catalog, l10n);
                     if (wide) {
                       return Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -426,9 +429,11 @@ class _VisualLibraryPanelState extends ConsumerState<VisualLibraryPanel> {
                   child: Row(
                     children: [
                       Icon(
-                        entry.kind == 'map'
-                            ? Icons.map_outlined
-                            : Icons.image_outlined,
+                        switch (entry.kind) {
+                          'journey' => Icons.route,
+                          'map' => Icons.map_outlined,
+                          _ => Icons.image_outlined,
+                        },
                         size: 17,
                         color: kAccent,
                       ),
@@ -564,7 +569,14 @@ class _VisualLibraryPanelState extends ConsumerState<VisualLibraryPanel> {
     );
   }
 
-  Widget _buildDetail(VisualSectionEntry entry, AppLocalizations l10n) {
+  Widget _buildDetail(
+    VisualSectionEntry entry,
+    VisualSectionCatalog catalog,
+    AppLocalizations l10n,
+  ) {
+    if (entry.kind == 'journey') {
+      return _buildJourneyDetail(entry, catalog, l10n);
+    }
     final async = ref.watch(sectionProvider((entry.resource, entry.section)));
     final mapSaved = ref
         .watch(favoritesProvider)
@@ -702,6 +714,137 @@ class _VisualLibraryPanelState extends ConsumerState<VisualLibraryPanel> {
               );
             },
           ),
+        ),
+      ],
+    );
+  }
+
+  /// Detalle de una ruta del Atlas (`journey`): no consulta secciones
+  /// remotas, dibuja el bloque derivado de los datos empaquetados.
+  Widget _buildJourneyDetail(
+    VisualSectionEntry entry,
+    VisualSectionCatalog catalog,
+    AppLocalizations l10n,
+  ) {
+    final journey = catalog.journeys.where((j) => j.id == entry.section).firstOrNull;
+    final block = journey?.toMapBlock();
+    if (journey == null || block == null) {
+      return SectionEmptyState(
+        icon: Icons.route,
+        title: l10n.atlasLoadError,
+        detail: entry.title,
+      );
+    }
+    final mapSaved = ref.watch(favoritesProvider).any(
+          (favorite) =>
+              favorite.kind == FavoriteKind.map &&
+              favorite.reference == entry.section &&
+              favorite.resourceId == entry.resource,
+        );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(6, 6, 8, 4),
+          child: Row(
+            children: [
+              IconButton(
+                key: const ValueKey('journey-detail-back'),
+                iconSize: 18,
+                tooltip: l10n.readerBack,
+                onPressed: _clearSelection,
+                icon: const Icon(Icons.arrow_back),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      entry.resourceTitle,
+                      style: TextStyle(fontSize: 11.5, color: kTextSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                key: const ValueKey('journey-favorite'),
+                iconSize: 17,
+                tooltip: mapSaved ? l10n.favoritesRemove : l10n.favoritesAdd,
+                onPressed: () => _toggleMapFavorite(entry),
+                icon: Icon(mapSaved ? Icons.star : Icons.star_border),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(child: _buildJourneyMap(journey, block, l10n)),
+      ],
+    );
+  }
+
+  Widget _buildJourneyMap(
+    VisualJourney journey,
+    MapBlock block,
+    AppLocalizations l10n,
+  ) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+      children: [
+        if (journey.caption != null && journey.caption!.trim().isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(
+              journey.caption!,
+              style: TextStyle(
+                fontSize: 12.5,
+                height: 1.4,
+                color: kTextSecondary,
+              ),
+            ),
+          ),
+        if (journey.refs.isNotEmpty) ...[
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final ref in journey.refs)
+                OutlinedButton(
+                  key: ValueKey('journey-ref-$ref'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 2,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: () => _openReference(ref),
+                  child: Text(
+                    displayFromCanonical(ref, lang: context.l10nLang),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+        ],
+        BibleMap(block: block, onNavigate: _openReference),
+        const SizedBox(height: 8),
+        Text(
+          l10n.mapAttribution,
+          style: TextStyle(fontSize: 10.5, color: kTextSecondary),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.atlasAttribution,
+          style: TextStyle(fontSize: 10.5, color: kTextSecondary),
         ),
       ],
     );

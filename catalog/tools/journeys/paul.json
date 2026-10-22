@@ -1,0 +1,112 @@
+{
+  "source": "Rutas compiladas a partir de Hechos (capítulos 9, 13–14, 15:36–18:22, 18:23–21:17 y 27–28). Coordenadas de OpenBible.info (CC BY 4.0) sobre datos geonames; textos y orden de visita según el relato.",
+  "license": "data: CC BY 4.0 (OpenBible.info); texto del catálogo: proyecto Aletheia",
+  "journeys": [
+    {
+      "id": "pablo-01",
+      "order": 1,
+      "title": "Primer viaje de Pablo",
+      "caption": "Con Bernabé y Marcos, desde Antioquía de Siria por Chipre (Salamina y Pafos), Panfilia y Galacia: Perga, Antioquía de Pisidia, Iconio, Listra y Derbe, con regreso por el mismo camino.",
+      "refs": ["ACT.13.1", "ACT.13.4", "ACT.13.13", "ACT.14.21", "ACT.14.26"],
+      "stops": [
+        {"name": "Antioquía de Siria", "lat": 36.206, "lon": 36.160, "ref": "ACT.13.1"},
+        {"name": "Seleucia", "lat": 36.117, "lon": 35.929, "ref": "ACT.13.4"},
+        {"name": "Salamina", "lat": 35.043, "lon": 33.901, "ref": "ACT.13.5"},
+        {"name": "Pafos", "lat": 34.773, "lon": 32.423, "ref": "ACT.13.6"},
+        {"name": "Perga", "lat": 36.962, "lon": 30.858, "ref": "ACT.13.13"},
+        {"name": "Antioquía de Pisidia", "lat": 38.291, "lon": 30.703, "ref": "ACT.13.14"},
+        {"name": "Iconio", "lat": 37.871, "lon": 32.491, "ref": "ACT.14.1"},
+        {"name": "Listra", "lat": 37.585, "lon": 32.294, "ref": "ACT.14.6"},
+        {"name": "Derbe", "lat": 37.406, "lon": 33.516, "ref": "ACT.14.6"},
+        {"name": "Listra", "lat": 37.585, "lon": 32.294, "ref": "ACT.14.21"},
+        {"name": "Iconio", "lat": 37.871, "lon": 32.491, "ref": "ACT.14.21"},
+        {"name": "Antioquía de Pisidia", "lat": 38.291, "lon": 30.703, "ref": "ACT.14.21"},
+        {"name": "Perga", "lat": 36.962, "lon": 30.858, "ref": "ACT.14.25"},
+        {"name": "Atalía", "lat": 36.886, "lon": 30.705, "ref": "ACT.14.25"},
+        {"name": "Antioquía de Siria", "lat": 36.206, "lon": 36.160, "ref": "ACT.14.26"}
+      ]
+    },
+    {
+      "id": "pablo-02",
+      "order": 2,
+      "title": "Segundo viaje de Pablo",
+      "caption": "Con Silas (y Timoteo y Lucas en persona), a través de Siria y Cilicia, Galacia y Misia hasta Macedonia: Filipos, Tesalónica y Berea; Atenas, Corinto y Éfeso, con regreso a Antioquía.",
+      "refs": ["ACT.15.41", "ACT.16.8", "ACT.16.11", "ACT.17.1", "ACT.17.15", "ACT.18.1", "ACT.18.21"],
+      "stops": [
+        {"name": "Antioquía de Siria", "lat": 36.206, "lon": 36.160, "ref": "ACT.15.36"},
+        {"name": "Tarso", "lat": 36.797, "lon": 34.629, "ref": "ACT.15.41"},
+        {"name": "Derbe", "lat": 37.406, "lon": 33.516, "ref": "ACT.16.1"},
+        {"name": "Listra", "lat": 37.585, "lon": 32.294, "ref": "ACT.16.1"},
+        {"name": "Troas", "lat": 39.962, "lon": 26.237, "ref": "ACT.16.8"},
+        {"name": "Neápolis", "lat": 40.941, "lon": 24.405, "ref": "ACT.16.11"},
+        {"name": "Filipos", "lat": 41.009, "lon": 24.299, "ref": "ACT.16.12"},
+        {"name": "Neápolis", "lat": 40.941, "lon": 24.405, "ref": "ACT.16.40"},
+        {"name": "Anfípolis", "lat": 40.849, "lon": 23.864, "ref": "ACT.17.1"},
+        {"name": "Apolonia", "lat": 40.617, "lon": 23.418, "ref": "ACT.17.1"},
+        {"name": "Tesalónica", "lat": 40.626, "lon": 22.944, "ref": "ACT.17.1"},
+        {"name": "Berea", "lat": 40.510, "lon": 22.210, "ref": "ACT.17.10"},
+        {"name": "Atenas", "lat": 37.976, "lon": 23.728, "ref": "ACT.17.15"},
+        {"name": "Corinto", "lat": 37.903, "lon": 22.880, "ref": "ACT.18.1"},
+        {"name": "Cencrea", "lat": 37.729, "lon": 23.038, "ref": "ACT.18.18"},
+        {"name": "Éfeso", "lat": 37.941, "lon": 27.342, "ref": "ACT.18.19"},
+        {"name": "Cesarea Marítima", "lat": 32.499, "lon": 34.889, "ref": "ACT.18.22"},
+        {"name": "Jerusalén", "lat": 31.776, "lon": 35.234, "ref": "ACT.18.22"},
+        {"name": "Antioquía de Siria", "lat": 36.206, "lon": 36.160, "ref": "ACT.18.22"}
+      ]
+    },
+    {
+      "id": "pablo-03",
+      "order": 3,
+      "title": "Tercer viaje de Pablo",
+      "caption": "Refuerza las iglesias de Galacia y Frigia y se queda en Éfeso; vuelve por Macedonia y Grecia, y desde Mileto navega a Jerusalén pasando por Rodas, Patara y Tiro.",
+      "refs": ["ACT.18.23", "ACT.19.1", "ACT.20.1", "ACT.20.9", "ACT.21.1", "ACT.21.17"],
+      "stops": [
+        {"name": "Antioquía de Siria", "lat": 36.206, "lon": 36.160, "ref": "ACT.18.23"},
+        {"name": "Iconio", "lat": 37.871, "lon": 32.491, "ref": "ACT.18.23"},
+        {"name": "Éfeso", "lat": 37.941, "lon": 27.342, "ref": "ACT.19.1"},
+        {"name": "Filipos", "lat": 41.009, "lon": 24.299, "ref": "ACT.20.6"},
+        {"name": "Troas", "lat": 39.962, "lon": 26.237, "ref": "ACT.20.9"},
+        {"name": "Assos", "lat": 39.038, "lon": 26.341, "ref": "ACT.20.13"},
+        {"name": "Mileto", "lat": 37.525, "lon": 27.278, "ref": "ACT.20.17"},
+        {"name": "Cos", "lat": 36.789, "lon": 27.292, "ref": "ACT.21.1"},
+        {"name": "Rodas", "lat": 36.439, "lon": 28.224, "ref": "ACT.21.1"},
+        {"name": "Patara", "lat": 36.263, "lon": 29.319, "ref": "ACT.21.1"},
+        {"name": "Tiro", "lat": 33.269, "lon": 35.190, "ref": "ACT.21.3"},
+        {"name": "Ptolemaida", "lat": 33.074, "lon": 35.108, "ref": "ACT.21.7"},
+        {"name": "Cesarea Marítima", "lat": 32.499, "lon": 34.889, "ref": "ACT.21.8"},
+        {"name": "Jerusalén", "lat": 31.776, "lon": 35.234, "ref": "ACT.21.17"}
+      ]
+    },
+    {
+      "id": "pablo-04",
+      "order": 4,
+      "title": "Viaje de Pablo a Roma",
+      "caption": "Como prisionero, Cesarea–Sidón–mirra (Licia), Buenos Puertos en Creta, naufragio en Malta, Siracusa, Regio y Pozzuoli, hasta Roma para apelar al César.",
+      "refs": ["ACT.27.1", "ACT.27.5", "ACT.27.13", "ACT.28.1", "ACT.28.14"],
+      "stops": [
+        {"name": "Cesarea Marítima", "lat": 32.499, "lon": 34.889, "ref": "ACT.27.1"},
+        {"name": "Sidón", "lat": 33.559, "lon": 35.396, "ref": "ACT.27.3"},
+        {"name": "Mirra", "lat": 36.264, "lon": 29.997, "ref": "ACT.27.5"},
+        {"name": "Buenos Puertos", "lat": 34.970, "lon": 24.860, "ref": "ACT.27.8"},
+        {"name": "Malta", "lat": 35.895, "lon": 14.457, "ref": "ACT.28.1"},
+        {"name": "Siracusa", "lat": 37.062, "lon": 15.288, "ref": "ACT.28.12"},
+        {"name": "Regio", "lat": 38.111, "lon": 15.648, "ref": "ACT.28.13"},
+        {"name": "Pozzuoli", "lat": 40.825, "lon": 14.124, "ref": "ACT.28.13"},
+        {"name": "Roma", "lat": 41.896, "lon": 12.483, "ref": "ACT.28.16"}
+      ]
+    },
+    {
+      "id": "pablo-dam",
+      "order": 0,
+      "title": "De Jerusalén a Damasco",
+      "caption": "El camino de Saulo, perseguidor, y su encuentro con Cristo resucitado; Hechos también lo trae de vuelta por Damasco y de nuevo a Jerusalén, y a Tarso.",
+      "refs": ["ACT.9.1", "ACT.9.19", "ACT.9.29", "ACT.9.30"],
+      "stops": [
+        {"name": "Jerusalén", "lat": 31.776, "lon": 35.234, "ref": "ACT.9.1"},
+        {"name": "Damasco", "lat": 33.512, "lon": 36.291, "ref": "ACT.9.2"},
+        {"name": "Jerusalén", "lat": 31.776, "lon": 35.234, "ref": "ACT.9.29"},
+        {"name": "Tarso", "lat": 36.797, "lon": 34.629, "ref": "ACT.9.30"}
+      ]
+    }
+  ]
+}

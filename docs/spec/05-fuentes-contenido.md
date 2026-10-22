@@ -190,6 +190,18 @@ permite zoom y desplazamiento; un marcador con `ref` abre el pasaje. No hay
 teselas, red ni servicio de mapas. La atribución de Natural Earth y
 OpenBible.info se muestra bajo cada mapa.
 
+**Viajes de Pablo.** Además de los mapas por referencia, el Atlas lista
+itinerarios propios empaquetados con la app (clave `journeys` de
+`map_sections.json`; no dependen de ningún recurso instalable). La fuente de
+datos es `catalog/tools/journeys/paul.json`: paradas seguidas con nombre,
+coordenada y referencia canónica (por ejemplo Antioquía → Salamina → Pafos …
+en el 1.er viaje, Hechos 13–14). `python3
+catalog/tools/sync_app_catalog.py --journeys-only` reinyecta los viajes en el
+manifiesto tras un sync completo (que siempre reescribe `maps`/`media`). La
+vista dibuja la polilínea con flechas de dirección sobre cada tramo y numera
+las paradas; cada chip de lectura sugerida (`refs`) abre el pasaje en la
+Biblia por defecto.
+
 ## 4. Verificación
 
 - `python3 catalog/server/selftest.py`: **52/52** comprobaciones; incluye

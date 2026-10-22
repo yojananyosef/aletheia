@@ -9,6 +9,7 @@ import 'package:aletheia/catalog/document_repository.dart';
 import 'package:aletheia/catalog/sections_repository.dart';
 import 'package:aletheia/favorites/favorites_controller.dart';
 import 'package:aletheia/favorites/favorites_models.dart';
+import 'package:aletheia/catalog/document_models.dart';
 import 'package:aletheia/main.dart';
 import 'package:aletheia/maps/bible_map.dart';
 import 'package:aletheia/maps/visual_sections.dart';
@@ -37,6 +38,20 @@ const _visualCatalog = VisualSectionCatalog(
       section: 'fe',
       title: 'Belén y Jerusalén',
       caption: 'Mapa de prueba del Factbook.',
+    ),
+  ],
+  journeys: [
+    VisualJourney(
+      id: 'pablo-01',
+      title: 'Primer viaje de Pablo',
+      order: 1,
+      caption: 'De Antioquía a Chipre y Galacia.',
+      refs: ['ACT.13.1', 'ACT.14.26'],
+      stops: [
+        MapMarker(name: 'Antioquía', lat: 36.2, lon: 36.16, ref: 'ACT.13.1'),
+        MapMarker(name: 'Pafos', lat: 34.77, lon: 32.42, ref: 'ACT.13.6'),
+        MapMarker(name: 'Derbe', lat: 37.4, lon: 33.51, ref: 'ACT.14.6'),
+      ],
     ),
   ],
 );
@@ -109,6 +124,47 @@ void main() {
     await _tap(tester, find.byKey(const ValueKey('atlas-favorite')));
     expect(container.read(favoritesProvider).single.kind, FavoriteKind.map);
     expect(container.read(favoritesProvider).single.reference, 'fe');
+  });
+
+  testWidgets('Atlas dibuja un viaje con flechas y abre la lectura', (
+    tester,
+  ) async {
+    final container = await _pump(tester, PanelKind.atlas);
+
+    // La ruta va primera en la lista del Atlas, con su icono propio.
+    expect(find.text('Primer viaje de Pablo'), findsOneWidget);
+    await _tap(
+      tester,
+      find.byKey(const ValueKey('atlas-entry-atlas-pablo-01')),
+    );
+    expect(find.byKey(const ValueKey('journey-detail-back')), findsOneWidget);
+    expect(find.byType(BibleMap), findsOneWidget);
+    expect(find.byKey(const ValueKey('map-route-layer')), findsOneWidget);
+    expect(find.text('De Antioquía a Chipre y Galacia.'), findsWidgets);
+
+    // Favorito del viaje: entra y sale con la misma operación.
+    await _tap(tester, find.byKey(const ValueKey('journey-favorite')));
+    expect(
+      container.read(favoritesProvider).where(
+        (favorite) =>
+            favorite.kind == FavoriteKind.map &&
+            favorite.resourceId == 'atlas' &&
+            favorite.reference == 'pablo-01',
+      ),
+      hasLength(1),
+    );
+
+    // La lectura sugerida abre el recurso bíblico en el mismo pasaje (el
+    // panel del Atlas se desmonta al enfocar la pestaña del texto).
+    await _tap(tester, find.byKey(const ValueKey('journey-ref-ACT.13.1')));
+    final opened = container
+        .read(workspaceProvider)
+        .tiles
+        .expand((tile) => tile.tabs)
+        .where((tab) => tab.resourceId == 'bible.rv1909')
+        .toList();
+    expect(opened, hasLength(1));
+    expect(opened.single.reference, 'ACT.13.1');
   });
 
   testWidgets('Medios muestra la galería y abre el detalle', (tester) async {

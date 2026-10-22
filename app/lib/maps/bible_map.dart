@@ -129,6 +129,41 @@ class BibleMap extends ConsumerWidget {
               ],
             ),
           ),
+          if (block.routes.length > 1)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+              child: Row(
+                key: const ValueKey('map-route-legend'),
+                children: [
+                  for (final withIndex in block.routes.indexed)
+                    if (withIndex.$2.label.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 10,
+                              height: 3,
+                              decoration: BoxDecoration(
+                                color: mapRouteColor(withIndex.$1),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              withIndex.$2.label,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: kTextSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                ],
+              ),
+            ),
           AspectRatio(
             aspectRatio: aspect,
             child: asyncGeometry.when(
@@ -195,6 +230,19 @@ class BibleMap extends ConsumerWidget {
                             ),
                           ),
                         ),
+                        if (block.routes.isNotEmpty)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: CustomPaint(
+                                key: const ValueKey('map-route-layer'),
+                                painter: _RoutePainter(
+                                  routes: block.routes,
+                                  projection: projection,
+                                  dark: dark,
+                                ),
+                              ),
+                            ),
+                          ),
                         if (markers.isNotEmpty)
                           Positioned.fill(
                             child: IgnorePointer(
@@ -304,6 +352,47 @@ const _markerLabelStyle = TextStyle(
   fontWeight: FontWeight.w600,
 );
 
+/// Paleta para las rutas del mapa (viajes, itinerarios): tonos sobrios que
+/// se distinguen tanto en claro como en oscuro, con halo para poder seguir
+/// la línea sobre tierra y mar.
+const List<Color> mapRouteColors = [
+  Color(0xFF2E6E8E), // azul acero
+  Color(0xFF8E4468), // vino
+  Color(0xFF3E7D53), // verde bosque
+  Color(0xFF7A5B22), // ocre
+  Color(0xFF5B51A5), // índigo
+];
+
+Color mapRouteColor(int index) =>
+    mapRouteColors[index % mapRouteColors.length];
+
+/// Triángulo de la flecha de dirección de un tramo `from → to`.
+///
+/// La punta se coloca [inset] píxeles antes de `to`, sobre la línea; los
+/// otros dos puntos se apartan perpendicular a la dirección. Devuelve null
+/// si el tramo es demasiado corto para dibujar una flecha legible.
+@visibleForTesting
+List<Offset>? routeArrowTriangle(
+  Offset from,
+  Offset to, {
+  double inset = 8,
+  double halfHeight = 3.2,
+  double length = 8,
+  double minLeg = 17,
+}) {
+  final delta = to - from;
+  final distance = delta.distance;
+  if (distance < minLeg) return null;
+  final unit = delta / distance;
+  final tip = to - unit * inset;
+  final perpendicular = Offset(-unit.dy, unit.dx);
+  return [
+    tip,
+    tip + unit * length + perpendicular * halfHeight,
+    tip + unit * length - perpendicular * halfHeight,
+  ];
+}
+
 Size _measureMarkerLabel(BuildContext context, String name) {
   final painter = TextPainter(
     text: TextSpan(text: name, style: _markerLabelStyle),
@@ -381,6 +470,128 @@ Offset _nearestPoint(Rect rect, Offset point) => Offset(
       ? rect.bottom
       : point.dy,
 );
+
+/// Pintor de rutas: polilínea con halo, flechas de dirección y numeración
+/// de paradas. Va por debajo de los marcadores y sus etiquetas; los puntos
+/// interactivos los siguen dibujando las capas de arriba.
+class _RoutePainter extends CustomPainter {
+  const _RoutePainter({
+    required this.routes,
+    required this.projection,
+    required this.dark,
+  });
+
+  final List<MapRoute> routes;
+  final _MapProjection projection;
+  final bool dark;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+
+    for (final withIndex in routes.indexed) {
+      final route = withIndex.$2;
+      final stops = route.stops;
+      if (stops.length < 2) continue;
+      final color = mapRouteColor(withIndex.$1);
+      final points = [
+        for (final stop in stops) projection.project(stop.lat, stop.lon),
+      ];
+
+      // Halo bajo la línea para separarla de la geografía.
+      _paintPolyline(canvas, points, dark
+          ? Colors.black.withValues(alpha: 0.55)
+          : Colors.white.withValues(alpha: 0.85), 3.6);
+      _paintPolyline(canvas, points, color.withValues(alpha: 0.88), 2.0);
+      _paintArrows(canvas, points, color);
+      _paintStopBadges(canvas, points, color, size);
+    }
+    canvas.restore();
+  }
+
+  void _paintPolyline(Canvas canvas, List<Offset> points, Color color, double width) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..strokeWidth = width;
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (final point in points.skip(1)) {
+      path.lineTo(point.dx, point.dy);
+    }
+    canvas.drawPath(path, paint);
+  }
+
+  void _paintArrows(Canvas canvas, List<Offset> points, Color color) {
+    final paint = Paint()..color = color.withValues(alpha: 0.92);
+    for (var i = 0; i < points.length - 1; i++) {
+      final triangle = routeArrowTriangle(points[i], points[i + 1]);
+      if (triangle == null) continue;
+      final path = Path()
+        ..moveTo(triangle[0].dx, triangle[0].dy)
+        ..lineTo(triangle[1].dx, triangle[1].dy)
+        ..lineTo(triangle[2].dx, triangle[2].dy)
+        ..close();
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  void _paintStopBadges(
+    Canvas canvas,
+    List<Offset> points,
+    Color color,
+    Size bounds,
+  ) {
+    final badgePaint = Paint();
+    final borderPaint = Paint()
+      ..color = dark ? const Color(0xFF101410) : Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    final textPaint = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
+    final drawn = <Offset>[];
+    for (var i = 0; i < points.length; i++) {
+      final badgeCenter = points[i] + const Offset(-9.5, -9.5);
+      if (badgeCenter.dx < 6 ||
+          badgeCenter.dy < 6 ||
+          badgeCenter.dx > bounds.width - 6 ||
+          badgeCenter.dy > bounds.height - 6) {
+        continue;
+      }
+      if (drawn.any(
+        (other) => (other - badgeCenter).distance < 5,
+      )) {
+        continue;
+      }
+      drawn.add(badgeCenter);
+      badgePaint.color = color;
+      canvas.drawCircle(badgeCenter, 6, badgePaint);
+      canvas.drawCircle(badgeCenter, 6, borderPaint);
+      textPaint.text = TextSpan(
+        text: '${i + 1}',
+        style: const TextStyle(
+          fontSize: 8,
+          fontWeight: FontWeight.w700,
+          height: 1,
+          letterSpacing: 0,
+        ),
+      );
+      textPaint.layout();
+      textPaint.paint(
+        canvas,
+        badgeCenter - Offset(textPaint.width / 2, textPaint.height / 2),
+      );
+    }
+    textPaint.dispose();
+  }
+
+  @override
+  bool shouldRepaint(covariant _RoutePainter oldDelegate) =>
+      oldDelegate.routes != routes || oldDelegate.dark != dark;
+}
 
 class _MarkerPlacement {
   const _MarkerPlacement({

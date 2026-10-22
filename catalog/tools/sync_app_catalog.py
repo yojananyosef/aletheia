@@ -25,6 +25,7 @@ Uso (desde la raíz del repo):
 """
 from __future__ import annotations
 
+import argparse
 import gzip
 import hashlib
 import json
@@ -38,6 +39,7 @@ from build_catalog import build_index
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "catalog" / "data"
 ASSETS = ROOT / "app" / "assets" / "catalog"
+JOURNEYS = ROOT / "catalog" / "tools" / "journeys"
 
 # El id del recurso no siempre coincide con el directorio histórico de assets.
 DIRECTORIES = {
@@ -186,9 +188,71 @@ def write_media_manifest(resources: list[tuple[dict, Path]]) -> None:
     media.sort(key=lambda entry: (entry["resource"], entry["section"]))
     write_json(ASSETS / "map_sections.json", {"maps": maps, "media": media})
     print(f"· multimedia: {len(maps)} mapas, {len(media)} bloques visuales")
+    merge_journeys(ASSETS / "map_sections.json")
+
+
+def merge_journeys(map_sections_path: Path, journeys_path: Path | None = None) -> int:
+    """Inyecta los viajes de Pablo en `map_sections.json` (clave `journeys`).
+
+    Los viajes no pertenecen a un recurso del catálogo: viajan con los
+    metadatos compartidos del bundle (`assets/catalog/map_sections.json`, que
+    siempre se empaqueta) para que el Atlas los muestre sin instalar el
+    Factbook. Un sync completo sobreescribe `maps`/`media`; los viajes se
+    reinyectan de nuevo aquí, así nunca se pierden en un rebuild.
+    """
+    journeys_path = journeys_path or (JOURNEYS / "paul.json")
+    payload = read_json(journeys_path)
+    journeys = [
+        {
+            "id": journey["id"],
+            "order": journey.get("order", 0),
+            "title": journey["title"],
+            "caption": journey.get("caption", ""),
+            "refs": journey.get("refs", []),
+            "stops": [
+                {
+                    "name": stop["name"],
+                    "lat": stop["lat"],
+                    "lon": stop["lon"],
+                    "ref": stop.get("ref"),
+                }
+                for stop in journey.get("stops", [])
+            ],
+        }
+        for journey in payload.get("journeys", [])
+    ]
+    empty_runs = [journey for journey in journeys if len(journey["stops"]) < 2]
+    if empty_runs:
+        raise SystemExit(
+            "ERROR: viajes con menos de dos paradas: "
+            + ", ".join(journey["id"] for journey in empty_runs)
+        )
+    journeys.sort(key=lambda journey: journey["order"])
+
+    target = map_sections_path
+    if target.exists():
+        current = read_json(target)
+    else:
+        current = {"maps": [], "media": []}
+    current["journeys"] = journeys
+    write_json(target, current)
+    total_stops = sum(len(journey["stops"]) for journey in journeys)
+    print(f"· viajes: {len(journeys)} rutas, {total_stops} paradas → {target}")
+    return 0
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--journeys-only",
+        action="store_true",
+        help="solo reinyecta los viajes en app/assets/catalog/map_sections.json "
+        "(no necesita catalog/data); útil tras editar catalog/tools/journeys/",
+    )
+    args = parser.parse_args()
+    if args.journeys_only:
+        return merge_journeys(ASSETS / "map_sections.json")
+
     catalog_path = DATA / "catalog.json"
     index_path = DATA / "index" / "search.sqlite"
     if not catalog_path.exists() or not index_path.exists():
