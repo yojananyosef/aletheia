@@ -11,6 +11,8 @@ está en [`NOTICE.md`](../../NOTICE.md).
 | `bible.rv1909` | bible | es | 66 libros, 31 102 versículos | eBible.org `spaRV1909_usfm.zip` |
 | `bible.kjv` | bible | en | 66 libros, 31 102 versículos | eBible.org `eng-kjv_usfm.zip` |
 | `bible.asv` | bible | en | 66 libros, 31 102 versículos | eBible.org `eng-asv_usfm.zip` |
+| `bible.bsb` | bible | en | 66 libros, 31 086 versículos | eBible.org `engbsb_usfm.zip` (dominio público) |
+| `bible.web` | bible | en | 66 libros, 31 103 versículos | eBible.org `engwebp_usfm.zip` (World English Bible, edición protestante; dominio público) |
 | `bible.bll` | bible | es | 66 libros, 31 103 versículos | eBible.org `spabll_usfm.zip` |
 | `bible.sblm` | bible | es | 66 libros, 31 103 versículos | eBible.org `spablm_usfm.zip` |
 | `bible.bes` | bible | es | 66 libros, 31 102 versículos | eBible.org `spabes_usfm.zip` |
@@ -20,6 +22,7 @@ está en [`NOTICE.md`](../../NOTICE.md).
 | `lexicon.strongs` | dictionary | mul | 18 085 entradas (8 723 hebreas y 9 362 griegas) | STEPBible TBESH/TBESG + Strong's Hebrew Dictionary |
 | `commentary.matthew-henry-concise` | commentary | en | 1 189 capítulos | `lyteword/mhenry-concise` (CC0) |
 | `dictionary.easton` | dictionary | en | 3 961 entradas | `JWBickel/BibleDictionaries` (texto de 1897) |
+| `dataset.gazetteer` | dataset | es | 1 309 lugares con coordenadas (lat, lon), tipo de emplazamiento y referencias | OpenBible.info `Bible-Geocoding-Data` (CC BY 4.0; coordenadas de OpenStreetMap, ODbL) |
 | `devotional.daily` | devotional | es | 366 lecturas propias | Aletheia |
 | `factbook.core` | factbook | es | 32 artículos propios (19 con mapa) | Aletheia |
 
@@ -106,9 +109,10 @@ definiciones hebreas se toman del diccionario de Strong (PD); las griegas, de
 TBESG (CC BY 4.0). El texto completo no se duplica en el índice FTS: solo se
 indexan los metadatos de la entrada.
 
-### 3.2 Biblias españolas adicionales
+### 3.2 Biblias adicionales (español e inglés) de eBible.org
 
-SBLM, BES y VBL se descargan del catálogo USFM de eBible.org:
+SBLM, BES y VBL (español) y BSB y WEB `engbsb`/`engwebp` (inglés, dominio
+público) se descargan del catálogo USFM de eBible.org:
 
 ```bash
 python3 catalog/tools/build_catalog.py
@@ -202,6 +206,22 @@ vista dibuja la polilínea con flechas de dirección sobre cada tramo y numera
 las paradas; cada chip de lectura sugerida (`refs`) abre el pasaje en la
 Biblia por defecto.
 
+### 3.6 Gazetteer bíblico
+
+`import_geocoding.py` convierte `data/ancient.jsonl` de
+[Bible-Geocoding-Data](https://github.com/openbibleinfo/Bible-Geocoding-Data)
+(OpenBible.info, CC BY 4.0; coordenadas derivadas de OpenStreetMap bajo ODbL)
+en el recurso `dataset.gazetteer`, estilo diccionario: `sections.json` con el
+índice (id, título, resumen, etiqueta «Lugares») y `sections/<slug>.json` con
+los bloques de cada lugar (párrafos de texto con coordenadas, tipo de
+emplazamiento y referencias en español). Son datos de entrada (no se versionan): se descargan a
+`catalog/sources/geocoding/ancient.jsonl`; del total de 1 342 lugares se
+conservan 1 309 (los que tienen coordenadas de resolución). Los códigos de
+pasaje salen del campo `usx` de la fuente, que coincide con la codificación
+canónica de la app, y el nombre de libro en español se toma del manifest de
+`bible.rv1909`. Es un módulo instalable (sale del bundle slim) y se abre por
+búsqueda o listado alfabético con el panel genérico de recursos.
+
 ## 4. Verificación
 
 - `python3 catalog/server/selftest.py`: **52/52** comprobaciones; incluye
@@ -213,10 +233,16 @@ Biblia por defecto.
   apertura de la entrada del léxico y los mapas (parseo, renderizado, error de
   geometría y navegación por marcador).
 - `flutter test integration_test/offline_catalog_test.dart -d linux`: recorre
-  los 14 recursos sin servicio y abre comentario, diccionario, originales y
+  los 17 recursos sin servicio y abre comentario, diccionario, originales y
   TSK.
 - `flutter test integration_test/catalog_flow_test.dart -d linux`: comprueba
-  los 14 recursos y sus metadatos contra el servicio real.
+  los 17 recursos y sus metadatos contra el servicio real. Los cuatro flujos
+  de integración se ejecutan **por archivo** (el harness de `flutter test`
+  falla al levantar varios binarios seguidos).
+- La integración correcta requiere las fuentes completas en el checkout:
+  `catalog/data` no se versiona — regenerar con `import_stepbible.py`,
+  `import_strongs_lexicon.py`, `import_content.py` y `build_catalog.py`
+  (véase §3).
 
 ## 5. Limitaciones conocidas
 
