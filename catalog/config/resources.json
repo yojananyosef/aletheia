@@ -94,6 +94,72 @@
       }
     },
     {
+      "resourceId": "bible.bsb",
+      "type": "bible",
+      "inputDir": "catalog/sources/bsb",
+      "ingest": {
+        "usfmZip": "https://ebible.org/Scriptures/engbsb_usfm.zip",
+        "sourceUrl": "https://ebible.org/Scriptures/engbsb_usfm.zip",
+        "title": "Berean Standard Bible",
+        "abbrev": "BSB",
+        "language": "en",
+        "license": "Public Domain"
+      },
+      "metadata": {
+        "subtitle": "Berean Standard Bible",
+        "authors": [
+          "Equipo de la Berean Standard Bible"
+        ],
+        "publisher": "eBible.org",
+        "edition": "2022",
+        "description": "Biblia moderna en inglés, desarrollada por el proyecto Berean, publicada en dominio público; canon protestante de 66 libros.",
+        "licenseKind": "public-domain",
+        "tags": [
+          "Biblia",
+          "Inglés",
+          "Dominio público"
+        ],
+        "attributes": {
+          "versification": "standard",
+          "bookOrder": "protestant66",
+          "calendar": null
+        }
+      }
+    },
+    {
+      "resourceId": "bible.web",
+      "type": "bible",
+      "inputDir": "catalog/sources/web",
+      "ingest": {
+        "usfmZip": "https://ebible.org/Scriptures/engwebp_usfm.zip",
+        "sourceUrl": "https://ebible.org/Scriptures/engwebp_usfm.zip",
+        "title": "World English Bible (Protestant)",
+        "abbrev": "WEB",
+        "language": "en",
+        "license": "Public Domain"
+      },
+      "metadata": {
+        "subtitle": "World English Bible, Protestant Edition",
+        "authors": [
+          "Equipo de la World English Bible"
+        ],
+        "publisher": "eBible.org",
+        "edition": "edición protestante (solo canon de 66)",
+        "description": "Traducción inglesa moderna de dominio público basada en la American Standard Version y el Textus Receptus griego; edición protestante sin deuterocanónicos.",
+        "licenseKind": "public-domain",
+        "tags": [
+          "Biblia",
+          "Inglés",
+          "Dominio público"
+        ],
+        "attributes": {
+          "versification": "standard",
+          "bookOrder": "protestant66",
+          "calendar": null
+        }
+      }
+    },
+    {
       "resourceId": "bible.bll",
       "type": "bible",
       "inputDir": "catalog/sources/bll",
@@ -376,6 +442,29 @@
         ],
         "attributes": {
           "entries": "alphabetical"
+        }
+      }
+    },
+    {
+      "resourceId": "dataset.gazetteer",
+      "type": "dataset",
+      "inputDir": "catalog/sources/gazetteer",
+      "metadata": {
+        "subtitle": "Lugares de la Biblia con coordenadas y referencias",
+        "authors": [
+          "OpenBible.info"
+        ],
+        "publisher": "OpenBible.info",
+        "description": "Gazetteer de 1 309 lugares bíblicos antiguos con coordenadas (latitud, longitud), tipo de emplazamiento y referencias bíblicas en español donde aparecen. Convierte el dataset Bible-Geocoding-Data de OpenBible.info en un recurso explorable.",
+        "licenseKind": "cc-by",
+        "tags": [
+          "Datos",
+          "Lugares",
+          "Geografía"
+        ],
+        "attributes": {
+          "coordinateSystem": "WGS84",
+          "placeCount": 1309
         }
       }
     }

@@ -69,12 +69,14 @@ def run(client: Client, catalog: Catalog) -> None:
     check("lista de recursos", status == 200 and listing["total"] == len(ids))
     check(
         "facets por tipo",
-        listing["facets"]["type"].get("bible") == 9
+        listing["facets"]["type"].get("bible") == 11
         and listing["facets"]["type"].get("devotional") == 1
         and listing["facets"]["type"].get("factbook") == 1
         and listing["facets"]["type"].get("commentary") == 1
         and listing["facets"]["type"].get("dictionary") == 2
-        and listing["facets"]["language"].get("es") == 7
+        and listing["facets"]["type"].get("dataset") == 1
+        and listing["facets"]["language"].get("es") == 8
+        and listing["facets"]["language"].get("en") == 6
         and listing["facets"]["language"].get("he") == 1
         and listing["facets"]["language"].get("grc") == 1
         and listing["facets"]["language"].get("mul") == 1,
@@ -83,9 +85,9 @@ def run(client: Client, catalog: Catalog) -> None:
     check("resumen con licencia", summary["license"]["kind"] == "public-domain", str(summary["license"]))
 
     status, bible, _ = client.get("/v1/resources?type=bible")
-    check("filtro por tipo", status == 200 and bible["total"] == 9)
+    check("filtro por tipo", status == 200 and bible["total"] == 11)
     status, spanish, _ = client.get("/v1/resources?language=es")
-    check("filtro por idioma", status == 200 and spanish["total"] == 7)
+    check("filtro por idioma", status == 200 and spanish["total"] == 8)
 
     status, manifest, headers = client.get("/v1/resources/bible.rv1909")
     check(
@@ -335,6 +337,8 @@ def run(client: Client, catalog: Catalog) -> None:
         <= {
             "bible.kjv",
             "bible.asv",
+            "bible.bsb",
+            "bible.web",
             "commentary.matthew-henry-concise",
             "dictionary.easton",
         },

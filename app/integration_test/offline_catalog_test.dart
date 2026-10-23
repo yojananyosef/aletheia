@@ -46,10 +46,10 @@ void main() {
       tester.element(find.byType(MaterialApp)),
     );
 
-    // Biblioteca: los catorce recursos salen de los assets.
+    // Biblioteca: los diecisiete recursos salen de los assets.
     await tester.tap(find.byKey(const ValueKey('nav-library')));
     await _waitFor(tester, find.byKey(const ValueKey('library-list')));
-    await _waitFor(tester, find.text('14 recursos'));
+    await _waitFor(tester, find.text('17 recursos'));
     expect(find.text('King James Version'), findsOneWidget);
 
     // Abrir la KJV desde los assets.
@@ -263,7 +263,10 @@ void main() {
 
     // La RV1909 también está completa: abrir otro recurso no rompe la KJV.
     await tester.tap(find.byKey(const ValueKey('nav-library')));
-    await _waitFor(tester, find.text('Reina-Valera 1909'));
+    await _waitFor(tester, find.text('17 recursos'));
+    // Lista virtualizada: con diecisiete entradas la fila de RV1909 queda
+    // por debajo del pliegue; arrástrala a la vista antes de abrirla.
+    await _scrollLibraryRow(tester, 'Reina-Valera 1909');
     await tester.tap(find.byKey(const ValueKey('library-row-bible.rv1909')));
     await _waitFor(tester, find.byKey(const ValueKey('library-open')));
     await tester.tap(find.byKey(const ValueKey('library-open')));
@@ -318,4 +321,17 @@ Future<void> _waitFor(
       .where((value) => value.trim().isNotEmpty)
       .toList();
   fail('No apareció en pantalla: $finder\nTextos visibles: $visible');
+}
+
+/// La biblioteca lista con física virtualizada: con diecisiete entradas la
+/// fila de RV1909 queda fuera del rango construido; arrastra la lista hasta
+/// que el título aparezca.
+Future<void> _scrollLibraryRow(WidgetTester tester, String title) async {
+  final list = find.byKey(const ValueKey('library-list'));
+  for (var i = 0; i < 30; i++) {
+    if (find.text(title).evaluate().isNotEmpty) return;
+    await tester.drag(list, const Offset(0, -220));
+    await tester.pump(const Duration(milliseconds: 120));
+  }
+  fail('No se pudo desplazar a la vista la fila «$title»');
 }

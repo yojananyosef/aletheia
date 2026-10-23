@@ -40,8 +40,8 @@ void main() {
       final all = await gateway.listResources();
       expect(
         all.total,
-        14,
-        reason: '9 Biblias + léxico, comentario, diccionario y M5',
+        17,
+        reason: '11 Biblias + léxico, comentario, diccionario, gazetteer y M5',
       );
       expect(
         all.items.map((item) => item.id),
@@ -66,13 +66,14 @@ void main() {
         all.items.firstWhere((item) => item.id == 'bible.rv1909').licenseKind,
         'public-domain',
       );
-      expect(all.facets['type']?['bible'], 9);
+      expect(all.facets['type']?['bible'], 11);
       expect(all.facets['type']?['commentary'], 1);
       expect(all.facets['type']?['dictionary'], 2);
       expect(all.facets['type']?['devotional'], 1);
       expect(all.facets['type']?['factbook'], 1);
-      expect(all.facets['language']?['es'], 7);
-      expect(all.facets['language']?['en'], 4);
+      expect(all.facets['type']?['dataset'], 1);
+      expect(all.facets['language']?['es'], 8);
+      expect(all.facets['language']?['en'], 6);
       expect(all.facets['language']?['he'], 1);
       expect(all.facets['language']?['grc'], 1);
       expect(all.facets['language']?['mul'], 1);
@@ -248,6 +249,8 @@ void main() {
       englishIds.difference({
         'bible.kjv',
         'bible.asv',
+        'bible.bsb',
+        'bible.web',
         'commentary.matthew-henry-concise',
         'dictionary.easton',
       }),
@@ -411,9 +414,9 @@ void main() {
     final health = await gateway.health();
     expect(health, isNotNull);
     expect(health!.local, isTrue);
-    expect(health.resources, 14);
-    expect(health.verses, 248870);
-    expect(health.sections, 23633);
+    expect(health.resources, 17);
+    expect(health.verses, 311054);
+    expect(health.sections, 24942);
     expect(health.crossReferences, 376083);
   });
 

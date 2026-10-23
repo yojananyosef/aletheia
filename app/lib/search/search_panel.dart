@@ -221,7 +221,7 @@ class _SearchPanelState extends ConsumerState<SearchPanel> {
     final kind = switch (hit.resourceType) {
       'factbook' => PanelKind.factbook,
       'devotional' => PanelKind.devotional,
-      'commentary' || 'dictionary' => PanelKind.resource,
+      'commentary' || 'dictionary' || 'dataset' => PanelKind.resource,
       _ => PanelKind.bible,
     };
     // Si ya hay una pestaña del recurso, navega en ella.

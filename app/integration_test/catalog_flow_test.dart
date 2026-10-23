@@ -60,7 +60,10 @@ void main() {
     ]);
     debugPrint('TEXTOS CON LA BIBLIOTECA ABIERTA: ${_visibleTexts(tester)}');
     await _waitFor(tester, find.text('King James Version'));
-    expect(find.text('14 recursos'), findsOneWidget);
+    expect(find.text('17 recursos'), findsOneWidget);
+    // Lista virtualizada: con diecisiete entradas la fila de RV1909 queda
+    // por debajo del pliegue; arrástrala a la vista.
+    await _scrollLibraryRow(tester, 'Reina-Valera 1909');
     expect(find.text('Reina-Valera 1909'), findsOneWidget);
     expect(find.text('Matthew Henry — Comentario conciso'), findsOneWidget);
     expect(find.text('Diccionario bíblico de Easton'), findsOneWidget);
@@ -82,14 +85,17 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('nav-search')));
     await _waitFor(tester, find.byKey(const ValueKey('search-field')));
     await tester.enterText(
-        find.byKey(const ValueKey('search-field')), '"In the beginning"');
+        find.byKey(const ValueKey('search-field')),
+        'resource:bible.kjv "In the beginning"');
     await tester.testTextInput.receiveAction(TextInputAction.done);
 
-    await _waitFor(tester, find.text('John 1:2'));
+    // El resultado filtrado a la KJV: con tres Biblias inglesas el mismo
+    // versículo saldría en varias filas/páginas.
+    await _waitFor(tester, find.byKey(const ValueKey('search-hit-bible.kjv-JHN.1.2')));
     expect(find.textContaining('resultados para'), findsOneWidget);
     expect(find.text('Genesis 1:1'), findsWidgets);
 
-    await tester.tap(find.text('John 1:2'));
+    await tester.tap(find.byKey(const ValueKey('search-hit-bible.kjv-JHN.1.2')));
     await _waitFor(
       tester,
       find.textContaining('The same was in the beginning with God.',
@@ -106,7 +112,7 @@ void main() {
         .tiles
         .expand((tile) => tile.tabs)
         .firstWhere((tab) => tab.kind == PanelKind.search);
-    expect(searchTab.history, ['"In the beginning"']);
+    expect(searchTab.history, ['resource:bible.kjv "In the beginning"']);
 
     // --- Búsqueda dentro del panel del lector (modo «Buscar») ------------
     // La barra del lector se desplaza en horizontal cuando el panel es
@@ -142,7 +148,10 @@ void main() {
     // (regresión: antes la pestaña existente cambiaba de recurso y el panel
     // seguía mostrando el texto anterior)
     await tester.tap(find.byKey(const ValueKey('nav-library')));
-    await _waitFor(tester, find.text('Reina-Valera 1909'));
+    await _waitFor(tester, find.text('17 recursos'));
+    // Lista virtualizada: con diecisiete entradas la fila de RV1909 queda
+    // por debajo del pliegue; arrástrala a la vista antes de abrirla.
+    await _scrollLibraryRow(tester, 'Reina-Valera 1909');
     await tester.tap(find.byKey(const ValueKey('library-row-bible.rv1909')));
     await tester.pump(const Duration(milliseconds: 450));
     await tester.tap(find.byKey(const ValueKey('library-open')));
@@ -202,6 +211,19 @@ WorkspaceTab _bibleTab(ProviderContainer container) => container
     .tiles
     .expand((tile) => tile.tabs)
     .firstWhere((tab) => tab.kind == PanelKind.bible);
+
+/// La biblioteca lista con física virtualizada: cuando el catálogo crece,
+/// las filas de más quedan fuera del rango construido. Arrastra la lista
+/// hasta que la fila [title] aparezca.
+Future<void> _scrollLibraryRow(WidgetTester tester, String title) async {
+  final list = find.byKey(const ValueKey('library-list'));
+  for (var i = 0; i < 30; i++) {
+    if (find.text(title).evaluate().isNotEmpty) return;
+    await tester.drag(list, const Offset(0, -220));
+    await tester.pump(const Duration(milliseconds: 120));
+  }
+  fail('No se pudo desplazar a la vista la fila «$title»');
+}
 
 /// Sondea la UI hasta que aparezca [finder] (los `pump` de la zona real dejan
 /// correr temporizadores y E/S de verdad).
