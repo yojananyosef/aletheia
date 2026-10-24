@@ -46,10 +46,12 @@ void main() {
       tester.element(find.byType(MaterialApp)),
     );
 
-    // Biblioteca: los diecisiete recursos salen de los assets.
+    // Biblioteca: los veintisiete recursos salen de los assets.
     await tester.tap(find.byKey(const ValueKey('nav-library')));
     await _waitFor(tester, find.byKey(const ValueKey('library-list')));
-    await _waitFor(tester, find.text('17 recursos'));
+    await _waitFor(tester, find.text('27 recursos'));
+    // Lista virtualizada: la KJV queda por debajo del pliegue.
+    await _scrollLibraryRow(tester, 'King James Version');
     expect(find.text('King James Version'), findsOneWidget);
 
     // Abrir la KJV desde los assets.
@@ -263,7 +265,7 @@ void main() {
 
     // La RV1909 también está completa: abrir otro recurso no rompe la KJV.
     await tester.tap(find.byKey(const ValueKey('nav-library')));
-    await _waitFor(tester, find.text('17 recursos'));
+    await _waitFor(tester, find.text('27 recursos'));
     // Lista virtualizada: con diecisiete entradas la fila de RV1909 queda
     // por debajo del pliegue; arrástrala a la vista antes de abrirla.
     await _scrollLibraryRow(tester, 'Reina-Valera 1909');

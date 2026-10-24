@@ -47,6 +47,11 @@ COMMENTARY_MAPS = {
     "ACT.9": "act_9",
 }
 
+# Texto máximo por sección no bíblica en el índice FTS (el cuerpo completo
+# vive en sections/<id>.json). Mantiene search.sqlite.gz por debajo del
+# límite de 100 MB de GitHub.
+SECTION_INDEX_CHARS = 1200
+
 
 def log(message: str) -> None:
     print(message, flush=True)
@@ -417,6 +422,9 @@ def build_index(data_dir: Path, manifests: list[dict]) -> tuple[int, int]:
             # Comentario, diccionario, Factbook y devocional: una fila FTS
             # por sección. Los recursos grandes guardan el cuerpo en
             # `sections/<id>.json`; el índice solo trae los metadatos.
+            # Para que el .sqlite.gz siga siendo publicable (<100 MB en
+            # GitHub/Pages), el texto indexado por sección se acota: el
+            # cuerpo completo vive en la sección que la app carga por id.
             sections = read_json(data_dir / "resources" / rid / "sections.json")
             for section in sections:
                 section_id = section["id"]
@@ -434,7 +442,7 @@ def build_index(data_dir: Path, manifests: list[dict]) -> tuple[int, int]:
                 )
                 order += 1
                 total_sections += 1
-                text = section_text(full_section)
+                text = section_text(full_section)[:SECTION_INDEX_CHARS]
                 if text:
                     con.execute(
                         "INSERT INTO verses(resource_id,section_id,book,book_name,"

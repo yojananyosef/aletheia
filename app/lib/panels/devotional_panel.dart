@@ -57,6 +57,10 @@ class _DevotionalPanelState extends ConsumerState<DevotionalPanel> {
     }
   }
 
+  /// Recurso del tab (p. ej. `devotional.sme`); el diario por defecto si el
+  /// tab no define uno.
+  String get _resourceId => widget.tab.resourceId ?? kDevotionalResourceId;
+
   DateTime _today() {
     final now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
@@ -151,7 +155,7 @@ class _DevotionalPanelState extends ConsumerState<DevotionalPanel> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final async = ref.watch(
-      sectionProvider((kDevotionalResourceId, _sectionId)),
+      sectionProvider((_resourceId, _sectionId)),
     );
     final isToday = _sameDay(_date, _today());
 
@@ -227,7 +231,7 @@ class _DevotionalPanelState extends ConsumerState<DevotionalPanel> {
                   const SizedBox(height: 10),
                   OutlinedButton(
                     onPressed: () => ref.invalidate(
-                      sectionProvider((kDevotionalResourceId, _sectionId)),
+                      sectionProvider((_resourceId, _sectionId)),
                     ),
                     child: Text(l10n.retry),
                   ),

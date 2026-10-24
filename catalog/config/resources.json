@@ -361,6 +361,31 @@
       }
     },
     {
+      "resourceId": "bible.platense",
+      "type": "bible",
+      "inputDir": "catalog/sources/bible.platense",
+      "metadata": {
+        "subtitle": "Biblia traducida al estilo rioplatense",
+        "authors": [
+          "Straubinger, Justino"
+        ],
+        "publisher": "Club de Amigos del Nuevo Testamento",
+        "edition": "1941–1958",
+        "description": "Traducción al español rioplatense desde los originales por el sacerdote Justino Straubinger (1941–1958), publicada como módulo SWORD Biblia Platense. Incluye el canon amplio (libros deuterocanónicos).",
+        "licenseKind": "public-domain",
+        "licenseText": "Dominio público",
+        "tags": [
+          "Biblia",
+          "Español",
+          "Rioplatense",
+          "Dominio público"
+        ],
+        "attributes": {
+          "coverage": "catholic73"
+        }
+      }
+    },
+    {
       "resourceId": "lexicon.strongs",
       "type": "dictionary",
       "inputDir": "catalog/sources/lexicon.strongs",
@@ -442,6 +467,227 @@
         ],
         "attributes": {
           "entries": "alphabetical"
+        }
+      }
+    },
+    {
+      "resourceId": "devotional.sme",
+      "type": "devotional",
+      "inputDir": "catalog/sources/devotional.sme",
+      "metadata": {
+        "subtitle": "Devocionales diarios de Charles Spurgeon",
+        "authors": [
+          "Spurgeon, Charles Haddon"
+        ],
+        "publisher": "CrossWire (módulo SWORD)",
+        "edition": "1866",
+        "description": "Morning and Evening: una lectura para la mañana y otra para la tarde por cada día del año (366 entradas), en inglés de dominio público.",
+        "licenseKind": "public-domain",
+        "licenseText": "Dominio público",
+        "tags": [
+          "Devocional",
+          "Inglés",
+          "Dominio público",
+          "Spurgeon"
+        ],
+        "attributes": {
+          "calendar": "MM.DD"
+        }
+      }
+    },
+    {
+      "resourceId": "dictionary.webster1828",
+      "type": "dictionary",
+      "inputDir": "catalog/sources/dictionary.webster1828",
+      "metadata": {
+        "subtitle": "Diccionario Webster de 1828",
+        "authors": [
+          "Webster, Noah"
+        ],
+        "publisher": "CrossWire (módulo SWORD)",
+        "edition": "1828",
+        "description": "An American Dictionary of the English Language (1828) de Noah Webster: definiciones del vocabulario inglés de su época, útil para leer los comentarios clásicos en inglés.",
+        "licenseKind": "cc-by-sa",
+        "licenseText": "CC BY-SA 4.0",
+        "tags": [
+          "Diccionario",
+          "Inglés",
+          "Referencia",
+          "CC BY-SA"
+        ],
+        "attributes": {
+          "entries": "alphabetical"
+        }
+      }
+    },
+    {
+      "resourceId": "document.josephus",
+      "type": "document",
+      "inputDir": "catalog/sources/document.josephus",
+      "metadata": {
+        "subtitle": "Antigüedades judías y Guerra de los judíos",
+        "authors": [
+          "Josefo, Flavio",
+          "Whiston, William (trad.)"
+        ],
+        "publisher": "CrossWire (módulo SWORD)",
+        "edition": "Whiston, 1737",
+        "description": "Historia judía del siglo I: Antigüedades judías, Guerra de los judíos, Autobiografía y Contra Apión, en la traducción de William Whiston.",
+        "licenseKind": "public-domain",
+        "licenseText": "Dominio público",
+        "tags": [
+          "Documento",
+          "Inglés",
+          "Historia",
+          "Dominio público",
+          "Josefo"
+        ]
+      }
+    },
+    {
+      "resourceId": "document.didache",
+      "type": "document",
+      "inputDir": "catalog/sources/document.didache",
+      "metadata": {
+        "subtitle": "Enseñanza de los doce apóstoles (texto griego)",
+        "authors": [],
+        "publisher": "CrossWire (módulo SWORD)",
+        "edition": "s. I–II (texto griego)",
+        "description": "Manual cristiano de los primeros siglos, de los más antiguos que se han conservado, en su texto griego original.",
+        "licenseKind": "public-domain",
+        "licenseText": "Dominio público",
+        "tags": [
+          "Documento",
+          "Griego",
+          "Padres apostólicos",
+          "Dominio público"
+        ]
+      }
+    },
+    {
+      "resourceId": "commentary.wesley",
+      "type": "commentary",
+      "inputDir": "catalog/sources/commentary.wesley",
+      "metadata": {
+        "subtitle": "Explanatory Notes upon the Scriptures",
+        "authors": [
+          "Wesley, John"
+        ],
+        "publisher": "CrossWire (módulo SWORD)",
+        "edition": "1754–1765",
+        "description": "Notas expositivas de John Wesley, versículo por versículo: el Nuevo Testamento completo y buena parte del Antiguo, en inglés de dominio público.",
+        "licenseKind": "public-domain",
+        "licenseText": "Dominio público",
+        "tags": [
+          "Comentario",
+          "Inglés",
+          "Dominio público",
+          "Wesley"
+        ],
+        "attributes": {
+          "coverage": "partial"
+        }
+      }
+    },
+    {
+      "resourceId": "commentary.clarke",
+      "type": "commentary",
+      "inputDir": "catalog/sources/commentary.clarke",
+      "metadata": {
+        "subtitle": "Commentary and Critical Notes",
+        "authors": [
+          "Clarke, Adam"
+        ],
+        "publisher": "CrossWire (módulo SWORD)",
+        "edition": "1810–1826",
+        "description": "Comentario crítico de Adam Clarke sobre toda la Biblia, versículo por versículo, en inglés de dominio público.",
+        "licenseKind": "public-domain",
+        "licenseText": "Dominio público",
+        "tags": [
+          "Comentario",
+          "Inglés",
+          "Dominio público",
+          "Clarke"
+        ],
+        "attributes": {
+          "coverage": "protestant66"
+        }
+      }
+    },
+    {
+      "resourceId": "commentary.calvincommentaries",
+      "type": "commentary",
+      "inputDir": "catalog/sources/commentary.calvincommentaries",
+      "metadata": {
+        "subtitle": "Calvin's Commentaries",
+        "authors": [
+          "Calvino, Juan"
+        ],
+        "publisher": "CrossWire (módulo SWORD)",
+        "edition": "1550s (trad. inglesa PD)",
+        "description": "Comentarios bíblicos de Juan Calvino, versículo por versículo, en inglés de dominio público.",
+        "licenseKind": "public-domain",
+        "licenseText": "Dominio público",
+        "tags": [
+          "Comentario",
+          "Inglés",
+          "Dominio público",
+          "Calvino"
+        ],
+        "attributes": {
+          "coverage": "partial"
+        }
+      }
+    },
+    {
+      "resourceId": "commentary.catena",
+      "type": "commentary",
+      "inputDir": "catalog/sources/commentary.catena",
+      "metadata": {
+        "subtitle": "La cadena dorada de los Padres (NT)",
+        "authors": [
+          "Aquino, Tomás de",
+          "Newman, John Henry (trad.)"
+        ],
+        "publisher": "CrossWire (módulo SWORD)",
+        "edition": "s. XIII (trad. 1841–1842)",
+        "description": "Compilación de Tomás de Aquino con comentarios de los Padres griegos y latinos sobre los cuatro Evangelios, versículo por versículo, en inglés de dominio público.",
+        "licenseKind": "public-domain",
+        "licenseText": "Dominio público",
+        "tags": [
+          "Comentario",
+          "Inglés",
+          "Padres",
+          "Dominio público",
+          "Aquino"
+        ],
+        "attributes": {
+          "coverage": "gospels"
+        }
+      }
+    },
+    {
+      "resourceId": "commentary.luther",
+      "type": "commentary",
+      "inputDir": "catalog/sources/commentary.luther",
+      "metadata": {
+        "subtitle": "Comentarios bíblicos de Martín Lutero",
+        "authors": [
+          "Lutero, Martín"
+        ],
+        "publisher": "CrossWire (módulo SWORD)",
+        "edition": "s. XVI (trad. inglesa PD)",
+        "description": "Comentarios bíblicos de Martín Lutero sobre Job, Salmos, Isaías y varios libros del NT, en inglés de dominio público.",
+        "licenseKind": "public-domain",
+        "licenseText": "Dominio público",
+        "tags": [
+          "Comentario",
+          "Inglés",
+          "Dominio público",
+          "Lutero"
+        ],
+        "attributes": {
+          "coverage": "partial"
         }
       }
     },

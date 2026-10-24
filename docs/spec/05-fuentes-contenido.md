@@ -222,6 +222,38 @@ canónica de la app, y el nombre de libro en español se toma del manifest de
 `bible.rv1909`. Es un módulo instalable (sale del bundle slim) y se abre por
 búsqueda o listado alfabético con el panel genérico de recursos.
 
+### 3.7 Módulos CrossWire SWORD
+
+`import_sword.py` decodifica módulos SWORD de CrossWire en Python puro (sin
+diatheke ni libsword) y los convierte al formato de la app. Los paquetes
+(`modules/*.zip` de `crosswire.org/ftpmirror/pub/sword/packages/rawzip`) son
+datos de entrada (no se versionan); se descargan a un directorio local
+(`--zips`, por defecto `/tmp/opencode`).
+
+Formatos decodificados:
+  - `zText4`/`zCom4` (bzs/bzz/bzv): bloques zlib encadenados con un índice de
+    "slots" por versículo; la Biblia Platense usa la versificación Vulgata
+    (canon amplio, renumeraciones propias de Straubinger) y los comentarios la
+    KJV. Los slots de cabeza de capítulo, títulos preverse y notas al pie se
+    resuelven con una máquina de estados por marcadores OSIS.
+  - `zCom` clásico (czs/czv/czz, Catena y Luther): mismo esquema con bloques
+    por capítulo; los spans repetidos (rangos de versos con un solo sermón)
+    se deduplican y el texto de relleno del módulo se descarta.
+  - `zLD` (SME, Webster1828): índice clave→(bloque, ordinal) sobre bloques
+    zlib; cada bloque descomprimido lleva tabla start/size por entrada.
+  - `RawGenBook` (Josephus, Didaché): árbol en `.dat` con índice-pool u32
+    (parent/next/firstChild apuntan a posiciones en bytes del `.idx`).
+
+Recursos generados (27 en total ahora): `bible.platense` (es, canon católico
+73), `devotional.sme` (Morning and Evening de Spurgeon, 366 días con lectura
+matutina y vespertina y xref OSIS→canónico), `dictionary.webster1828`
+(62 391 entradas), `document.josephus` (2 696 secciones), `document.didache`
+(texto griego), y los comentarios `wesley`, `clarke`, `calvincommentaries`,
+`catena` y `luther` (por capítulo con headings por versículo, siguiendo el
+patrón de Matthew Henry). Todos en dominio público salvo Webster (CC BY-SA
+4.0). El devocional diario resuelve el recurso por `tab.resourceId`
+(`devotional_panel.dart`), de modo que SME comparte el panel del diario M5.
+
 ## 4. Verificación
 
 - `python3 catalog/server/selftest.py`: **52/52** comprobaciones; incluye
@@ -233,10 +265,10 @@ búsqueda o listado alfabético con el panel genérico de recursos.
   apertura de la entrada del léxico y los mapas (parseo, renderizado, error de
   geometría y navegación por marcador).
 - `flutter test integration_test/offline_catalog_test.dart -d linux`: recorre
-  los 17 recursos sin servicio y abre comentario, diccionario, originales y
+  los 27 recursos sin servicio y abre comentario, diccionario, originales y
   TSK.
 - `flutter test integration_test/catalog_flow_test.dart -d linux`: comprueba
-  los 17 recursos y sus metadatos contra el servicio real. Los cuatro flujos
+  los 27 recursos y sus metadatos contra el servicio real. Los cuatro flujos
   de integración se ejecutan **por archivo** (el harness de `flutter test`
   falla al levantar varios binarios seguidos).
 - La integración correcta requiere las fuentes completas en el checkout:

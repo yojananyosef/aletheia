@@ -40,8 +40,9 @@ void main() {
       final all = await gateway.listResources();
       expect(
         all.total,
-        17,
-        reason: '11 Biblias + léxico, comentario, diccionario, gazetteer y M5',
+        27,
+        reason: '12 Biblias + léxico, comentarios, diccionarios, gazetteer, '
+            'documentos, devocionales y M5',
       );
       expect(
         all.items.map((item) => item.id),
@@ -66,16 +67,17 @@ void main() {
         all.items.firstWhere((item) => item.id == 'bible.rv1909').licenseKind,
         'public-domain',
       );
-      expect(all.facets['type']?['bible'], 11);
-      expect(all.facets['type']?['commentary'], 1);
-      expect(all.facets['type']?['dictionary'], 2);
-      expect(all.facets['type']?['devotional'], 1);
+      expect(all.facets['type']?['bible'], 12);
+      expect(all.facets['type']?['commentary'], 6);
+      expect(all.facets['type']?['dictionary'], 3);
+      expect(all.facets['type']?['devotional'], 2);
+      expect(all.facets['type']?['document'], 2);
       expect(all.facets['type']?['factbook'], 1);
       expect(all.facets['type']?['dataset'], 1);
-      expect(all.facets['language']?['es'], 8);
-      expect(all.facets['language']?['en'], 6);
+      expect(all.facets['language']?['es'], 9);
+      expect(all.facets['language']?['en'], 14);
       expect(all.facets['language']?['he'], 1);
-      expect(all.facets['language']?['grc'], 1);
+      expect(all.facets['language']?['grc'], 2);
       expect(all.facets['language']?['mul'], 1);
 
       final byQuery = await gateway.listResources(query: 'Casiodoro');
@@ -86,7 +88,7 @@ void main() {
       expect(accented.total, 2);
 
       final devotionals = await gateway.listResources(type: 'devotional');
-      expect(devotionals.total, 1);
+      expect(devotionals.total, 2);
       final factbooks = await gateway.listResources(type: 'factbook');
       expect(factbooks.total, 1);
 
@@ -94,9 +96,9 @@ void main() {
       expect(noMatch.total, 0);
 
       final byType = await gateway.listResources(type: 'commentary');
-      expect(byType.total, 1);
+      expect(byType.total, 6);
       final dictionaries = await gateway.listResources(type: 'dictionary');
-      expect(dictionaries.total, 2);
+      expect(dictionaries.total, 3);
       expect(
         dictionaries.items.map((item) => item.id),
         contains('lexicon.strongs'),
@@ -240,11 +242,17 @@ void main() {
 
     final english = await gateway.search(query: 'language:en beginning');
     final englishIds = english.hits.map((hit) => hit.resourceId).toSet();
-    expect(
-      englishIds,
-      containsAll(['bible.kjv', 'bible.asv']),
-      reason: 'las dos traducciones inglesas comparten «beginning»',
-    );
+    // Con 27 recursos el ranking de la página 1 lo dominan los artículos
+    // breves del diccionario; la compartencia de «beginning» entre
+    // traducciones se comprueba con consultas por recurso.
+    for (final rid in ['bible.kjv', 'bible.asv']) {
+      final scoped = await gateway.search(
+        query: 'language:en beginning',
+        resource: rid,
+      );
+      expect(scoped.total, greaterThan(0), reason: '$rid busca «beginning»');
+    }
+    expect(englishIds, isNot(contains('bible.rv1909')));
     expect(
       englishIds.difference({
         'bible.kjv',
@@ -252,7 +260,15 @@ void main() {
         'bible.bsb',
         'bible.web',
         'commentary.matthew-henry-concise',
+        'commentary.wesley',
+        'commentary.clarke',
+        'commentary.calvincommentaries',
+        'commentary.catena',
+        'commentary.luther',
         'dictionary.easton',
+        'dictionary.webster1828',
+        'devotional.sme',
+        'document.josephus',
       }),
       isEmpty,
     );
@@ -350,8 +366,19 @@ void main() {
   });
 
   test('la paginación local devuelve páginas disjuntas', () async {
-    final first = await gateway.search(query: 'Dios', pageSize: 2);
-    final second = await gateway.search(query: 'Dios', page: 2, pageSize: 2);
+    // acotado a una Biblia: un mismo verso aparece en varias traducciones y
+    // el `ref` canónico se repetiría entre páginas
+    final first = await gateway.search(
+      query: 'Dios',
+      resource: 'bible.rv1909',
+      pageSize: 2,
+    );
+    final second = await gateway.search(
+      query: 'Dios',
+      resource: 'bible.rv1909',
+      page: 2,
+      pageSize: 2,
+    );
     expect(first.total, greaterThan(10));
     expect(second.total, first.total);
     expect(first.hits, hasLength(2));
@@ -414,9 +441,9 @@ void main() {
     final health = await gateway.health();
     expect(health, isNotNull);
     expect(health!.local, isTrue);
-    expect(health.resources, 17);
-    expect(health.verses, 311054);
-    expect(health.sections, 24942);
+    expect(health.resources, 27);
+    expect(health.verses, 346798);
+    expect(health.sections, 94335);
     expect(health.crossReferences, 376083);
   });
 

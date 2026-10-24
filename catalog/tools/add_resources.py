@@ -37,10 +37,14 @@ def main() -> int:
     parser.add_argument(
         "--only",
         action="append",
-        default=["bible.bsb", "bible.web", "dataset.gazetteer"],
+        default=None,
         help="resourceId a publicar (repetible; por defecto los tres de esta pasada)",
     )
     args = parser.parse_args()
+    # `action="append"` acumula sobre el default en vez de reemplazarlo: se
+    # normaliza aquí para que --only sea quirúrgico de verdad.
+    if args.only is None:
+        args.only = ["bible.bsb", "bible.web", "dataset.gazetteer"]
 
     catalog_path = DATA / "catalog.json"
     index_path = DATA / "index" / "search.sqlite"

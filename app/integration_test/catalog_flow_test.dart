@@ -59,14 +59,16 @@ void main() {
       find.textContaining('Sin recursos'),
     ]);
     debugPrint('TEXTOS CON LA BIBLIOTECA ABIERTA: ${_visibleTexts(tester)}');
-    await _waitFor(tester, find.text('King James Version'));
-    expect(find.text('17 recursos'), findsOneWidget);
-    // Lista virtualizada: con diecisiete entradas la fila de RV1909 queda
-    // por debajo del pliegue; arrástrala a la vista.
+    // Lista virtualizada: con 27 entradas cada fila queda por debajo del
+    // pliegue; arrástralas a la vista antes de verificarlas.
+    await _scrollLibraryRow(tester, 'Diccionario bíblico de Easton');
+    expect(find.text('27 recursos'), findsOneWidget);
+    expect(find.text('Diccionario bíblico de Easton'), findsOneWidget);
+    await _scrollLibraryRow(tester, 'Matthew Henry — Comentario conciso');
+    expect(find.text('Matthew Henry — Comentario conciso'), findsOneWidget);
     await _scrollLibraryRow(tester, 'Reina-Valera 1909');
     expect(find.text('Reina-Valera 1909'), findsOneWidget);
-    expect(find.text('Matthew Henry — Comentario conciso'), findsOneWidget);
-    expect(find.text('Diccionario bíblico de Easton'), findsOneWidget);
+    await _scrollLibraryRow(tester, 'King James Version');
 
     // Abrir la KJV: su contenido solo puede venir del servicio.
     await tester.tap(find.byKey(const ValueKey('library-row-bible.kjv')));
@@ -148,7 +150,7 @@ void main() {
     // (regresión: antes la pestaña existente cambiaba de recurso y el panel
     // seguía mostrando el texto anterior)
     await tester.tap(find.byKey(const ValueKey('nav-library')));
-    await _waitFor(tester, find.text('17 recursos'));
+    await _waitFor(tester, find.text('27 recursos'));
     // Lista virtualizada: con diecisiete entradas la fila de RV1909 queda
     // por debajo del pliegue; arrástrala a la vista antes de abrirla.
     await _scrollLibraryRow(tester, 'Reina-Valera 1909');

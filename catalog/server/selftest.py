@@ -69,25 +69,26 @@ def run(client: Client, catalog: Catalog) -> None:
     check("lista de recursos", status == 200 and listing["total"] == len(ids))
     check(
         "facets por tipo",
-        listing["facets"]["type"].get("bible") == 11
-        and listing["facets"]["type"].get("devotional") == 1
+        listing["facets"]["type"].get("bible") == 12
+        and listing["facets"]["type"].get("devotional") == 2
         and listing["facets"]["type"].get("factbook") == 1
-        and listing["facets"]["type"].get("commentary") == 1
-        and listing["facets"]["type"].get("dictionary") == 2
+        and listing["facets"]["type"].get("commentary") == 6
+        and listing["facets"]["type"].get("dictionary") == 3
+        and listing["facets"]["type"].get("document") == 2
         and listing["facets"]["type"].get("dataset") == 1
-        and listing["facets"]["language"].get("es") == 8
-        and listing["facets"]["language"].get("en") == 6
+        and listing["facets"]["language"].get("es") == 9
+        and listing["facets"]["language"].get("en") == 14
         and listing["facets"]["language"].get("he") == 1
-        and listing["facets"]["language"].get("grc") == 1
+        and listing["facets"]["language"].get("grc") == 2
         and listing["facets"]["language"].get("mul") == 1,
         str(listing["facets"]),
     )
     check("resumen con licencia", summary["license"]["kind"] == "public-domain", str(summary["license"]))
 
     status, bible, _ = client.get("/v1/resources?type=bible")
-    check("filtro por tipo", status == 200 and bible["total"] == 11)
+    check("filtro por tipo", status == 200 and bible["total"] == 12)
     status, spanish, _ = client.get("/v1/resources?language=es")
-    check("filtro por idioma", status == 200 and spanish["total"] == 8)
+    check("filtro por idioma", status == 200 and spanish["total"] == 9)
 
     status, manifest, headers = client.get("/v1/resources/bible.rv1909")
     check(
@@ -340,7 +341,15 @@ def run(client: Client, catalog: Catalog) -> None:
             "bible.bsb",
             "bible.web",
             "commentary.matthew-henry-concise",
+            "commentary.wesley",
+            "commentary.clarke",
+            "commentary.calvincommentaries",
+            "commentary.catena",
+            "commentary.luther",
             "dictionary.easton",
+            "dictionary.webster1828",
+            "devotional.sme",
+            "document.josephus",
         },
         f"total={english.get('total')} ids={english_ids}",
     )
