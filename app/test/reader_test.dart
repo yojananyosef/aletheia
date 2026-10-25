@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -322,18 +323,53 @@ void main() {
     });
     expect(italic, isTrue, reason: 'la adición debe ir en cursiva');
 
-    // Nota al pie: abre el popup con el texto.
+    // Nota al pie: abre la tarjeta con el texto (clic la fija).
     await tester.tap(find.text('a'));
     await tester.pumpAndSettle();
     expect(find.text('Nota a'), findsOneWidget);
     expect(find.text('Cf. la nota del traductor.'), findsOneWidget);
-    await tester.tapAt(const Offset(20, 6)); // el barrier descarta el menú
+    await tester.tapAt(const Offset(20, 6)); // clic fuera descarta (fijada)
     await tester.pumpAndSettle();
+    expect(find.text('Nota a'), findsNothing);
 
     // Cross-ref: navega a la referencia.
     await tester.tap(find.text('Sal 23:1'));
     await tester.pumpAndSettle();
     expect(find.text('Salmos 23:1'), findsOneWidget);
     expect(_richText('JEHOVÁ es mi pastor'), findsOneWidget);
+  });
+
+  testWidgets('nota al pie: vista previa en hover y fijado por clic',
+      (tester) async {
+    _setWindow(tester, const Size(1400, 900));
+    await tester.pumpWidget(_app(repository: _FakeRepository()));
+    await tester.pumpAndSettle();
+    await _openBible(tester);
+    await _goTo(tester, 'Juan 1:1');
+
+    // Hover con el ratón: tras la demora breve aparece la tarjeta.
+    final hover = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await hover.addPointer(location: Offset.zero);
+    await hover.moveTo(tester.getCenter(find.text('a')));
+    await tester.pump(const Duration(milliseconds: 320));
+    expect(find.text('Nota a'), findsOneWidget);
+    expect(find.text('Cf. la nota del traductor.'), findsOneWidget);
+
+    // Al salir del marcador, la tarjeta (sin fijar) se cierra.
+    await hover.moveTo(const Offset(40, 620));
+    await tester.pump();
+    expect(find.text('Nota a'), findsNothing);
+
+    // Con clic queda fijada: salir del marcador no la cierra, el segundo
+    // clic sobre el mismo marcador sí.
+    await tester.tap(find.text('a'));
+    await tester.pumpAndSettle();
+    expect(find.text('Nota a'), findsOneWidget);
+    await hover.moveTo(const Offset(40, 620));
+    await tester.pump();
+    expect(find.text('Nota a'), findsOneWidget);
+    await tester.tap(find.text('a'));
+    await tester.pumpAndSettle();
+    expect(find.text('Nota a'), findsNothing);
   });
 }

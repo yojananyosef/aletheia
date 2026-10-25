@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show BrowserContextMenu;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'catalog/catalog_source_providers.dart';
@@ -50,6 +53,11 @@ Future<void> main() async {
     );
     await modules.load();
     backup = AppBackup(dataDirectory: support);
+  } else {
+    // En web el menú nativo del navegador (copiar/pegar/translate) tapa al
+    // de la app: sin esto, `SelectionArea` nunca muestra la barra de
+    // subrayado del lector al seleccionar con el ratón.
+    unawaited(BrowserContextMenu.disableContextMenu());
   }
 
   runApp(

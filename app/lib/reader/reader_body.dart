@@ -7,10 +7,12 @@
 /// 1–3 columnas y notas al pie de página.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart'
-    show RenderAbstractViewport, RenderParagraph;
+    show RenderAbstractViewport, RenderParagraph, SelectedContent;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -236,6 +238,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       ),
     );
   }
+
   int _limit = 60;
   int _navToken = 0;
   int _pageIndex = 0;
@@ -293,6 +296,10 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    _pages.addListener(_hideFloatingOnPageChange);
+    // Clic en cualquier parte que no sea la capa abierta la cierra (el
+    // barrier modal que tenía `showMenu` para las notas al pie).
+    GestureBinding.instance.pointerRouter.addGlobalRoute(_outsideLayersRoute);
     _beginReset(widget.reference, notify: false);
   }
 
@@ -312,10 +319,35 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
 
   @override
   void dispose() {
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(
+      _outsideLayersRoute,
+    );
+    _pages.removeListener(_hideFloatingOnPageChange);
+    _footnoteHoverTimer?.cancel();
     _disposeWordRecognizers();
     _scroll.dispose();
     _pages.dispose();
     super.dispose();
+  }
+
+  /// Al cambiar de página, la selección sigue pero el menú flotante anclado
+  /// al punto de soltar queda desfasado: se cierra (lo reabre el próximo
+  /// gesto de selección).
+  void _hideFloatingOnPageChange() {
+    if (mounted && _floatingSelectionAnchor != null) {
+      setState(() => _floatingSelectionAnchor = null);
+    }
+  }
+
+  /// Descarta la capa abierta (nota al pie o menú flotante) con un clic en
+  /// cualquier lugar que no sea ella misma.
+  void _outsideLayersRoute(PointerEvent event) {
+    if (event is! PointerDownEvent || !mounted) return;
+    _dismissFootnoteIfOutside(event.position);
+    if (_floatingSelectionAnchor != null &&
+        !_containsGlobalKey(_floatingToolbarKey, event.position)) {
+      setState(() => _floatingSelectionAnchor = null);
+    }
   }
 
   void _disposeWordRecognizers() {
@@ -451,6 +483,11 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
   void _onScroll() {
     if (!_scroll.hasClients) return;
     if (_scroll.position.extentAfter < 600) _appendNext();
+    // El menú flotante pierde sentido al desplazarse (el framework hace lo
+    // propio con su toolbar); la tarjeta de nota al pie sigue al marcador.
+    if (_floatingSelectionAnchor != null) {
+      setState(() => _floatingSelectionAnchor = null);
+    }
   }
 
   void _maybeFill() {
@@ -669,22 +706,30 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     if (_paged) return _withDirectionality(_buildPaged(context));
 
     return _withDirectionality(
-      SelectionArea(
-        contextMenuBuilder: _selectionMenu,
-        onSelectionChanged: (content) =>
-            _selectionText = content?.plainText ?? '',
-        child: SingleChildScrollView(
-          controller: _scroll,
-          padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+      _withMouseSelectionOffsets(
+        SelectionArea(
+          contextMenuBuilder: _selectionMenu,
+          onSelectionChanged: _onSelectionChanged,
+          child: Stack(
+            key: _selectionStackKey,
             children: [
-              for (final section in _sections)
-                _buildChapterSection(
-                  section,
-                  isTarget: _isTargetSection(section),
+              SingleChildScrollView(
+                controller: _scroll,
+                padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final section in _sections)
+                      _buildChapterSection(
+                        section,
+                        isTarget: _isTargetSection(section),
+                      ),
+                    _buildFooter(),
+                  ],
                 ),
-              _buildFooter(),
+              ),
+              _buildFloatingSelectionMenu(),
+              _buildFootnoteCard(),
             ],
           ),
         ),
@@ -730,35 +775,43 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
           WidgetsBinding.instance.addPostFrameCallback((_) => _maybeFill());
         }
 
-        return SelectionArea(
-          contextMenuBuilder: _selectionMenu,
-          onSelectionChanged: (content) =>
-              _selectionText = content?.plainText ?? '',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: PageView.builder(
-                  key: const ValueKey('reader-pages'),
-                  controller: _pages,
-                  itemCount: pages.length,
-                  onPageChanged: (index) {
-                    setState(() => _pageIndex = index);
-                    if (index >= pages.length - 1) _appendNext();
-                  },
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      hPadding,
-                      vPadding,
-                      hPadding,
-                      0,
+        return _withMouseSelectionOffsets(
+          SelectionArea(
+            contextMenuBuilder: _selectionMenu,
+            onSelectionChanged: _onSelectionChanged,
+            child: Stack(
+              key: _selectionStackKey,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: PageView.builder(
+                        key: const ValueKey('reader-pages'),
+                        controller: _pages,
+                        itemCount: pages.length,
+                        onPageChanged: (index) {
+                          setState(() => _pageIndex = index);
+                          if (index >= pages.length - 1) _appendNext();
+                        },
+                        itemBuilder: (context, index) => Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            hPadding,
+                            vPadding,
+                            hPadding,
+                            0,
+                          ),
+                          child: _buildPage(pages[index], gap),
+                        ),
+                      ),
                     ),
-                    child: _buildPage(pages[index], gap),
-                  ),
+                    _buildPageFooter(pages.length),
+                  ],
                 ),
-              ),
-              _buildPageFooter(pages.length),
-            ],
+                _buildFloatingSelectionMenu(),
+                _buildFootnoteCard(),
+              ],
+            ),
           ),
         );
       },
@@ -810,8 +863,10 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
           const Divider(height: 17),
           Text(
             context.l10n.readerFootnoteList,
-            style: readerBodyStyle(size: 11, font: _font)
-                .copyWith(color: kTextSecondary, fontWeight: FontWeight.w700),
+            style: readerBodyStyle(
+              size: 11,
+              font: _font,
+            ).copyWith(color: kTextSecondary, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 2),
           for (final note in page.notes)
@@ -819,8 +874,10 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
               padding: const EdgeInsets.only(bottom: 2),
               child: Text(
                 note,
-                style: readerBodyStyle(size: 11.5, font: _font)
-                    .copyWith(color: kTextSecondary),
+                style: readerBodyStyle(
+                  size: 11.5,
+                  font: _font,
+                ).copyWith(color: kTextSecondary),
               ),
             ),
         ],
@@ -899,8 +956,10 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
         switch (block) {
           case HeadingBlock h:
             final style = h.style == 'psalmTitle'
-                ? readerBodyStyle(size: 14.5, font: _font)
-                      .copyWith(fontStyle: FontStyle.italic)
+                ? readerBodyStyle(
+                    size: 14.5,
+                    font: _font,
+                  ).copyWith(fontStyle: FontStyle.italic)
                 : readerSectionHeadingStyle(font: _font);
             chunks.add(
               _FlowChunk(
@@ -938,7 +997,12 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
               chunks.add(
                 _FlowChunk(
                   height:
-                      measure(text, readerBodyStyle(font: _font), columnWidth - base) + 3,
+                      measure(
+                        text,
+                        readerBodyStyle(font: _font),
+                        columnWidth - base,
+                      ) +
+                      3,
                   book: section.bookCode,
                   chapter: chapter.n,
                   verseStart: verse.n == 0 ? null : verse.n,
@@ -986,8 +1050,10 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
                   '${footnote.label} ${footnote.text}',
-                  style: readerBodyStyle(size: 11.5, font: _font)
-                      .copyWith(color: kTextSecondary),
+                  style: readerBodyStyle(
+                    size: 11.5,
+                    font: _font,
+                  ).copyWith(color: kTextSecondary),
                 ),
               ),
             ),
@@ -1145,8 +1211,10 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       child: h.style == 'psalmTitle'
           ? Text(
               h.text,
-              style: readerBodyStyle(size: 14.5, font: _font)
-                  .copyWith(fontStyle: FontStyle.italic, color: kTextSecondary),
+              style: readerBodyStyle(
+                size: 14.5,
+                font: _font,
+              ).copyWith(fontStyle: FontStyle.italic, color: kTextSecondary),
             )
           // La RV1909 del original centra el título de sección (home2); la
           // KJV de `settle_bible` lo alinea a la izquierda: es un rasgo de la
@@ -1182,8 +1250,10 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
           const SizedBox(height: 6),
           Text(
             context.l10n.readerFootnoteList,
-            style: readerBodyStyle(size: 11, font: _font)
-                .copyWith(color: kTextSecondary, fontWeight: FontWeight.w700),
+            style: readerBodyStyle(
+              size: 11,
+              font: _font,
+            ).copyWith(color: kTextSecondary, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 3),
           for (final footnote in chapter.footnotes.values)
@@ -1191,8 +1261,10 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
               padding: const EdgeInsets.only(bottom: 3),
               child: Text(
                 '${footnote.label} ${footnote.text}',
-                style: readerBodyStyle(size: 12, font: _font)
-                    .copyWith(color: kTextSecondary),
+                style: readerBodyStyle(
+                  size: 12,
+                  font: _font,
+                ).copyWith(color: kTextSecondary),
               ),
             ),
         ],
@@ -1486,8 +1558,46 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
   // ------------------------------------------------------------- selección
 
   /// Último texto seleccionado (lo entrega `SelectionArea`). No usa
-  /// `setState`: solo se lee al construir el menú contextual.
+  /// `setState`: solo se leerá al construir el menú contextual.
   String _selectionText = '';
+
+  // --- Menú de selección flotante (ratón en escritorio/web) ---------------
+  // En la web el menú del navegador tapa al de la app y en escritorio el
+  // framework no muestra toolbar tras un arrastre de ratón; aquí la
+  // mostramos anclada al punto de soltar. Las vías nativas (clic derecho,
+  // pulsación larga táctil) siguen funcionando con `_selectionMenu`.
+
+  /// Anclaje del menú flotante, en coordenadas locales del Stack del lector
+  /// (`null` = cerrado).
+  Offset? _floatingSelectionAnchor;
+
+  /// La selección cambió durante el gesto en curso (lo entrega
+  /// `onSelectionChanged`); se reinicia en cada `PointerDownEvent` y evita
+  /// mostrar el menú en arrastres que no seleccionan (p. ej. páginas).
+  bool _selectionChangedDuringGesture = false;
+
+  /// El último `pointer down` fue de botón primario de ratón (sin botón
+  /// secundario): habilita el disparo del menú en el `up`.
+  bool _mousePrimaryDown = false;
+
+  final GlobalKey _selectionStackKey = GlobalKey();
+  final GlobalKey _floatingToolbarKey = GlobalKey();
+
+  /// Handler común de `onSelectionChanged`: registra el texto, marca si la
+  /// selección cambió en el gesto actual y cierra el menú flotante al
+  /// vaciarse (clic en otra parte limpia la selección).
+  void _onSelectionChanged(SelectedContent? content) {
+    final text = content?.plainText ?? '';
+    _selectionText = text;
+    if (text.trim().isEmpty) {
+      _selectionChangedDuringGesture = false;
+      if (mounted && _floatingSelectionAnchor != null) {
+        setState(() => _floatingSelectionAnchor = null);
+      }
+    } else {
+      _selectionChangedDuringGesture = true;
+    }
+  }
 
   /// Menú contextual de una selección del texto (M4), con la estructura del
   /// original (ver la evidencia de reconocimiento §2): una
@@ -1516,45 +1626,149 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
               (anchors.secondaryAnchor ?? anchors.primaryAnchor) -
               const Offset(screenPadding, screenPadding),
         ),
-        child: SelectionToolbar(
-          singleWord: !text.contains(RegExp(r'\s')),
-          activeColor: _activeHighlightColor(highlights),
-          canRemoveHighlight: highlights.isNotEmpty,
-          onRemoveHighlight: highlights.isEmpty
-              ? null
-              : () {
-                  state.hideToolbar();
-                  if (match != null) {
-                    widget.onRemoveHighlightSelection?.call(match);
-                  }
-                },
-          onCopy: () {
-            state.hideToolbar();
-            Clipboard.setData(ClipboardData(text: text));
-          },
-          onLookUp: () {
-            state.hideToolbar();
-            widget.onSearchSelection?.call(text);
-          },
-          onSearch: () {
-            state.hideToolbar();
-            widget.onSearchSelection?.call(text);
-          },
-          onNote: () {
-            state.hideToolbar();
-            widget.onNoteSelection?.call(_resolveSelection(text), text);
-          },
-          onHighlight: (color, style) {
-            state.hideToolbar();
-            _highlightFromSelection(text, color, style);
-          },
-          onVisualCopy: () {
-            state.hideToolbar();
-            _copyCurrentCitation();
-          },
+        child: _buildSelectionToolbar(
+          onDismiss: () => state.hideToolbar(),
+          match: match,
+          highlights: highlights,
         ),
       ),
     );
+  }
+
+  /// Barra de acciones de la selección, compartida por el menú del framework
+  /// (`_selectionMenu`) y el menú flotante de ratón; cada quién cierra de su
+  /// manera vía [onDismiss].
+  Widget _buildSelectionToolbar({
+    required VoidCallback onDismiss,
+    required SelectionMatch? match,
+    required List<Note> highlights,
+  }) {
+    final text = _selectionText.trim();
+    return SelectionToolbar(
+      singleWord: !text.contains(RegExp(r'\s')),
+      activeColor: _activeHighlightColor(highlights),
+      canRemoveHighlight: highlights.isNotEmpty,
+      onRemoveHighlight: highlights.isEmpty
+          ? null
+          : () {
+              onDismiss();
+              if (match != null) {
+                widget.onRemoveHighlightSelection?.call(match);
+              }
+            },
+      onCopy: () {
+        onDismiss();
+        Clipboard.setData(ClipboardData(text: text));
+      },
+      onLookUp: () {
+        onDismiss();
+        widget.onSearchSelection?.call(text);
+      },
+      onSearch: () {
+        onDismiss();
+        widget.onSearchSelection?.call(text);
+      },
+      onNote: () {
+        onDismiss();
+        widget.onNoteSelection?.call(_resolveSelection(text), text);
+      },
+      onHighlight: (color, style) {
+        onDismiss();
+        _highlightFromSelection(text, color, style);
+      },
+      onVisualCopy: () {
+        onDismiss();
+        _copyCurrentCitation();
+      },
+    );
+  }
+
+  /// Envuelve el `SelectionArea` con el guardia de puntero del ratón que
+  /// decide cuándo abrir el menú flotante (después de seleccionar arrastrando
+  /// o por doble clic con el ratón).
+  Widget _withMouseSelectionOffsets(Widget selectionArea) => Listener(
+    behavior: HitTestBehavior.translucent,
+    onPointerDown: (event) {
+      _selectionChangedDuringGesture = false;
+      _mousePrimaryDown =
+          event.kind == PointerDeviceKind.mouse &&
+          event.buttons & kPrimaryMouseButton != 0 &&
+          event.buttons & kSecondaryMouseButton == 0;
+    },
+    onPointerUp: (event) {
+      if (event.kind != PointerDeviceKind.mouse || !_mousePrimaryDown) {
+        return;
+      }
+      _mousePrimaryDown = false;
+      final release = event.position;
+      // Un `addPostFrameCallback` desde un handler de puntero no dispara en
+      // web: el mote sucio continúa fragmentado. Un timer corto hera el
+      // disparo después de que el framework finalice la selección (y
+      // entregue el texto vía `onSelectionChanged`).
+      Future.delayed(const Duration(milliseconds: 60), () {
+        if (mounted) _showFloatingSelectionMenu(release);
+      });
+    },
+    child: selectionArea,
+  );
+
+  /// Abre el menú flotante si el gesto terminado en [globalPosition] cambió
+  /// la selección con texto (arrastró o doble clic); en el caso contrario, como
+  /// un arrastre para desplazarse o un clic simple, no se muestra.
+  void _showFloatingSelectionMenu(Offset globalPosition) {
+    if (!mounted || _floatingSelectionAnchor != null) return;
+    if (_selectionText.trim().isEmpty || !_selectionChangedDuringGesture) {
+      return;
+    }
+    final stackBox =
+        _selectionStackKey.currentContext?.findRenderObject() as RenderBox?;
+    if (stackBox == null || !stackBox.attached) return;
+    setState(
+      () => _floatingSelectionAnchor = stackBox.globalToLocal(globalPosition),
+    );
+  }
+
+  /// Capa flotante, overlay del SelectionArea y persistente del texto en
+  /// pantalla (para ambos modos).
+  Widget _buildFloatingSelectionMenu() {
+    final anchor = _floatingSelectionAnchor;
+    if (anchor == null) return const SizedBox.shrink();
+    final match = _resolveSelection(_selectionText.trim());
+    final highlights = match == null
+        ? const <Note>[]
+        : _highlightsForMatch(match);
+    return Positioned.fill(
+      child: CustomSingleChildLayout(
+        delegate: TextSelectionToolbarLayoutDelegate(
+          anchorAbove: anchor - const Offset(8, 26),
+          anchorBelow: anchor,
+        ),
+        child: SelectionContainer.disabled(
+          // La key vive acá (capa flotante) y no en `SelectionToolbar` para
+          // que el menú del framework, si coexistiera un frame, no choque.
+          child: KeyedSubtree(
+            key: _floatingToolbarKey,
+            child: _buildSelectionToolbar(
+              onDismiss: () => setState(() => _floatingSelectionAnchor = null),
+              match: match,
+              highlights: highlights,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// ¿La caja del `[GlobalKey.key]`(un `Material`/widget con RenderBox) incluía
+  /// al punto global [position]?
+  bool _containsGlobalKey(GlobalKey key, Offset position) {
+    final context = key.currentContext;
+    if (context == null) return false;
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null || !box.attached) return false;
+    return box.paintBounds
+        .shift(box.localToGlobal(Offset.zero))
+        .contains(position);
   }
 
   /// Resaltados que se solapan con la selección en el mismo versículo y
@@ -1652,6 +1866,25 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     ),
   );
 
+  // --- Tarjeta de nota al pie (hover con ratón, click fija) ---------------
+
+  final Map<String, LayerLink> _footnoteLayerLinks = {};
+  final Map<String, GlobalKey> _footnoteMarkerKeys = {};
+
+  /// Key estable por marcador (misma instancia entre builds: `GlobalObjectKey`
+  /// usa identidad del valor, no igualdad de string).
+  GlobalKey _footnoteMarkerKey(String id) => _footnoteMarkerKeys.putIfAbsent(
+    id,
+    () => GlobalObjectKey('reader-footnote-$id'),
+  );
+  Timer? _footnoteHoverTimer;
+  bool _footnotePinned = false;
+  bool _footnoteOpen = false;
+  String? _activeFootnoteId;
+  LayerLink? _footnoteActiveLink;
+  String? _footnoteLabel;
+  String? _footnoteText;
+
   InlineSpan _footnoteSpan(FootnoteRef f, ChapterDocument chapter) {
     final footnote = chapter.footnotes[f.id];
     final label = f.label ?? footnote?.label ?? '*';
@@ -1660,30 +1893,164 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       // Vista limitada: indicadores como texto llano (sin superposición).
       return TextSpan(
         text: ' ($text)',
-        style: readerBodyStyle(size: 12.5, font: _font).copyWith(color: kTextSecondary),
+        style: readerBodyStyle(
+          size: 12.5,
+          font: _font,
+        ).copyWith(color: kTextSecondary),
       );
     }
+    final link = _footnoteLayerLinks.putIfAbsent(f.id, LayerLink.new);
     return WidgetSpan(
       alignment: PlaceholderAlignment.top,
       child: Padding(
         padding: const EdgeInsets.only(left: 1, right: 1),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            onTapDown: (details) =>
-                _showFootnote(details.globalPosition, label, text),
-            child: Semantics(
-              button: true,
-              label: context.l10n.readerFootnoteA11y(label, text),
-              onTapHint: context.l10n.readerFootnoteOpenHint,
-              excludeSemantics: true,
-              child: Text(
-                label,
-                style: readerMarkerStyle(font: _font).copyWith(
-                  color: kAccent,
-                  fontWeight: FontWeight.w600,
+        child: CompositedTransformTarget(
+          link: link,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            onEnter: (event) => _scheduleFootnoteHover(f.id, label, text, link),
+            onExit: (event) => _cancelFootnoteHover(),
+            child: GestureDetector(
+              onTapDown: (details) => _toggleFootnote(f.id, label, text, link),
+              child: KeyedSubtree(
+                // Para el cierre por clic fuera: el tap que abre/fija al
+                // marcador no debe descartar su propia tarjeta.
+                key: _footnoteMarkerKey(f.id),
+                child: Semantics(
+                  button: true,
+                  label: context.l10n.readerFootnoteA11y(label, text),
+                  onTapHint: context.l10n.readerFootnoteOpenHint,
+                  excludeSemantics: true,
+                  child: Text(
+                    label,
+                    style: readerMarkerStyle(font: _font)
+                        .copyWith(color: kAccent, fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Hover en el marcador: con una demora breve (evita el parpadeo al pasar
+  /// por encima leyendo) muestra la tarjeta sin fijar.
+  void _scheduleFootnoteHover(
+    String id,
+    String label,
+    String text,
+    LayerLink link,
+  ) {
+    _footnoteHoverTimer?.cancel();
+    if (_footnoteOpen && _footnotePinned) return; // una fijada manda
+    _footnoteHoverTimer = Timer(const Duration(milliseconds: 220), () {
+      if (!mounted) return;
+      setState(() {
+        _footnoteOpen = true;
+        _activeFootnoteId = id;
+        _footnoteActiveLink = link;
+        _footnoteLabel = label;
+        _footnoteText = text;
+        _footnotePinned = false;
+      });
+    });
+  }
+
+  /// Sale del marcador: si la tarjeta no está fijada, se cierra.
+  void _cancelFootnoteHover() {
+    _footnoteHoverTimer?.cancel();
+    if (!_footnoteOpen || _footnotePinned) return;
+    _closeFootnoteCard();
+  }
+
+  void _toggleFootnote(String id, String label, String text, LayerLink link) {
+    _footnoteHoverTimer?.cancel();
+    if (_footnoteOpen && _footnotePinned && _activeFootnoteId == id) {
+      // Segundo clic sobre el mismo marcador: se desfija y cierra.
+      _closeFootnoteCard();
+      return;
+    }
+    setState(() {
+      _footnoteOpen = true;
+      _activeFootnoteId = id;
+      _footnoteActiveLink = link;
+      _footnoteLabel = label;
+      _footnoteText = text;
+      _footnotePinned = true;
+    });
+  }
+
+  void _closeFootnoteCard() {
+    if (!_footnoteOpen) return;
+    setState(() {
+      _footnoteOpen = false;
+      _footnotePinned = false;
+      _activeFootnoteId = null;
+      _footnoteActiveLink = null;
+      _footnoteLabel = null;
+      _footnoteText = null;
+    });
+  }
+
+  /// Clic fuera de la tarjeta o del marcador activo cierra (aunque esté
+  /// fijada). Se llama desde el guardia de punteros del lector.
+  void _dismissFootnoteIfOutside(Offset position) {
+    if (!_footnoteOpen) return;
+    final id = _activeFootnoteId;
+    if (id != null) {
+      if (_containsGlobalKey(_footnoteMarkerKey(id), position)) {
+        return; // clic en el propio marcador: el onTap alterna.
+      }
+    }
+    if (_containsGlobalKey(_footnoteCardKey, position)) return;
+    _closeFootnoteCard();
+  }
+
+  final GlobalKey _footnoteCardKey = GlobalKey();
+
+  Widget _buildFootnoteCard() {
+    if (!_footnoteOpen) return const SizedBox.shrink();
+    final link = _footnoteActiveLink;
+    final label = _footnoteLabel;
+    final text = _footnoteText;
+    if (link == null || label == null || text == null) {
+      return const SizedBox.shrink();
+    }
+    return CompositedTransformFollower(
+      link: link,
+      targetAnchor: Alignment.bottomCenter,
+      followerAnchor: Alignment.topCenter,
+      offset: const Offset(0, 10),
+      showWhenUnlinked: false,
+      child: Material(
+        key: _footnoteCardKey,
+        color: kPanelBg,
+        elevation: 4,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  context.l10n.readerFootnote(label),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: kTextSecondary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                SelectableText(
+                  text,
+                  style: readerBodyStyle(size: 12.5, font: _font),
+                ),
+              ],
             ),
           ),
         ),
@@ -1695,10 +2062,8 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     final canonical = parseReference(x.ref ?? x.label)?.canonical;
     final marker = Text(
       x.label,
-      style: readerMarkerStyle(font: _font).copyWith(
-        color: kAccent,
-        fontWeight: FontWeight.w600,
-      ),
+      style: readerMarkerStyle(font: _font)
+          .copyWith(color: kAccent, fontWeight: FontWeight.w600),
     );
     if (canonical == null) {
       return WidgetSpan(alignment: PlaceholderAlignment.top, child: marker);
@@ -1718,58 +2083,6 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> _showFootnote(
-    Offset globalPosition,
-    String label,
-    String text,
-  ) async {
-    if (!mounted) return;
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox?;
-    if (overlay == null) return;
-    final position = RelativeRect.fromLTRB(
-      globalPosition.dx,
-      globalPosition.dy,
-      overlay.size.width - globalPosition.dx,
-      overlay.size.height - globalPosition.dy,
-    );
-    await showMenu<void>(
-      context: context,
-      position: position,
-      items: [
-        PopupMenuItem<void>(
-          enabled: false,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  context.l10n.readerFootnote(label),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: kTextSecondary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                SelectableText(
-                  text,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.4,
-                    color: kTextPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 
