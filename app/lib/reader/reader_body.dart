@@ -716,27 +716,36 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
         SelectionArea(
           contextMenuBuilder: _selectionMenu,
           onSelectionChanged: _onSelectionChanged,
-          child: Stack(
-            key: _selectionStackKey,
-            children: [
-              SingleChildScrollView(
-                controller: _scroll,
-                padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final section in _sections)
-                      _buildChapterSection(
-                        section,
-                        isTarget: _isTargetSection(section),
-                      ),
-                    _buildFooter(),
-                  ],
+          child: ScrollbarTheme(
+            data: ScrollbarThemeData(
+              thickness: WidgetStateProperty.all(2.0),
+              radius: const Radius.circular(2),
+            ),
+            child: Stack(
+              key: _selectionStackKey,
+              children: [
+                SingleChildScrollView(
+                  controller: _scroll,
+                  physics: _footnoteOpen
+                      ? const NeverScrollableScrollPhysics()
+                      : null,
+                  padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final section in _sections)
+                        _buildChapterSection(
+                          section,
+                          isTarget: _isTargetSection(section),
+                        ),
+                      _buildFooter(),
+                    ],
+                  ),
                 ),
-              ),
-              _buildFloatingSelectionMenu(),
-              _buildFootnoteCard(),
-            ],
+                _buildFloatingSelectionMenu(),
+                _buildFootnoteCard(),
+              ],
+            ),
           ),
         ),
       ),
