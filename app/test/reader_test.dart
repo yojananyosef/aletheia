@@ -39,14 +39,15 @@ class _DiskRepository extends DocumentRepository {
 }
 
 Widget _app({DocumentRepository? repository}) => ProviderScope(
-      overrides: [
-        workspaceStoreProvider.overrideWithValue(WorkspaceStore.inMemory()),
-notesStoreProvider.overrideWithValue(NotesStore.inMemory()),
-        documentRepositoryProvider
-            .overrideWithValue(repository ?? _DiskRepository()),
-      ],
-      child: const AletheiaApp(),
-    );
+  overrides: [
+    workspaceStoreProvider.overrideWithValue(WorkspaceStore.inMemory()),
+    notesStoreProvider.overrideWithValue(NotesStore.inMemory()),
+    documentRepositoryProvider.overrideWithValue(
+      repository ?? _DiskRepository(),
+    ),
+  ],
+  child: const AletheiaApp(),
+);
 
 void _setWindow(WidgetTester tester, Size size) {
   tester.view.devicePixelRatio = 1.0;
@@ -69,8 +70,7 @@ Future<void> _goTo(WidgetTester tester, String reference) async {
   await tester.pumpAndSettle();
 }
 
-Finder _richText(String text) =>
-    find.textContaining(text, findRichText: true);
+Finder _richText(String text) => find.textContaining(text, findRichText: true);
 
 // ---------------------------------------------------- documento sintético
 
@@ -87,21 +87,21 @@ class _FakeRepository extends DocumentRepository {
         'code': 'GEN',
         'name': 'Génesis',
         'chapters': [
-          {'n': 1, 'verses': 1}
+          {'n': 1, 'verses': 1},
         ],
       },
       {
         'code': 'JHN',
         'name': 'Juan',
         'chapters': [
-          {'n': 1, 'verses': 2}
+          {'n': 1, 'verses': 2},
         ],
       },
       {
         'code': 'PSA',
         'name': 'Salmos',
         'chapters': [
-          {'n': 23, 'verses': 1}
+          {'n': 23, 'verses': 1},
         ],
       },
     ],
@@ -122,9 +122,9 @@ class _FakeRepository extends DocumentRepository {
                 {
                   'n': 1,
                   'inlines': [
-                    {'t': 'text', 'v': 'Texto de Génesis 1:1.'}
+                    {'t': 'text', 'v': 'Texto de Génesis 1:1.'},
                   ],
-                }
+                },
               ],
             },
           ],
@@ -138,7 +138,7 @@ class _FakeRepository extends DocumentRepository {
         {
           'n': 1,
           'footnotes': {
-            'fn.1': {'label': 'a', 'text': 'Cf. la nota del traductor.'}
+            'fn.1': {'label': 'a', 'text': 'Cf. la nota del traductor.'},
           },
           'blocks': [
             {'type': 'chapterNumber', 'value': 1},
@@ -159,7 +159,7 @@ class _FakeRepository extends DocumentRepository {
                 {
                   'n': 2,
                   'inlines': [
-                    {'t': 'text', 'v': 'Este era en el principio con Dios.'}
+                    {'t': 'text', 'v': 'Este era en el principio con Dios.'},
                   ],
                 },
               ],
@@ -182,9 +182,9 @@ class _FakeRepository extends DocumentRepository {
                 {
                   'n': 1,
                   'inlines': [
-                    {'t': 'text', 'v': 'JEHOVÁ es mi pastor.'}
+                    {'t': 'text', 'v': 'JEHOVÁ es mi pastor.'},
                   ],
-                }
+                },
               ],
             },
           ],
@@ -214,15 +214,18 @@ void main() {
   binding.platformDispatcher
     ..localeTestValue = const Locale('es')
     ..localesTestValue = const [Locale('es')];
-  testWidgets('lector: abre la Biblia y navega con la caja de referencia',
-      (tester) async {
+  testWidgets('lector: abre la Biblia y navega con la caja de referencia', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1400, 900));
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
     await _openBible(tester);
-    expect(find.textContaining('EN el principio crió Dios', findRichText: true),
-        findsOneWidget);
+    expect(
+      find.textContaining('EN el principio crió Dios', findRichText: true),
+      findsOneWidget,
+    );
     expect(find.text('Génesis'), findsOneWidget); // barra de ubicación
 
     await _goTo(tester, 'Juan 1:1');
@@ -233,8 +236,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('índice: muestra el árbol libro → capítulos y navega',
-      (tester) async {
+  testWidgets('índice: muestra el árbol libro → capítulos y navega', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1400, 900));
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
@@ -267,13 +271,16 @@ void main() {
 
     await tester.tap(find.text('Génesis 1:1'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('EN el principio crió Dios', findRichText: true),
-        findsOneWidget);
+    expect(
+      find.textContaining('EN el principio crió Dios', findRichText: true),
+      findsOneWidget,
+    );
     expect(find.text('Génesis 1:1'), findsOneWidget); // caja de referencia
   });
 
-  testWidgets('toolbar: steppers de capítulo y referencia inválida',
-      (tester) async {
+  testWidgets('toolbar: steppers de capítulo y referencia inválida', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1400, 900));
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
@@ -294,8 +301,9 @@ void main() {
     expect(_richText('EN el principio era el Verbo'), findsOneWidget);
   });
 
-  testWidgets('notas al pie, itálicas y cross-refs (documento sintético)',
-      (tester) async {
+  testWidgets('notas al pie, itálicas y cross-refs (documento sintético)', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1400, 900));
     await tester.pumpWidget(_app(repository: _FakeRepository()));
     await tester.pumpAndSettle();
@@ -307,8 +315,9 @@ void main() {
     // La palabra añadida se renderiza en cursiva.
     final rich = tester.widget<RichText>(
       find
-          .byWidgetPredicate((w) =>
-              w is RichText && w.text.toPlainText().contains('la Palabra'))
+          .byWidgetPredicate(
+            (w) => w is RichText && w.text.toPlainText().contains('la Palabra'),
+          )
           .first,
     );
     var italic = false;
@@ -323,14 +332,16 @@ void main() {
     });
     expect(italic, isTrue, reason: 'la adición debe ir en cursiva');
 
-    // Nota al pie: abre la tarjeta con el texto (clic la fija).
-    await tester.tap(find.text('a'));
+    // Nota al pie: abre la tarjeta con el texto (clic la fija). El marcador
+    // es un asterisco al final del versículo (v1.0.3: la «a» se confundía
+    // con texto y quedaba junto al número).
+    await tester.tap(find.text('*'));
     await tester.pumpAndSettle();
-    expect(find.text('Nota a'), findsOneWidget);
+    expect(find.text('Nota *'), findsOneWidget);
     expect(find.text('Cf. la nota del traductor.'), findsOneWidget);
     await tester.tapAt(const Offset(20, 6)); // clic fuera descarta (fijada)
     await tester.pumpAndSettle();
-    expect(find.text('Nota a'), findsNothing);
+    expect(find.text('Nota *'), findsNothing);
 
     // Cross-ref: navega a la referencia.
     await tester.tap(find.text('Sal 23:1'));
@@ -339,8 +350,9 @@ void main() {
     expect(_richText('JEHOVÁ es mi pastor'), findsOneWidget);
   });
 
-  testWidgets('nota al pie: vista previa en hover y fijado por clic',
-      (tester) async {
+  testWidgets('nota al pie: vista previa en hover y fijado por clic', (
+    tester,
+  ) async {
     _setWindow(tester, const Size(1400, 900));
     await tester.pumpWidget(_app(repository: _FakeRepository()));
     await tester.pumpAndSettle();
@@ -350,26 +362,51 @@ void main() {
     // Hover con el ratón: tras la demora breve aparece la tarjeta.
     final hover = await tester.createGesture(kind: PointerDeviceKind.mouse);
     await hover.addPointer(location: Offset.zero);
-    await hover.moveTo(tester.getCenter(find.text('a')));
+    await hover.moveTo(tester.getCenter(find.text('*')));
     await tester.pump(const Duration(milliseconds: 320));
-    expect(find.text('Nota a'), findsOneWidget);
+    expect(find.text('Nota *'), findsOneWidget);
     expect(find.text('Cf. la nota del traductor.'), findsOneWidget);
 
     // Al salir del marcador, la tarjeta (sin fijar) se cierra.
     await hover.moveTo(const Offset(40, 620));
     await tester.pump();
-    expect(find.text('Nota a'), findsNothing);
+    expect(find.text('Nota *'), findsNothing);
 
     // Con clic queda fijada: salir del marcador no la cierra, el segundo
     // clic sobre el mismo marcador sí.
-    await tester.tap(find.text('a'));
+    await tester.tap(find.text('*'));
     await tester.pumpAndSettle();
-    expect(find.text('Nota a'), findsOneWidget);
+    expect(find.text('Nota *'), findsOneWidget);
     await hover.moveTo(const Offset(40, 620));
     await tester.pump();
-    expect(find.text('Nota a'), findsOneWidget);
-    await tester.tap(find.text('a'));
+    expect(find.text('Nota *'), findsOneWidget);
+    await tester.tap(find.text('*'));
     await tester.pumpAndSettle();
-    expect(find.text('Nota a'), findsNothing);
+    expect(find.text('Nota *'), findsNothing);
+  });
+
+  testWidgets('nota al pie: la tarjeta queda dentro del viewport', (
+    tester,
+  ) async {
+    _setWindow(tester, const Size(1400, 900));
+    await tester.pumpWidget(_app(repository: _FakeRepository()));
+    await tester.pumpAndSettle();
+    await _openBible(tester);
+    await _goTo(tester, 'Juan 1:1');
+
+    // El indicador se difiere al final del versículo (tras «Sal 23:1»; los
+    // WidgetSpan no aportan texto plano, así que se compara por posición).
+    await tester.tap(find.text('*'));
+    await tester.pumpAndSettle();
+    final marker = tester.getCenter(find.text('*'));
+    final xref = tester.getCenter(find.text('Sal 23:1'));
+    final afterXref =
+        marker.dx > xref.dx || (marker.dy > xref.dy + 10.0); // o en línea nueva
+    expect(afterXref, isTrue, reason: 'el marcador va al final del versículo');
+    final card = tester.getRect(find.byKey(const ValueKey('footnote-card')));
+    expect(card.left, greaterThanOrEqualTo(0.0));
+    expect(card.top, greaterThanOrEqualTo(0.0));
+    expect(card.right, lessThanOrEqualTo(1400.0));
+    expect(card.bottom, lessThanOrEqualTo(900.0));
   });
 }

@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.2+2
+version: 1.0.3+3
 
 environment:
   sdk: ^3.13.5
@@ -110,22 +110,30 @@ flutter:
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
 
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+  # Tipografías incluidas (1.0.3): las pilas del lector (`reader_style.dart`)
+  # usan nombres del sistema que en web no existen; con las DejaVu empaquetadas
+  # serif/sans/mono renderizan igual en las tres plataformas. Licencia libre
+  # Bitstream Vera (docs/licenses/dejavu.txt).
+  fonts:
+    - family: DejaVu Serif
+      fonts:
+        - asset: fonts/DejaVuSerif.ttf
+        - asset: fonts/DejaVuSerif-Bold.ttf
+          weight: 700
+        - asset: fonts/DejaVuSerif-Italic.ttf
+          style: italic
+        - asset: fonts/DejaVuSerif-BoldItalic.ttf
+          style: italic
+          weight: 700
+    - family: DejaVu Sans
+      fonts:
+        - asset: fonts/DejaVuSans.ttf
+        - asset: fonts/DejaVuSans-Bold.ttf
+          weight: 700
+        - asset: fonts/DejaVuSans-Oblique.ttf
+          style: italic
+    - family: DejaVu Sans Mono
+      fonts:
+        - asset: fonts/DejaVuSansMono.ttf
+        - asset: fonts/DejaVuSansMono-Bold.ttf
+          weight: 700

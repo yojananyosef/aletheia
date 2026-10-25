@@ -8,6 +8,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -332,11 +333,13 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
 
   /// Al cambiar de página, la selección sigue pero el menú flotante anclado
   /// al punto de soltar queda desfasado: se cierra (lo reabre el próximo
-  /// gesto de selección).
+  /// gesto de selección). La tarjeta de nota al pie también, porque su
+  /// marcador ya no está en la página visible.
   void _hideFloatingOnPageChange() {
     if (mounted && _floatingSelectionAnchor != null) {
       setState(() => _floatingSelectionAnchor = null);
     }
+    _closeFootnoteCard();
   }
 
   /// Descarta la capa abierta (nota al pie o menú flotante) con un clic en
@@ -484,10 +487,12 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     if (!_scroll.hasClients) return;
     if (_scroll.position.extentAfter < 600) _appendNext();
     // El menú flotante pierde sentido al desplazarse (el framework hace lo
-    // propio con su toolbar); la tarjeta de nota al pie sigue al marcador.
+    // propio con su toolbar) y la tarjeta de nota al pie quedaría anclada a
+    // una posición fija de la ventana: se cierran ambas.
     if (_floatingSelectionAnchor != null) {
       setState(() => _floatingSelectionAnchor = null);
     }
+    _closeFootnoteCard();
   }
 
   void _maybeFill() {
@@ -1068,11 +1073,17 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     if (!_display.footnotesOnPage) return const [];
     final out = <String>[];
     for (final verse in group.verses) {
+      // Mismo símbolo que el indicador en el versículo (v1.0.3: en vez de la
+      // letra «a», que se confunde con texto).
+      var ordinal = 0;
       for (final inline in verse.inlines) {
         if (inline is! FootnoteRef) continue;
         final footnote = chapter.footnotes[inline.id];
         if (footnote == null) continue;
-        out.add('${inline.label ?? footnote.label} ${footnote.text}');
+        out.add(
+          '${_footnoteGlyph(ordinal++)} '
+          '${inline.label ?? footnote.label}: ${footnote.text}',
+        );
       }
     }
     return out;
@@ -1410,6 +1421,10 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     if (withNumber) spans.add(_verseNumberSpan(verse.n));
 
     var plain = 0;
+    // Los indicadores de nota al pie se difieren al final del versículo:
+    // junto al número del versículo se confunden con una sigla y el usuario
+    // los confunde con letras del texto (feedback v1.0.2).
+    final deferredFootnotes = <FootnoteRef>[];
     for (var index = 0; index < verse.inlines.length; index++) {
       final inline = verse.inlines[index];
       switch (inline) {
@@ -1435,12 +1450,13 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
           _emitSpansWithHighlights(spans, separator, null, highlights, plain);
           plain += separator.length;
         case FootnoteRef f:
-          if (options.footnoteIndicators) {
-            spans.add(_footnoteSpan(f, chapter));
-          }
+          if (options.footnoteIndicators) deferredFootnotes.add(f);
         case XrefLink x:
           spans.add(_xrefSpan(x));
       }
+    }
+    for (var ordinal = 0; ordinal < deferredFootnotes.length; ordinal++) {
+      spans.add(_footnoteSpan(deferredFootnotes[ordinal], chapter, ordinal));
     }
     return spans;
   }
@@ -1868,7 +1884,6 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
 
   // --- Tarjeta de nota al pie (hover con ratón, click fija) ---------------
 
-  final Map<String, LayerLink> _footnoteLayerLinks = {};
   final Map<String, GlobalKey> _footnoteMarkerKeys = {};
 
   /// Key estable por marcador (misma instancia entre builds: `GlobalObjectKey`
@@ -1881,13 +1896,27 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
   bool _footnotePinned = false;
   bool _footnoteOpen = false;
   String? _activeFootnoteId;
-  LayerLink? _footnoteActiveLink;
-  String? _footnoteLabel;
+  String? _footnoteLabel; // etiqueta original del módulo (semántica, a11y)
+  String _activeFootnoteGlyph = '*'; // símbolo visible en el marcador
   String? _footnoteText;
 
-  InlineSpan _footnoteSpan(FootnoteRef f, ChapterDocument chapter) {
+  /// Símbolo del indicador según el orden de la nota dentro del versículo.
+  /// La «a» original se confunde con el texto; el asterisco es la convención
+  /// clásica de notas del traductor.
+  String _footnoteGlyph(int ordinal) {
+    const glyphs = ['*', '†', '‡', '§', '¶'];
+    if (ordinal < glyphs.length) return glyphs[ordinal];
+    return '*';
+  }
+
+  InlineSpan _footnoteSpan(
+    FootnoteRef f,
+    ChapterDocument chapter,
+    int ordinal,
+  ) {
     final footnote = chapter.footnotes[f.id];
     final label = f.label ?? footnote?.label ?? '*';
+    final glyph = _footnoteGlyph(ordinal);
     final text = footnote?.text ?? context.l10n.readerFootnoteUnavailable;
     if (_options.limitedView) {
       // Vista limitada: indicadores como texto llano (sin superposición).
@@ -1899,33 +1928,29 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
         ).copyWith(color: kTextSecondary),
       );
     }
-    final link = _footnoteLayerLinks.putIfAbsent(f.id, LayerLink.new);
     return WidgetSpan(
       alignment: PlaceholderAlignment.top,
       child: Padding(
         padding: const EdgeInsets.only(left: 1, right: 1),
-        child: CompositedTransformTarget(
-          link: link,
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            onEnter: (event) => _scheduleFootnoteHover(f.id, label, text, link),
-            onExit: (event) => _cancelFootnoteHover(),
-            child: GestureDetector(
-              onTapDown: (details) => _toggleFootnote(f.id, label, text, link),
-              child: KeyedSubtree(
-                // Para el cierre por clic fuera: el tap que abre/fija al
-                // marcador no debe descartar su propia tarjeta.
-                key: _footnoteMarkerKey(f.id),
-                child: Semantics(
-                  button: true,
-                  label: context.l10n.readerFootnoteA11y(label, text),
-                  onTapHint: context.l10n.readerFootnoteOpenHint,
-                  excludeSemantics: true,
-                  child: Text(
-                    label,
-                    style: readerMarkerStyle(font: _font)
-                        .copyWith(color: kAccent, fontWeight: FontWeight.w600),
-                  ),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (event) => _scheduleFootnoteHover(f.id, glyph, label, text),
+          onExit: (event) => _cancelFootnoteHover(),
+          child: GestureDetector(
+            onTapDown: (details) => _toggleFootnote(f.id, glyph, label, text),
+            child: KeyedSubtree(
+              // Para el cierre por clic fuera: el tap que abre/fija al
+              // marcador no debe descartar su propia tarjeta.
+              key: _footnoteMarkerKey(f.id),
+              child: Semantics(
+                button: true,
+                label: context.l10n.readerFootnoteA11y(label, text),
+                onTapHint: context.l10n.readerFootnoteOpenHint,
+                excludeSemantics: true,
+                child: Text(
+                  glyph,
+                  style: readerMarkerStyle(font: _font)
+                      .copyWith(color: kAccent, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -1939,22 +1964,21 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
   /// por encima leyendo) muestra la tarjeta sin fijar.
   void _scheduleFootnoteHover(
     String id,
+    String glyph,
     String label,
     String text,
-    LayerLink link,
   ) {
     _footnoteHoverTimer?.cancel();
     if (_footnoteOpen && _footnotePinned) return; // una fijada manda
     _footnoteHoverTimer = Timer(const Duration(milliseconds: 220), () {
       if (!mounted) return;
-      setState(() {
-        _footnoteOpen = true;
-        _activeFootnoteId = id;
-        _footnoteActiveLink = link;
-        _footnoteLabel = label;
-        _footnoteText = text;
-        _footnotePinned = false;
-      });
+      _openFootnoteCard(
+        id: id,
+        glyph: glyph,
+        label: label,
+        text: text,
+        pinned: false,
+      );
     });
   }
 
@@ -1965,21 +1989,43 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     _closeFootnoteCard();
   }
 
-  void _toggleFootnote(String id, String label, String text, LayerLink link) {
+  void _toggleFootnote(String id, String glyph, String label, String text) {
     _footnoteHoverTimer?.cancel();
     if (_footnoteOpen && _footnotePinned && _activeFootnoteId == id) {
       // Segundo clic sobre el mismo marcador: se desfija y cierra.
       _closeFootnoteCard();
       return;
     }
+    _openFootnoteCard(
+      id: id,
+      glyph: glyph,
+      label: label,
+      text: text,
+      pinned: true,
+    );
+  }
+
+  /// Abre la tarjeta fijada o en hover. Antes de abrir recalcula el anclaje
+  /// del marcador; si el marcador ya no está en el árbol (p. ej. cambió la
+  /// página) no abre nada.
+  void _openFootnoteCard({
+    required String id,
+    required String glyph,
+    required String label,
+    required String text,
+    required bool pinned,
+  }) {
+    if (_markerLocalRect(id) == null) return;
     setState(() {
       _footnoteOpen = true;
       _activeFootnoteId = id;
-      _footnoteActiveLink = link;
+      _activeFootnoteGlyph = glyph;
       _footnoteLabel = label;
       _footnoteText = text;
-      _footnotePinned = true;
+      _footnotePinned = pinned;
+      _footnoteCardHeight = null; // se re-mide post-frame
     });
+    _measureFootnoteCardAfterFrame();
   }
 
   void _closeFootnoteCard() {
@@ -1988,7 +2034,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       _footnoteOpen = false;
       _footnotePinned = false;
       _activeFootnoteId = null;
-      _footnoteActiveLink = null;
+      _footnoteCardHeight = null;
       _footnoteLabel = null;
       _footnoteText = null;
     });
@@ -2010,35 +2056,112 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
 
   final GlobalKey _footnoteCardKey = GlobalKey();
 
+  /// Rect del marcador [id] en coordenadas del Stack del lector. Se consulta
+  /// en cada build (barato) para que el clamp sea fresco si algo se reajusta.
+  Rect? _markerLocalRect(String id) {
+    final markerEntry = _footnoteMarkerKey(id).currentContext;
+    final stackEntry = _selectionStackKey.currentContext;
+    if (markerEntry == null || stackEntry == null) return null;
+    final markerBox = markerEntry.findRenderObject() as RenderBox?;
+    final stackBox = stackEntry.findRenderObject() as RenderBox?;
+    if (markerBox == null || stackBox == null) return null;
+    if (!markerBox.attached || !stackBox.attached || !stackBox.hasSize) {
+      return null;
+    }
+    final topLeft = stackBox.globalToLocal(
+      markerBox.localToGlobal(Offset.zero),
+    );
+    final bottomRight = stackBox.globalToLocal(
+      markerBox.localToGlobal(markerBox.size.bottomRight(Offset.zero)),
+    );
+    return Rect.fromPoints(topLeft, bottomRight);
+  }
+
+  static const double _footnoteCardMaxWidth = 360;
+  static const double _footnoteCardGap = 10;
+  static const double _footnoteCardMargin = 8;
+
+  /// Posición (left, top, width) de la tarjeta, centrada sobre el marcador y
+  /// clampada a los bordes del lector en ambos ejes. Con el alto ya medido
+  /// post-frame, si desborda por abajo se coloca encima del marcador.
+  (double, double, double)? _footnoteCardLayout(Rect marker) {
+    final stackBox =
+        _selectionStackKey.currentContext?.findRenderObject() as RenderBox?;
+    if (stackBox == null || !stackBox.hasSize) return null;
+    final stackW = stackBox.size.width;
+    final stackH = stackBox.size.height;
+    if (stackW <= _footnoteCardMargin * 2) return null;
+    var cardW = _footnoteCardMaxWidth;
+    if (cardW > stackW - _footnoteCardMargin * 2) {
+      cardW = stackW - _footnoteCardMargin * 2;
+    }
+    final left = (marker.center.dx - cardW / 2).clamp(
+      _footnoteCardMargin,
+      stackW - cardW - _footnoteCardMargin,
+    );
+    final h = _footnoteCardHeight;
+    var top = marker.bottom + _footnoteCardGap;
+    if (h != null && top + h > stackH - _footnoteCardMargin) {
+      // Encima del marcador, sin pasar del borde superior.
+      top = math.max(_footnoteCardMargin, marker.top - h - _footnoteCardGap);
+    }
+    return (left, top, cardW);
+  }
+
+  /// Mide el alto real de la tarjeta tras el frame en que abre: con el alto
+  /// conocido el clamp vertical (flip por encima del marcador) es exacto.
+  void _measureFootnoteCardAfterFrame() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_footnoteOpen) return;
+      final cardEntry = _footnoteCardKey.currentContext;
+      if (cardEntry == null) return;
+      final cardBox = cardEntry.findRenderObject() as RenderBox?;
+      if (cardBox == null || !cardBox.hasSize) return;
+      final h = cardBox.size.height;
+      final pending = _footnoteCardHeight;
+      if (pending != null && (pending - h).abs() < 0.5) return;
+      setState(() => _footnoteCardHeight = h);
+    });
+  }
+
+  double? _footnoteCardHeight;
+
   Widget _buildFootnoteCard() {
     if (!_footnoteOpen) return const SizedBox.shrink();
-    final link = _footnoteActiveLink;
     final label = _footnoteLabel;
     final text = _footnoteText;
-    if (link == null || label == null || text == null) {
+    final id = _activeFootnoteId;
+    if (label == null || text == null || id == null) {
       return const SizedBox.shrink();
     }
-    return CompositedTransformFollower(
-      link: link,
-      targetAnchor: Alignment.bottomCenter,
-      followerAnchor: Alignment.topCenter,
-      offset: const Offset(0, 10),
-      showWhenUnlinked: false,
-      child: Material(
+    final marker = _markerLocalRect(id);
+    if (marker == null) {
+      // El marcador desapareció del árbol (página cambiada, capítulo nuevo):
+      // no mostrar una tarjeta huérfana desanclada.
+      return const SizedBox.shrink();
+    }
+    final layout = _footnoteCardLayout(marker);
+    if (layout == null) return const SizedBox.shrink();
+    final (left, top, cardW) = layout;
+    return Positioned(
+      left: left,
+      top: top,
+      width: cardW,
+      child: KeyedSubtree(
         key: _footnoteCardKey,
-        color: kPanelBg,
-        elevation: 4,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
+        child: Material(
+          key: const ValueKey('footnote-card'),
+          color: kPanelBg,
+          elevation: 4,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  context.l10n.readerFootnote(label),
+                  context.l10n.readerFootnote(_activeFootnoteGlyph),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
