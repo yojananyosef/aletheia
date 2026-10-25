@@ -1,12 +1,17 @@
-name: Release Linux
+name: Release escritorio
 
-# Publica el binario de escritorio de Linux (x64) en GitHub Releases.
-# Se dispara al etiquetar una versión: `git tag v1.0.0 && git push --tags`.
-# Sólo se publica Linux, la plataforma con la suite completa ejecutada y
-# probada con ventana real en este entorno (ver docs/spec/02 §10).
+# Publica los binarios de escritorio (Linux x64, Windows x64 y macOS arm64)
+# en GitHub Releases. Se dispara al etiquetar una versión
+# (`git tag v1.0.1 && git push --tags`) o a mano desde Actions
+# (workflow_dispatch: los zips quedan como artefactos del run, sin release).
+#
+# Linux es la plataforma con la suite ejecutada con ventana real en este
+# entorno (ver docs/spec/02 §10); Windows y macOS compilan y pasan la suite
+# en CI (desktop.yml), el smoke con ventana real queda pendiente.
 on:
   push:
     tags: ['v*.*.*']
+  workflow_dispatch:
 
 concurrency:
   group: release-${{ github.ref }}
@@ -19,15 +24,29 @@ permissions:
   contents: write
 
 jobs:
-  linux:
-    name: Linux x64 · tests, build y release
-    runs-on: ubuntu-latest
+  build:
+    name: ${{ matrix.name }} · tests, build y paquete
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         working-directory: app
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64
+            os: ubuntu-latest
+            platform: linux
+          - name: Windows x64
+            os: windows-latest
+            platform: windows
+          - name: macOS arm64
+            os: macos-latest
+            platform: macos
     steps:
       - uses: actions/checkout@v4
       - name: Instalar dependencias de Linux
+        if: matrix.platform == 'linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
@@ -43,8 +62,26 @@ jobs:
       - name: Pruebas
         run: flutter test
       - name: Build Linux
+        if: matrix.platform == 'linux'
         run: flutter build linux --release
-      - name: Empaquetar tarball
+      - name: Build Windows
+        if: matrix.platform == 'windows'
+        run: flutter build windows --release
+      - name: Build macOS
+        if: matrix.platform == 'macos'
+        run: flutter build macos --release
+      - name: Recorte slim del bundle (Linux)
+        if: matrix.platform == 'linux'
+        run: python3 tool/slim_release_bundle.py build/linux/x64/release/bundle
+      - name: Recorte slim del bundle (Windows)
+        if: matrix.platform == 'windows'
+        run: python tool/slim_release_bundle.py build/windows/x64/runner/Release
+      - name: Recorte slim del bundle (macOS)
+        if: matrix.platform == 'macos'
+        run: python3 tool/slim_release_bundle.py build/macos/Build/Products/Release
+      - name: Empaquetar (Linux)
+        if: matrix.platform == 'linux'
+        shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
           name="aletheia-${version}-linux-x64"
@@ -64,29 +101,125 @@ jobs:
           favoritos y progreso) viven en
           ~/.local/share/dev.aletheia.aletheia/
 
+          Catálogo liviano: RV1909, el léxico Strong, el devocional diario
+          y el Factbook van incluidos; los demás recursos y el índice de
+          búsqueda se instalan a demanda desde la pestaña Tienda
+          (descarga con progreso, cancelación y sha256 verificado).
+
           Contenido y licencias: ver NOTICE.md adjunto.
           EOF
           tar -czf "${name}.tar.gz" -C "$(dirname "${stage}")" "${name}"
           sha256sum "${name}.tar.gz" > "${name}.tar.gz.sha256"
-      - name: Publicar en GitHub Releases
+      - name: Empaquetar (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^v',''
+          $name = "aletheia-$version-windows-x64"
+          $stage = Join-Path $env:RUNNER_TEMP $name
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item -Path build/windows/x64/runner/Release/* -Destination $stage -Recurse
+          Copy-Item ../NOTICE.md $stage/ -ErrorAction SilentlyContinue
+          @'
+          Aletheia — lector bíblico de escritorio (Windows x64)
+
+          Ejecución:
+            aletheia.exe
+
+          El bundle es autónomo (no requiere instalación). Los datos del
+          usuario (workspace, notas, favoritos y progreso) viven en
+          %APPDATA%\dev.aletheia.aletheia\
+
+          Catálogo liviano: RV1909, el léxico Strong, el devocional diario
+          y el Factbook van incluidos; los demás recursos y el índice de
+          búsqueda se instalan a demanda desde la pestaña Tienda
+          (descarga con progreso, cancelación y sha256 verificado).
+
+          Contenido y licencias: ver NOTICE.md adjunto.
+
+          NOTA: el binario no está firmado; si SmartScreen/Defender avisa,
+          elige «Más información → Ejecutar de todas formas».
+          '@ | Set-Content (Join-Path $stage 'README.txt')
+          Compress-Archive -Path $stage -DestinationPath "$name.zip"
+          Get-FileHash "$name.zip" -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  $name.zip" } |
+            Set-Content "$name.zip.sha256"
+      - name: Empaquetar (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          name="aletheia-${version}-macos-arm64"
+          stage="$(mktemp -d)/${name}"
+          mkdir -p "${stage}"
+          cp -R build/macos/Build/Products/Release/aletheia.app "${stage}/"
+          cp ../NOTICE.md "${stage}/NOTICE.md" 2>/dev/null || true
+          cat > "${stage}/README.txt" <<'EOF'
+          Aletheia — lector bíblico de escritorio (macOS arm64, Apple Silicon)
+
+          Ejecución:
+            doble clic en Aletheia.app
+
+          El bundle no está firmado ni notarizado: en el primer arranque,
+          clic derecho → «Abrir» (o `xattr -cr Aletheia.app` en Terminal).
+          Los datos del usuario viven en
+          ~/Library/Application Support/dev.aletheia.aletheia/
+
+          Catálogo liviano: RV1909, el léxico Strong, el devocional
+          diario y el Factbook van incluidos; los demás recursos y el
+          índice de búsqueda se instalan a demanda desde la pestaña
+          Tienda (descarga con progreso, cancelación y sha256
+          verificado).
+
+          Contenido y licencias: ver NOTICE.md adjunto.
+          EOF
+          # Conservar los permisos del .app dentro del zip (symlinks del framework).
+          (cd "$(dirname "${stage}")" && zip -qry "${GITHUB_WORKSPACE}/app/${name}.zip" "${name}")
+          shasum -a 256 "${name}.zip" > "${name}.zip.sha256"
+      - name: Subir artefacto del run
+        uses: actions/upload-artifact@v4
+        with:
+          name: aletheia-${{ matrix.platform }}
+          path: |
+            app/aletheia-*.tar.gz*
+            app/aletheia-*.zip*
+          if-no-files-found: error
+
+  release:
+    name: Publicar en GitHub Releases
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar artefactos
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: dist
+      - name: Publicar
         uses: softprops/action-gh-release@v2
         with:
-          name: Aletheia ${{ github.ref_name }} · Linux x64
+          name: Aletheia ${{ github.ref_name }}
           body: |
-            Binario de escritorio para **Linux x64**, construido en CI desde
-            esta misma etiqueta con Flutter ${{ env.FLUTTER_VERSION }} tras
-            pasar `flutter analyze` y la suite completa de pruebas
-            (unitarias/widget).
+            Binarios de escritorio construidos en CI desde esta misma etiqueta
+            con Flutter ${{ env.FLUTTER_VERSION }} tras pasar `flutter analyze`
+            y la suite completa de pruebas (unitarias/widget) en los tres
+            sistemas.
 
-            La plataforma se probó además con ventana real y gestos de
-            selección/arrastre (`flutter test integration_test -d linux`).
+            - **Linux x64** (`tar.gz`): la plataforma probada con ventana real
+              y gestos de selección/arrastre (`flutter test integration_test -d linux`).
+            - **Windows x64** (`zip`): compila y pasa la suite en CI; el smoke
+              con ventana real queda pendiente (binario sin firmar).
+            - **macOS arm64** (`zip`): ídem; sin firmar ni notarizar
+              (clic derecho → Abrir en el primer arranque).
 
-            **Instalación:** descomprime el tarball y ejecuta `./aletheia`
-            (necesita GTK 3). Los datos se guardan en
-            `~/.local/share/dev.aletheia.aletheia/`. Contenido y licencias en
-            `NOTICE.md` dentro del paquete.
+            **Instalación:** descomprime el paquete de tu plataforma y ejecuta
+            el binario; el `README.txt` de cada paquete detalla rutas de datos
+            y requisitos. Contenido y licencias en `NOTICE.md`.
           files: |
-            app/aletheia-*.tar.gz
-            app/aletheia-*.tar.gz.sha256
+            dist/aletheia-*.tar.gz
+            dist/aletheia-*.tar.gz.sha256
+            dist/aletheia-*.zip
+            dist/aletheia-*.zip.sha256
           fail_on_unmatched_files: true
           generate_release_notes: true

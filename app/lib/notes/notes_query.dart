@@ -181,6 +181,12 @@ Map<int, List<Note>> notesByVerse(
   return map;
 }
 
+/// Centinela de «hasta el fin del versículo» para resaltados que empiezan o
+/// terminan en otro versículo (los resaltados multi-verso comparten ancla con
+/// offsets por versículo; al pintar un verso intermedio no se conoce el largo
+/// final, y este valor es siempre mayor que cualquier texto).
+const int kHighlightOpenEnd = 1 << 30;
+
 /// Rango de resaltado dentro de un versículo.
 class VerseHighlight {
   const VerseHighlight({
@@ -204,6 +210,11 @@ class VerseHighlight {
 ///
 /// Sólo se devuelven los del recurso del lector: los offsets pertenecen al
 /// texto de esa versión y no son comparables entre recursos distintos.
+///
+/// Un resaltado que cruza versículos (ancla con `verseEnd`) produce un rango
+/// en cada versículo cubierto: del offset inicial hasta el fin (`kHighlightOpenEnd`)
+/// en el primero, `kHighlightOpenEnd` en los intermedios y hasta el offset final
+/// en el último.
 Map<int, List<VerseHighlight>> highlightsByVerse(
   Iterable<Note> notes, {
   required String resourceId,
@@ -221,17 +232,57 @@ Map<int, List<VerseHighlight>> highlightsByVerse(
           !anchor.hasRange) {
         continue;
       }
-      map
-          .putIfAbsent(anchor.verse!, () => [])
-          .add(
-            VerseHighlight(
-              noteId: note.id,
-              start: anchor.startOffset!,
-              end: anchor.endOffset!,
-              color: note.color,
-              style: note.style,
-            ),
-          );
+      final first = anchor.verse!;
+      final last = anchor.verseEnd ?? first;
+      if (last > first) {
+        map
+            .putIfAbsent(first, () => [])
+            .add(
+              VerseHighlight(
+                noteId: note.id,
+                start: anchor.startOffset!,
+                end: kHighlightOpenEnd,
+                color: note.color,
+                style: note.style,
+              ),
+            );
+        for (var verse = first + 1; verse < last; verse++) {
+          map
+              .putIfAbsent(verse, () => [])
+              .add(
+                VerseHighlight(
+                  noteId: note.id,
+                  start: 0,
+                  end: kHighlightOpenEnd,
+                  color: note.color,
+                  style: note.style,
+                ),
+              );
+        }
+        map
+            .putIfAbsent(last, () => [])
+            .add(
+              VerseHighlight(
+                noteId: note.id,
+                start: 0,
+                end: anchor.endOffset!,
+                color: note.color,
+                style: note.style,
+              ),
+            );
+      } else {
+        map
+            .putIfAbsent(first, () => [])
+            .add(
+              VerseHighlight(
+                noteId: note.id,
+                start: anchor.startOffset!,
+                end: anchor.endOffset!,
+                color: note.color,
+                style: note.style,
+              ),
+            );
+      }
       break;
     }
   }
@@ -241,7 +292,8 @@ Map<int, List<VerseHighlight>> highlightsByVerse(
   return map;
 }
 
-/// Resaltados vigentes que se solapan con un rango de versículo.
+/// Resaltados vigentes que se solapan con un rango de versículo (o tramo de
+/// varios: [verseEnd] y [end] interpretan el último versículo).
 ///
 /// Lo usan el lector (para marcar el color activo y ofrecer «Quitar») y el
 /// panel (para actualizar el color existente en vez de crear otro encima).
@@ -253,23 +305,66 @@ List<Note> highlightsForRange(
   required int verse,
   required int start,
   required int end,
+  int? verseEnd,
 }) {
+  final selLast = verseEnd ?? verse;
   final result = <Note>[];
   for (final note in notes) {
-    if (!note.isHighlight || note.isTrashed) continue;
+    if (!note.isHighlight || note.isTrashed) {
+      continue;
+    }
     for (final anchor in note.anchors) {
       if (!anchorMatchesResource(anchor, resourceId) ||
           anchor.bookCode != bookCode ||
           anchor.chapter != chapter ||
-          anchor.verse != verse ||
+          anchor.verse == null ||
           !anchor.hasRange) {
         continue;
       }
-      if (anchor.startOffset! < end && anchor.endOffset! > start) {
+      final first = anchor.verse!;
+      final last = anchor.verseEnd ?? first;
+      if (last < verse || first > selLast) continue;
+      final sharedFirst = first > verse ? first : verse;
+      final sharedLast = last < selLast ? last : selLast;
+      if (sharedFirst != sharedLast) {
+        // Comparten más de un versículo: inevitable que se solapen.
+        result.add(note);
+        break;
+      }
+      // Solape en un único versículo: compárense los tramos efectivos allí.
+      final (aStart, aEnd) = _rangeInVerse(
+        verse: sharedFirst,
+        anchorFirst: first,
+        anchorLast: last,
+        start: anchor.startOffset,
+        end: anchor.endOffset,
+      );
+      final (sStart, sEnd) = _rangeInVerse(
+        verse: sharedFirst,
+        anchorFirst: verse,
+        anchorLast: selLast,
+        start: start,
+        end: end,
+      );
+      if (aStart < sEnd && aEnd > sStart) {
         result.add(note);
         break;
       }
     }
   }
   return result;
+}
+
+/// Tramo efectivo del ancla dentro de [verse] (con centinelas de abierto).
+(int, int) _rangeInVerse({
+  required int verse,
+  required int anchorFirst,
+  required int anchorLast,
+  required int? start,
+  required int? end,
+}) {
+  final open = kHighlightOpenEnd;
+  final startIn = anchorFirst == verse ? (start ?? 0) : 0;
+  final endIn = anchorLast == verse ? (end ?? open) : open;
+  return (startIn, endIn);
 }

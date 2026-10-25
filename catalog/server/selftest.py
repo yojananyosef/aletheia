@@ -85,6 +85,30 @@ def run(client: Client, catalog: Catalog) -> None:
     )
     check("resumen con licencia", summary["license"]["kind"] == "public-domain", str(summary["license"]))
 
+    check(
+        "facets de tema y editorial",
+        listing["facets"]["subject"].get("Biblia") == 12
+        and listing["facets"]["subject"].get("Comentario") == 6
+        and listing["facets"]["publisher"].get("CrossWire (módulo SWORD)") == 9
+        and listing["facets"]["publisher"].get("eBible.org") == 8,
+        str(listing["facets"]),
+    )
+
+    status, filtered, _ = client.get(
+        "/v1/resources?subject=Comentario&publisher=CrossWire%20(m%C3%B3dulo%20SWORD)"
+    )
+    expected_commentary_crosswire = {
+        m["manifest"]["title"] for m in catalog.resources.values()
+        if m["manifest"]["type"] == "commentary"
+        and m["manifest"].get("publisher") == "CrossWire (módulo SWORD)"
+    }
+    check(
+        "filtros combinados de faceta",
+        status == 200 and filtered["total"] == len(expected_commentary_crosswire)
+        and {m["title"] for m in filtered["items"]} == expected_commentary_crosswire,
+        f"{filtered['total']} vs {len(expected_commentary_crosswire)}",
+    )
+
     status, bible, _ = client.get("/v1/resources?type=bible")
     check("filtro por tipo", status == 200 and bible["total"] == 12)
     status, spanish, _ = client.get("/v1/resources?language=es")
@@ -300,6 +324,39 @@ def run(client: Client, catalog: Catalog) -> None:
         "NEAR/5 con distancia explícita",
         status == 200 and near5["total"] > 0,
         f"total={near5.get('total')}",
+    )
+
+    # BEFORE: exige ambos términos con el orden en el texto original. En
+    # GEN 1:1 «cielos» antecede a «tierra»; el orden inverso no debe
+    # devolver ese versículo. (La palabra clave va sin comillas.)
+    status, before_ok, _ = client.get(
+        "/v1/search?q=" + quote('bible:"GEN 1" cielos BEFORE tierra')
+        + "&pageSize=100"
+    )
+    refs_ok = {h["ref"] for h in before_ok["hits"]}
+    status, before_no, _ = client.get(
+        "/v1/search?q=" + quote('bible:"GEN 1" tierra BEFORE cielos')
+        + "&pageSize=100"
+    )
+    refs_no = {h["ref"] for h in before_no["hits"]}
+    check(
+        "BEFORE: orden de términos",
+        status == 200
+        and before_ok["total"] > 0
+        and "GEN.1.1" in refs_ok
+        and "GEN.1.1" not in refs_no,
+        f"ok={list(refs_ok)[:3]} no={list(refs_no)[:3]}",
+    )
+
+    status, before_err, _ = client.get(
+        "/v1/search?q=" + quote('BEFORE "tierra"') + "&scope=bible"
+    )
+    check(
+        "BEFORE mal construido: error claro",
+        status == 400 and "BEFORE necesita un término delante" in before_err.get(
+            "error", ""
+        ),
+        str(before_err)[:160],
     )
 
     status, field, _ = client.get(

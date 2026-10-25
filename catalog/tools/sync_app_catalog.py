@@ -8,8 +8,10 @@ Toma `catalog/data/` (creado por `build_catalog.py` y `seed_m5.py`) y deja en
   <recurso>/manifest.json    manifiesto en formato de app
   <recurso>/books/*.json.gz  contenido comprimido de las Biblias
   <recurso>/sections.json.gz índice de secciones (Factbook, devocional,
-                             comentario, diccionario y léxico)
-  <recurso>/sections/*.json  cuerpo de comentario y diccionario
+                             comentario, diccionario y léxico); con módulos
+                             de miles de fichas pequeñas los `blocks` van
+                             embebidos aquí (≤1500 archivos o cuerpos grandes
+                             se publican además como `<recurso>/sections/`)
   search.sqlite.gz           índice FTS5 comprimido (búsqueda sin servicio)
   search.meta.json           hash y tamaño para extraer/verificar el índice
   map_sections.json          secciones con mapas y contenido visual
@@ -94,6 +96,19 @@ def summary(manifest: dict) -> dict:
     }
 
 
+def write_gzip_json(value, dest: Path) -> None:
+    """Escribe JSON comprimido directo (mismo formato de `write_gzip`)."""
+    dest.write_bytes(
+        gzip.compress(
+            json.dumps(value, ensure_ascii=False, separators=(",", ":")).encode(
+                "utf-8"
+            ),
+            compresslevel=9,
+            mtime=0,
+        )
+    )
+
+
 def write_gzip(source: Path, dest: Path) -> None:
     """Escribe JSON comprimido y elimina una copia plana anterior."""
     dest.write_bytes(gzip.compress(source.read_bytes(), compresslevel=9, mtime=0))
@@ -123,15 +138,62 @@ def copy_resource(resource_id: str, base: Path, manifest: dict) -> Path:
         sections = base / "sections.json"
         if not sections.exists():
             raise SystemExit(f"ERROR: falta {sections} para {resource_id}")
-        write_gzip(sections, dest / "sections.json.gz")
         section_dir = base / "sections"
+        section_files = (
+            [p for p in sorted(section_dir.iterdir()) if p.suffix == ".json"]
+            if section_dir.exists()
+            else []
+        )
         embedded = bool((manifest.get("attributes") or {}).get("embeddedSections"))
+        # Publicar el cuerpo por sección en archivos sueltos desperdicia
+        # ~4 KB por archivo en el filesystem destino: un módulo con miles de
+        # fichas pequeñas (Webster 62 391, Easton 3 961, Josefo 2 696, TSK)
+        # pagaría cientos de MB por ~15 MB reales. Con muchos archivos
+        # pequeños, los `blocks` van embebidos en `sections.json.gz` (la app
+        # los lee de ahí: `entry['blocks'] is List`); los módulos de archivos
+        # pocos pero grandes (comentarios por capítulo) siguen per-file.
+        if not embedded and section_files:
+            total = sum(p.stat().st_size for p in section_files)
+            avg = total / max(1, len(section_files))
+            embedded = len(section_files) >= 1500 and avg <= 4 * 1024
+        write_gzip(sections, dest / "sections.json.gz")
         if section_dir.exists() and not embedded:
             target = dest / "sections"
             if target.exists():
                 shutil.rmtree(target)
-            shutil.copytree(section_dir, target)
+            # El cuerpo por sección viaja comprimido (como los libros): la
+            # app pide `<id>.json.gz` y cae al `.json` plano si no existe.
+            target.mkdir(parents=True)
+            for path in section_files:
+                write_gzip(path, target / (path.name + ".gz"))
+        else:
+            if embedded:
+                # Embeber: `entry['blocks']` en el índice; sin archivos sueltos.
+                index = json.loads(gzip.decompress(
+                    (dest / "sections.json.gz").read_bytes()
+                ))
+                bodies = {
+                    p.stem: json.loads(p.read_text(encoding="utf-8"))
+                    for p in section_files
+                }
+                for entry in index:
+                    if entry.get("blocks") is None:
+                        body = bodies.get(entry.get("id"))
+                        if body is not None:
+                            entry["blocks"] = body.get("blocks", [])
+                write_gzip_json(index, dest / "sections.json.gz")
+            for stale in ("sections",):
+                target = dest / stale
+                if target.exists():
+                    shutil.rmtree(target)
     return dest
+
+
+def write_gzip_json(value, dest: Path) -> None:
+    dest.write_bytes(gzip.compress(
+        json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        .encode("utf-8")
+    ))
 
 
 def write_media_manifest(resources: list[tuple[dict, Path]]) -> None:
@@ -163,10 +225,16 @@ def write_media_manifest(resources: list[tuple[dict, Path]]) -> None:
                 continue
             blocks = section.get("blocks")
             if blocks is None:
+                body_gz = dest / "sections" / f"{section_id}.json.gz"
                 body = dest / "sections" / f"{section_id}.json"
-                if not body.exists():
+                if body_gz.exists():
+                    blocks = json.loads(gzip.decompress(body_gz.read_bytes())).get(
+                        "blocks", []
+                    )
+                elif body.exists():
+                    blocks = read_json(body).get("blocks", [])
+                else:
                     continue
-                blocks = read_json(body).get("blocks", [])
             types = {block.get("type") for block in blocks or []}
             if not types.intersection(visual_types):
                 continue

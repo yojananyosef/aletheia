@@ -199,9 +199,15 @@ void main() {
           ),
         );
     await tester.pump(const Duration(milliseconds: 500));
-    await _waitFor(
+    await _scrollSearchResults(
       tester,
       find.byKey(const ValueKey('search-group-commentary.matthew-henry-concise')),
+    );
+    await _scrollSearchResults(
+      tester,
+      find.byKey(
+        const ValueKey('search-hit-commentary.matthew-henry-concise-JHN.3'),
+      ),
     );
     await tester.tap(
       find.byKey(const ValueKey(
@@ -336,4 +342,22 @@ Future<void> _scrollLibraryRow(WidgetTester tester, String title) async {
     await tester.pump(const Duration(milliseconds: 120));
   }
   fail('No se pudo desplazar a la vista la fila «$title»');
+}
+
+/// Los resultados de búsqueda también se virtualizan: el cambio de ranking
+/// (bm25) puede dejar un grupo debajo del pliegue construido. Arrastra la
+/// lista de resultados hasta que el buscado aparezca.
+Future<void> _scrollSearchResults(WidgetTester tester, Finder finder) async {
+  final list = find.byWidgetPredicate(
+    (w) => w is ListView && (w.key is ValueKey<String>) &&
+        ((w.key as ValueKey<String>).value.startsWith('search-results-')),
+  );
+  for (var i = 0; i < 30; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+    if (finder.evaluate().isNotEmpty) return;
+    if (list.evaluate().isEmpty) continue;
+    await tester.drag(list, const Offset(0, -160));
+    await tester.pump(const Duration(milliseconds: 160));
+  }
+  fail('No se pudo desplazar a la vista $finder');
 }

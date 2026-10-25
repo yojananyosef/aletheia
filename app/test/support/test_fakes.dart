@@ -20,10 +20,12 @@ const testResources = [
     abbrev: 'RV1909',
     authors: ['Reina, Casiodoro de', 'Valera, Cipriano de'],
     language: 'es',
+    publisher: 'Sociedad Bíblica de prueba',
     licenseKind: 'public-domain',
     licenseText: 'Dominio público',
     verses: 31102,
     sections: 1189,
+    tags: ['Biblia', 'Español'],
     description: 'Traducción clásica al español.',
   ),
   ResourceSummary(
@@ -33,8 +35,10 @@ const testResources = [
     abbrev: 'CP',
     authors: ['Autor de prueba'],
     language: 'es',
+    publisher: 'Editorial de prueba',
     licenseKind: 'public-domain',
     licenseText: 'Dominio público',
+    tags: ['Comentario', 'NT'],
     sections: 120,
   ),
 ];
@@ -58,6 +62,8 @@ const testFacets = {
   'type': {'bible': 1, 'commentary': 1},
   'language': {'es': 2},
   'author': {'Autor de prueba': 1, 'Reina, Casiodoro de': 1},
+  'subject': {'Biblia': 1, 'Comentario': 1},
+  'publisher': {'Sociedad Bíblica de prueba': 1, 'Editorial de prueba': 1},
 };
 
 SearchHit testHit(
@@ -111,6 +117,8 @@ class FakeCatalogGateway extends CatalogGateway {
     String? type,
     String? language,
     String? author,
+    String? subject,
+    String? publisher,
     String sort = 'title',
     int page = 1,
     int pageSize = 50,
@@ -121,6 +129,10 @@ class FakeCatalogGateway extends CatalogGateway {
       if (type != null && r.type != type) return false;
       if (language != null && r.language != language) return false;
       if (author != null && !r.authors.contains(author)) return false;
+      if (subject != null && (r.tags.isEmpty || r.tags.first != subject)) {
+        return false;
+      }
+      if (publisher != null && r.publisher != publisher) return false;
       if (query.trim().isNotEmpty &&
           !r.title.toLowerCase().contains(query.toLowerCase())) {
         return false;

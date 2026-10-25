@@ -277,6 +277,21 @@ class ModulesStore {
       var received = 0;
       for (final file in files) {
         _throwIfCancelled(id);
+        // Actualización delta: si el archivo ya está en disco con el sha256
+        // publicado, no se vuelve a bajar (reinstalar/actualizar una
+        // biblioteca sólo transfiere lo cambiado).
+        if (await _localFileMatches(file)) {
+          received += file.bytes;
+          _set(
+            id,
+            ModuleInstallProgress(
+              phase: ModuleInstallPhase.running,
+              received: received,
+              total: total,
+            ),
+          );
+          continue;
+        }
         received += await _downloadAndVerify(id, file, received, total);
       }
       await _commit(
@@ -328,6 +343,22 @@ class ModulesStore {
     if (_cancelling.contains(id) || _disposed) {
       throw const CatalogDownloadCancelled();
     }
+  }
+
+  /// ¿El archivo local ya coincide con el sha256 publicado? Sólo sirve para
+  /// saltar la descarga (actualización delta); sin sha en el manifiesto no se
+  /// puede decidir y se baja de nuevo.
+  Future<bool> _localFileMatches(ModuleFile file) async {
+    if (file.sha256.isEmpty) return false;
+    final local = File(absolutePath(file.path));
+    if (!await local.exists()) return false;
+    if (file.bytes > 0 && await local.length() != file.bytes) return false;
+    if (file.bytes == 0) {
+      final bytes = await local.readAsBytes();
+      return sha256.convert(bytes).toString() == file.sha256;
+    }
+    final digest = await sha256.bind(local.openRead()).first;
+    return digest.toString() == file.sha256;
   }
 
   /// Descarga un archivo a disco (atómico) y verifica su sha256.

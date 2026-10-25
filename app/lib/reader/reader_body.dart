@@ -327,6 +327,9 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
 
   TabDisplay get _display => widget.display;
 
+  /// Pila tipográfica del recurso (3.17).
+  String get _font => _display.font;
+
   bool get _paged => widget.display.paged && !widget.limitedView;
 
   _TextOptions get _options =>
@@ -807,7 +810,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
           const Divider(height: 17),
           Text(
             context.l10n.readerFootnoteList,
-            style: readerBodyStyle(size: 11)
+            style: readerBodyStyle(size: 11, font: _font)
                 .copyWith(color: kTextSecondary, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 2),
@@ -816,7 +819,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
               padding: const EdgeInsets.only(bottom: 2),
               child: Text(
                 note,
-                style: readerBodyStyle(size: 11.5)
+                style: readerBodyStyle(size: 11.5, font: _font)
                     .copyWith(color: kTextSecondary),
               ),
             ),
@@ -896,9 +899,9 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
         switch (block) {
           case HeadingBlock h:
             final style = h.style == 'psalmTitle'
-                ? readerBodyStyle(size: 14.5)
+                ? readerBodyStyle(size: 14.5, font: _font)
                       .copyWith(fontStyle: FontStyle.italic)
-                : readerSectionHeadingStyle();
+                : readerSectionHeadingStyle(font: _font);
             chunks.add(
               _FlowChunk(
                 height:
@@ -915,7 +918,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
                 height:
                     measure(
                       '${c.value}',
-                      readerChapterNumberStyle(),
+                      readerChapterNumberStyle(font: _font),
                       columnWidth,
                     ) +
                     16,
@@ -935,7 +938,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
               chunks.add(
                 _FlowChunk(
                   height:
-                      measure(text, readerBodyStyle(), columnWidth - base) + 3,
+                      measure(text, readerBodyStyle(font: _font), columnWidth - base) + 3,
                   book: section.bookCode,
                   chapter: chapter.n,
                   verseStart: verse.n == 0 ? null : verse.n,
@@ -973,7 +976,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
               height:
                   measure(
                     '${footnote.label} ${footnote.text}',
-                    readerBodyStyle(size: 11.5),
+                    readerBodyStyle(size: 11.5, font: _font),
                     columnWidth,
                   ) +
                   4,
@@ -983,7 +986,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
                   '${footnote.label} ${footnote.text}',
-                  style: readerBodyStyle(size: 11.5)
+                  style: readerBodyStyle(size: 11.5, font: _font)
                       .copyWith(color: kTextSecondary),
                 ),
               ),
@@ -1142,7 +1145,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       child: h.style == 'psalmTitle'
           ? Text(
               h.text,
-              style: readerBodyStyle(size: 14.5)
+              style: readerBodyStyle(size: 14.5, font: _font)
                   .copyWith(fontStyle: FontStyle.italic, color: kTextSecondary),
             )
           // La RV1909 del original centra el título de sección (home2); la
@@ -1152,7 +1155,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
               child: Text(
                 h.text,
                 textAlign: TextAlign.center,
-                style: readerSectionHeadingStyle(),
+                style: readerSectionHeadingStyle(font: _font),
               ),
             ),
     );
@@ -1163,7 +1166,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       padding: const EdgeInsets.only(top: 14, bottom: 2),
       child: Align(
         alignment: _rtl ? Alignment.centerRight : Alignment.centerLeft,
-        child: Text('${c.value}', style: readerChapterNumberStyle()),
+        child: Text('${c.value}', style: readerChapterNumberStyle(font: _font)),
       ),
     );
   }
@@ -1179,7 +1182,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
           const SizedBox(height: 6),
           Text(
             context.l10n.readerFootnoteList,
-            style: readerBodyStyle(size: 11)
+            style: readerBodyStyle(size: 11, font: _font)
                 .copyWith(color: kTextSecondary, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 3),
@@ -1188,7 +1191,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
               padding: const EdgeInsets.only(bottom: 3),
               child: Text(
                 '${footnote.label} ${footnote.text}',
-                style: readerBodyStyle(size: 12)
+                style: readerBodyStyle(size: 12, font: _font)
                     .copyWith(color: kTextSecondary),
               ),
             ),
@@ -1240,13 +1243,13 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     // forme parte del texto copiado ni de las referencias de selección. Con
     // «Formato del texto bíblico» apagado no hay sangría.
     final indent = options.formattedBibleText
-        ? (readerBodyStyle().fontSize ?? 15.5) * 1.5
+        ? (readerBodyStyle(font: _font).fontSize ?? 15.5) * 1.5
         : 0.0;
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: Text.rich(
         TextSpan(
-          style: readerBodyStyle(),
+          style: readerBodyStyle(font: _font),
           children: [
             WidgetSpan(child: SizedBox(width: indent)),
             ...spans,
@@ -1303,7 +1306,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       padding: EdgeInsets.only(left: left, top: 3),
       child: Text.rich(
         TextSpan(
-          style: readerBodyStyle(),
+          style: readerBodyStyle(font: _font),
           children: _spansForVerse(
             verse,
             chapter,
@@ -1565,6 +1568,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     verse: match.verse,
     start: match.start,
     end: match.end,
+    verseEnd: match.verseEnd,
   );
 
   /// Color activo de la selección cuando todos los resaltados solapados
@@ -1644,7 +1648,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     alignment: PlaceholderAlignment.top,
     child: Padding(
       padding: const EdgeInsets.only(right: 1),
-      child: Text('$n', style: readerMarkerStyle()),
+      child: Text('$n', style: readerMarkerStyle(font: _font)),
     ),
   );
 
@@ -1656,7 +1660,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       // Vista limitada: indicadores como texto llano (sin superposición).
       return TextSpan(
         text: ' ($text)',
-        style: readerBodyStyle(size: 12.5).copyWith(color: kTextSecondary),
+        style: readerBodyStyle(size: 12.5, font: _font).copyWith(color: kTextSecondary),
       );
     }
     return WidgetSpan(
@@ -1668,11 +1672,17 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
           child: GestureDetector(
             onTapDown: (details) =>
                 _showFootnote(details.globalPosition, label, text),
-            child: Text(
-              label,
-              style: readerMarkerStyle().copyWith(
-                color: kAccent,
-                fontWeight: FontWeight.w600,
+            child: Semantics(
+              button: true,
+              label: context.l10n.readerFootnoteA11y(label, text),
+              onTapHint: context.l10n.readerFootnoteOpenHint,
+              excludeSemantics: true,
+              child: Text(
+                label,
+                style: readerMarkerStyle(font: _font).copyWith(
+                  color: kAccent,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -1685,7 +1695,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     final canonical = parseReference(x.ref ?? x.label)?.canonical;
     final marker = Text(
       x.label,
-      style: readerMarkerStyle().copyWith(
+      style: readerMarkerStyle(font: _font).copyWith(
         color: kAccent,
         fontWeight: FontWeight.w600,
       ),
@@ -1701,7 +1711,10 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
           onTap: () => widget.onNavigate(canonical),
           child: Tooltip(
             message: displayFromCanonical(canonical, lang: context.l10nLang),
-            child: marker,
+            child: Semantics(
+              onTapHint: context.l10n.readerXrefOpenHint,
+              child: marker,
+            ),
           ),
         ),
       ),

@@ -18,6 +18,8 @@ import '../catalog/catalog_gateway.dart';
 import '../catalog/catalog_models.dart';
 import '../catalog/document_models.dart';
 import '../catalog/document_repository.dart';
+import '../core/content_export.dart';
+import '../core/export_dialog.dart';
 import '../core/localization.dart';
 import '../core/resource_colors.dart';
 import '../core/theme.dart';
@@ -428,6 +430,53 @@ class _ReaderPanelState extends ConsumerState<ReaderPanel> {
     await _copyText(buffer.toString().trim());
   }
 
+  /// Exporta el capítulo actual (Markdown/HTML/Texto; copiar, guardar o
+  /// imprimir) con la cita como pie.
+  Future<void> _exportPassage() async {
+    final parsed = parseReference(_reference);
+    if (parsed == null) return;
+    final state = ref.read(workspaceProvider);
+    final manifest = ref.read(manifestProvider(widget.resourceId)).value;
+    var blocks = <BookBlock>[];
+    try {
+      final book = await ref
+          .read(documentRepositoryProvider)
+          .loadBook(widget.resourceId, parsed.bookCode);
+      final chapter = book.chapter(parsed.chapter);
+      if (chapter != null) blocks = chapter.blocks;
+    } catch (_) {
+      // Sin capítulo cargable: se exporta el título con la cita.
+    }
+    final resourceTitle = manifest?.title ?? widget.tab.title;
+    final license = manifest?.license ?? '';
+    final doc = ExportDocument(
+      title: _displayRef(),
+      blocks: blocks,
+      footer: [
+        resourceTitle,
+        if (license.isNotEmpty) license,
+        if (state.copyCitations) _citation(hyperlink: true),
+      ].where((part) => part.isNotEmpty).join(' · '),
+    );
+    if (!mounted) return;
+    ExportDialog.show(
+      context,
+      title: context.l10n.exportPassage,
+      buildContent: doc.build,
+      suggestedBaseName: _exportBaseName(),
+    );
+  }
+
+  /// Nombre base para el archivo exportado (p. ej. `juan-3-rv1909`).
+  String _exportBaseName() {
+    final parsed = parseReference(_reference);
+    final referencePart = parsed == null
+        ? 'pasaje'
+        : '${parsed.bookCode.toLowerCase()}-${parsed.chapter}'
+              '${parsed.verseStart != null ? '-${parsed.verseStart}' : ''}';
+    return 'aletheia-$referencePart-${widget.resourceId.split('.').last}';
+  }
+
   String _plainBlock(BookBlock block) {
     switch (block) {
       case HeadingBlock h:
@@ -531,6 +580,7 @@ class _ReaderPanelState extends ConsumerState<ReaderPanel> {
     bookCode: match.bookCode,
     chapter: match.chapter,
     verse: match.verse,
+    verseEnd: match.verseEnd,
     startOffset: match.start,
     endOffset: match.end,
     quote: quote,
@@ -571,6 +621,7 @@ class _ReaderPanelState extends ConsumerState<ReaderPanel> {
     verse: match.verse,
     start: match.start,
     end: match.end,
+    verseEnd: match.verseEnd,
   );
 
   /// Resaltado creado o actualizado desde una selección (sin abrir el editor).
@@ -1036,6 +1087,14 @@ class _ReaderPanelState extends ConsumerState<ReaderPanel> {
                           style: const TextStyle(fontSize: 13.5),
                         ),
                       ),
+                      PopupMenuItem(
+                        value: 'export',
+                        height: 34,
+                        child: Text(
+                          l10n.exportPassage,
+                          style: const TextStyle(fontSize: 13.5),
+                        ),
+                      ),
                       const PopupMenuDivider(),
                       PopupMenuItem(
                         enabled: false,
@@ -1054,6 +1113,8 @@ class _ReaderPanelState extends ConsumerState<ReaderPanel> {
                           _copyText(_citation(hyperlink: true));
                         case 'passage':
                           _copyPassageAndCitation();
+                        case 'export':
+                          _exportPassage();
                       }
                     },
                     child: _ModeButton(

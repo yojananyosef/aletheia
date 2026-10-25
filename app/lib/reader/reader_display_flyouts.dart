@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/localization.dart';
 import '../core/theme.dart';
 import '../notes/notes_controller.dart';
+import 'reader_style.dart';
 import '../workspace/models.dart';
 
 /// Tarjeta de flyout (título, atajo opcional y ✕).
@@ -248,6 +249,46 @@ class ReformatFlyout extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
+          Text(
+            l10n.fmtTypography,
+            style: const TextStyle(fontSize: 13),
+          ),
+          const SizedBox(height: 4),
+          SegmentedButton<String>(
+            key: const ValueKey('reader-font-switch'),
+            showSelectedIcon: false,
+            style: const ButtonStyle(
+              visualDensity: VisualDensity.compact,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            segments: [
+              ButtonSegment(
+                value: 'serif',
+                label: Text(
+                  l10n.fontSerif,
+                  style: readerBodyStyle(size: 12.5, font: 'serif'),
+                ),
+              ),
+              ButtonSegment(
+                value: 'sans',
+                label: Text(
+                  l10n.fontSans,
+                  style: readerBodyStyle(size: 12.5, font: 'sans'),
+                ),
+              ),
+              ButtonSegment(
+                value: 'mono',
+                label: Text(
+                  l10n.fontMono,
+                  style: readerBodyStyle(size: 12.5, font: 'mono'),
+                ),
+              ),
+            ],
+            selected: {display.font},
+            onSelectionChanged: (selection) =>
+                onChanged(display.copyWith(font: selection.first)),
+          ),
+          const SizedBox(height: 8),
           FlyoutSwitchRow(
             key: const ValueKey('reader-reformat-switch'),
             label: l10n.fmtReformatTitle,

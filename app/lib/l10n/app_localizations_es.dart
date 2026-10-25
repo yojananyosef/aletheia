@@ -462,6 +462,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get readerFootnoteUnavailable => 'Nota al pie no disponible.';
 
   @override
+  String readerFootnoteA11y(String label, String text) {
+    return 'Nota al pie $label: $text';
+  }
+
+  @override
+  String get readerFootnoteOpenHint => 'Ver la nota al pie';
+
+  @override
+  String get readerXrefOpenHint => 'Ir a la referencia cruzada';
+
+  @override
   String readerInvalidReference(String reference) {
     return 'Referencia no válida: $reference';
   }
@@ -710,6 +721,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get fmtReformat => 'Reformato';
+
+  @override
+  String get fmtTypography => 'Tipografía';
+
+  @override
+  String get fontSerif => 'Serif';
+
+  @override
+  String get fontSans => 'Sans';
+
+  @override
+  String get fontMono => 'Mono';
 
   @override
   String get fmtReformatTitle => 'Reformato del texto';
@@ -968,6 +991,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get libraryFacetAuthor => 'Autor';
+
+  @override
+  String get libraryFacetSubject => 'Tema';
+
+  @override
+  String get libraryFacetPublisher => 'Editorial';
 
   @override
   String get libraryLoadMore => 'Cargar más';
@@ -2120,6 +2149,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get storeAllTypes => 'Todos los tipos';
 
   @override
+  String get storeAllSubjects => 'Todos los temas';
+
+  @override
+  String get storeAllPublishers => 'Todas las editoriales';
+
+  @override
   String get storeEmpty => 'No hay recursos que coincidan.';
 
   @override
@@ -2647,4 +2682,128 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get libraryInstalledChip => 'Instalado';
+
+  @override
+  String get dataCareTitle => 'Datos y respaldo';
+
+  @override
+  String get backupExport => 'Exportar respaldo…';
+
+  @override
+  String get backupExportHelp =>
+      'Guarda tus notas, resaltados, favoritos, planes y diseños en un archivo de respaldo.';
+
+  @override
+  String backupExported(String path) {
+    return 'Respaldo guardado en $path';
+  }
+
+  @override
+  String get backupRestore => 'Restaurar respaldo…';
+
+  @override
+  String get backupRestoreHelp =>
+      'Elige un respaldo anterior; se aplicará la próxima vez que abras Aletheia.';
+
+  @override
+  String get backupRestoreConfirmTitle => '¿Restaurar este respaldo?';
+
+  @override
+  String backupRestoreConfirmBody(String date, String version) {
+    return 'Se restaurarán tus datos del $date (respaldo hecho con la versión $version). Tus datos actuales se guardan antes de reemplazarse.';
+  }
+
+  @override
+  String get backupRestoreApply => 'Restaurar y reiniciar';
+
+  @override
+  String get backupStagedRestart =>
+      'Respaldo listo: se aplicará la próxima vez que abras Aletheia.';
+
+  @override
+  String get crashLogExport => 'Exportar registro de fallos…';
+
+  @override
+  String get crashLogHelp =>
+      'Registro local de errores, sin telemetría; sirve para reportar problemas.';
+
+  @override
+  String get crashLogEmpty => 'No hay registro de fallos.';
+
+  @override
+  String crashLogExported(String path) {
+    return 'Registro guardado en $path';
+  }
+
+  @override
+  String get crashLogClear => 'Borrar registro de fallos';
+
+  @override
+  String get crashLogCleared => 'Registro borrado.';
+
+  @override
+  String get updateCheck => 'Buscar actualizaciones';
+
+  @override
+  String get updateCheckHelp =>
+      'Compara tu versión con la última publicada en GitHub. Sin telemetría.';
+
+  @override
+  String get updateNone => 'Estás usando la última versión.';
+
+  @override
+  String updateAvailableTitle(String version) {
+    return 'Hay una versión nueva: $version';
+  }
+
+  @override
+  String get updateAvailableBody =>
+      'Puedes descargar el binario para tu plataforma desde la página de releases de GitHub.';
+
+  @override
+  String get updateOpenReleases => 'Abrir releases';
+
+  @override
+  String aboutVersion(String version) {
+    return 'Aletheia $version';
+  }
+
+  @override
+  String get exportPassage => 'Exportar pasaje…';
+
+  @override
+  String get exportNote => 'Exportar nota…';
+
+  @override
+  String get exportFormat => 'Formato';
+
+  @override
+  String get exportFormatMarkdown => 'Markdown';
+
+  @override
+  String get exportFormatHtml => 'HTML';
+
+  @override
+  String get exportFormatPlain => 'Texto plano';
+
+  @override
+  String get exportCopy => 'Copiar al portapapeles';
+
+  @override
+  String get exportSave => 'Guardar archivo…';
+
+  @override
+  String get exportPrint => 'Imprimir…';
+
+  @override
+  String get exportPrintHelp =>
+      'Abre el pasaje en tu navegador con el diálogo de impresión.';
+
+  @override
+  String exportSaved(String path) {
+    return 'Archivo guardado en $path';
+  }
+
+  @override
+  String get exportCopied => 'Exportación copiada al portapapeles';
 }

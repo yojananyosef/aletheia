@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,6 +20,7 @@ import '../core/theme.dart';
 import '../notes/notes_panel.dart';
 import '../reader/reader_panel.dart';
 import '../search/search_panel.dart';
+import '../settings/data_care_section.dart';
 import '../store/store_panel.dart';
 import 'catalog_resource_panel.dart';
 import 'devotional_panel.dart';
@@ -411,6 +413,12 @@ class _SettingsPanelState extends ConsumerState<SettingsPanel> {
         ),
         const SizedBox(height: 8),
         _CatalogStatus(health: health),
+        const SizedBox(height: 10),
+        if (!kIsWeb) ...[
+          _SectionTitle(l10n.dataCareTitle),
+          const SizedBox(height: 4),
+          const DataCareSection(),
+        ],
         const SizedBox(height: 10),
       ],
     );

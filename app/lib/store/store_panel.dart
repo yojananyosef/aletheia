@@ -36,6 +36,8 @@ class _StorePanelState extends ConsumerState<StorePanel> {
   final _findController = TextEditingController();
   String _query = '';
   String? _type;
+  String? _subject;
+  String? _publisher;
   List<ResourceSummary>? _resources;
   Object? _error;
   bool _loading = true;
@@ -80,6 +82,9 @@ class _StorePanelState extends ConsumerState<StorePanel> {
     return [
       for (final resource in _resources ?? const <ResourceSummary>[])
         if ((_type == null || resource.type == _type) &&
+            (_subject == null ||
+                (resource.tags.isNotEmpty && resource.tags.first == _subject)) &&
+            (_publisher == null || resource.publisher == _publisher) &&
             (query.isEmpty ||
                 resource.title.toLowerCase().contains(query) ||
                 (resource.subtitle ?? '').toLowerCase().contains(query) ||
@@ -97,6 +102,15 @@ class _StorePanelState extends ConsumerState<StorePanel> {
     final types = {
       for (final resource in _resources ?? const <ResourceSummary>[])
         resource.type,
+    }.toList()..sort();
+    final subjects = {
+      for (final resource in _resources ?? const <ResourceSummary>[])
+        if (resource.tags.isNotEmpty) resource.tags.first,
+    }.toList()..sort();
+    final publishers = {
+      for (final resource in _resources ?? const <ResourceSummary>[])
+        if (resource.publisher != null && resource.publisher!.isNotEmpty)
+          resource.publisher!,
     }.toList()..sort();
 
     return Container(
@@ -169,10 +183,10 @@ class _StorePanelState extends ConsumerState<StorePanel> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final wide = constraints.maxWidth >= 700;
-                return Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
                   children: [
                     Expanded(
                       child: TextField(
@@ -205,6 +219,24 @@ class _StorePanelState extends ConsumerState<StorePanel> {
                       ),
                     ),
                     const SizedBox(width: 10),
+                    IconButton(
+                      key: const ValueKey('store-open-library'),
+                      tooltip: l10n.storeOpenLibrary,
+                      onPressed: () => ref
+                          .read(libraryOverlayVisibleProvider.notifier)
+                          .open(),
+                      icon: const Icon(
+                        Icons.local_library_outlined,
+                        size: 18,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  children: [
                     PopupMenuButton<String>(
                       key: const ValueKey('store-type-filter'),
                       tooltip: l10n.storeAllTypes,
@@ -227,62 +259,72 @@ class _StorePanelState extends ConsumerState<StorePanel> {
                             ),
                           ),
                       ],
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 9,
-                        ),
-                        decoration: BoxDecoration(
-                          color: kFieldFill,
-                          borderRadius: BorderRadius.circular(7),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              _type == null
-                                  ? l10n.storeAllTypes
-                                  : resourceTypeLabel(_type!, lang: lang),
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                color: kTextPrimary,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.arrow_drop_down, size: 17),
-                          ],
-                        ),
+                      child: _storeFilterChip(
+                        label: _type == null
+                            ? l10n.storeAllTypes
+                            : resourceTypeLabel(_type!, lang: lang),
                       ),
                     ),
-                    if (wide)
-                      TextButton.icon(
-                        key: const ValueKey('store-open-library'),
-                        onPressed: () => ref
-                            .read(libraryOverlayVisibleProvider.notifier)
-                            .open(),
-                        icon: const Icon(
-                          Icons.local_library_outlined,
-                          size: 16,
+                    PopupMenuButton<String>(
+                      key: const ValueKey('store-subject-filter'),
+                      tooltip: l10n.storeAllSubjects,
+                      onSelected: (value) =>
+                          setState(() => _subject = value == 'all' ? null : value),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'all',
+                          child: Text(
+                            l10n.storeAllSubjects,
+                            style: const TextStyle(fontSize: 13),
+                          ),
                         ),
-                        label: Text(
-                          l10n.storeOpenLibrary,
-                          style: const TextStyle(fontSize: 12.5),
-                        ),
-                      )
-                    else
-                      IconButton(
-                        key: const ValueKey('store-open-library'),
-                        tooltip: l10n.storeOpenLibrary,
-                        onPressed: () => ref
-                            .read(libraryOverlayVisibleProvider.notifier)
-                            .open(),
-                        icon: const Icon(
-                          Icons.local_library_outlined,
-                          size: 18,
-                        ),
+                        for (final subject in subjects)
+                          PopupMenuItem(
+                            value: subject,
+                            child: Text(
+                              subject,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                      ],
+                      child: _storeFilterChip(
+                        label: _subject == null
+                            ? l10n.storeAllSubjects
+                            : _subject!,
                       ),
+                    ),
+                    PopupMenuButton<String>(
+                      key: const ValueKey('store-publisher-filter'),
+                      tooltip: l10n.storeAllPublishers,
+                      onSelected: (value) => setState(
+                        () => _publisher = value == 'all' ? null : value,
+                      ),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'all',
+                          child: Text(
+                            l10n.storeAllPublishers,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                        for (final publisher in publishers)
+                          PopupMenuItem(
+                            value: publisher,
+                            child: Text(
+                              publisher,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                      ],
+                      child: _storeFilterChip(
+                        label: _publisher == null
+                            ? l10n.storeAllPublishers
+                            : _publisher!,
+                      ),
+                    ),
                   ],
-                );
-              },
+                ),
+              ],
             ),
           ),
           const Divider(height: 1),
@@ -291,6 +333,31 @@ class _StorePanelState extends ConsumerState<StorePanel> {
       ),
     );
   }
+
+  /// Chip desplegable de faceta de la tienda (tipo / tema / editorial).
+  Widget _storeFilterChip({required String label}) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+    decoration: BoxDecoration(
+      color: kFieldFill,
+      borderRadius: BorderRadius.circular(7),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 190),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12.5, color: kTextPrimary),
+          ),
+        ),
+        const SizedBox(width: 4),
+        const Icon(Icons.arrow_drop_down, size: 17),
+      ],
+    ),
+  );
 
   Widget _buildBody(AppLocalizations l10n, String lang) {
     if (_loading) {

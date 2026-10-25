@@ -118,7 +118,7 @@ def tokenize_query(query: str) -> list[tuple[str, str]]:
             tokens.append(("op", upper))
         elif near:
             tokens.append(("near", near.group(1) or "10"))
-        elif upper in ("WITHIN", "WORDS"):
+        elif upper in ("WITHIN", "WORDS", "BEFORE"):
             tokens.append(("kw", upper))
         elif word.isdigit():
             tokens.append(("num", word))
@@ -150,8 +150,14 @@ def _quoted(value: str) -> str:
     return '"' + value.replace('"', '""') + '"'
 
 
-def fts_expression(query: str) -> str:
-    """Convierte la consulta del usuario en una expresión MATCH de FTS5."""
+def fts_expression(query: str) -> tuple[str, list[tuple[str, str]]]:
+    """Convierte la consulta del usuario en una expresión MATCH de FTS5.
+
+    Devuelve `(expresión, restricciones_before)`: FTS5 no tiene un operador de
+    orden, así que `A BEFORE B` exige ambos términos en el MATCH (cómo `AND`)
+    y las posiciones se comprueban en SQLite con `instr` sobre el texto
+    original; el índice local aplica exactamente la misma semántica.
+    """
     tokens = tokenize_query(query)
     if not tokens:
         raise QueryError("consulta vacía")
@@ -163,6 +169,10 @@ def fts_expression(query: str) -> str:
         return _quoted(value)
 
     out: list[str] = []
+    # Operando simple de cada salida; `None` para operadores y expresiones
+    # compuestas. BEFORE solo se aplica a términos simples.
+    raw_operands: list[str | None] = []
+    before: list[tuple[str, str]] = []
     i = 0
     while i < len(tokens):
         kind, value = tokens[i]
@@ -175,7 +185,9 @@ def fts_expression(query: str) -> str:
             if num[0] != "num" or (words[0], words[1]) != ("kw", "WORDS"):
                 raise QueryError("WITHIN necesita «WITHIN n WORDS término»")
             left = out.pop()
+            raw_operands.pop()
             out.append(f"NEAR({left} {term(right)}, {num[1]})")
+            raw_operands.append(None)
             i += 4
             continue
         if kind == "near":
@@ -187,22 +199,43 @@ def fts_expression(query: str) -> str:
             if right[0] not in ("word", "phrase", "num"):
                 raise QueryError("NEAR necesita un término a la derecha")
             left = out.pop()
+            raw_operands.pop()
             out.append(f"NEAR({left} {term(right)}, {value})")
+            raw_operands.append(None)
+            i += 2
+            continue
+        if kind == "kw" and value == "BEFORE":
+            if not out:
+                raise QueryError("BEFORE necesita un término delante")
+            if i + 1 >= len(tokens):
+                raise QueryError("BEFORE necesita un término a la derecha")
+            right = tokens[i + 1]
+            if right[0] not in ("word", "phrase", "num"):
+                raise QueryError("BEFORE necesita un término a la derecha")
+            left_raw = raw_operands.pop()
+            if left_raw is None:
+                raise QueryError("BEFORE necesita un término simple a la izquierda")
+            left = out.pop()
+            out.append(f"{left} AND {term(right)}")
+            raw_operands.append(None)
+            before.append((left_raw, right[1]))
             i += 2
             continue
         if kind == "op":
             if not out:
                 raise QueryError(f"«{value}» no puede ir al principio")
             out.append(value)
+            raw_operands.append(None)
         elif kind == "kw":
             raise QueryError(f"palabra clave inesperada: {value}")
         else:
             out.append(term(tokens[i]))
+            raw_operands.append(value)
         i += 1
 
     if out and out[-1] in OPERATORS:
         raise QueryError("la consulta no puede terminar en operador")
-    return " ".join(out)
+    return " ".join(out), before
 
 
 # ------------------------------------------------------------------ catálogo
@@ -268,6 +301,8 @@ class Catalog:
         type_ = (params.get("type") or [None])[0]
         language = (params.get("language") or [None])[0]
         author = (params.get("author") or [None])[0]
+        subject = (params.get("subject") or [None])[0]
+        publisher = (params.get("publisher") or [None])[0]
         result = []
         for entry in self.resources.values():
             m = entry["manifest"]
@@ -277,10 +312,20 @@ class Catalog:
                 continue
             if author and skip != "author" and author not in m.get("authors", []):
                 continue
+            if subject and skip != "subject" and self._subject(m) != subject:
+                continue
+            if publisher and skip != "publisher" and m.get("publisher") != publisher:
+                continue
             if query and not self._text_match(m, query):
                 continue
             result.append(m)
         return result
+
+    @staticmethod
+    def _subject(m: dict) -> str:
+        """Tema del recurso: su primera etiqueta («Comentario», «Léxico»…)."""
+        tags = m.get("tags") or []
+        return (tags[0] or "—") if tags else "—"
 
     @staticmethod
     def _counts(values) -> dict[str, int]:
@@ -311,6 +356,12 @@ class Catalog:
                 a for m in self._filtered(params, skip="author")
                 for a in m.get("authors", [])
             ),
+            "subject": self._counts(
+                self._subject(m) for m in self._filtered(params, skip="subject")
+            ),
+            "publisher": self._counts(
+                (m.get("publisher") or "—") for m in self._filtered(params, skip="publisher")
+            ),
         }
         offset = (page - 1) * page_size
         return {
@@ -326,7 +377,9 @@ class Catalog:
     def search(self, params: dict) -> dict:
         query = (params.get("q") or [""])[0].strip()
         text_query, fields = split_query_fields(query)
-        expression = fts_expression(text_query) if text_query else None
+        expression, before_terms = (
+            fts_expression(text_query) if text_query else ("", [])
+        )
         scope = (params.get("scope") or ["all"])[0] or "all"
         resource = (params.get("resource") or [None])[0]
         page = max(int((params.get("page") or ["1"])[0]), 1)
@@ -337,6 +390,8 @@ class Catalog:
             "language"
         )
         book_filter = (params.get("book") or [None])[0] or fields.get("book")
+
+        expression = expression or None
 
         if not text_query and not fields and not any(
             (scope != "all", resource, type_filter, language_filter, book_filter)
@@ -360,6 +415,15 @@ class Catalog:
 
         if expression is not None:
             add("match", "verses MATCH ?", (expression,))
+        for index, (left, right) in enumerate(before_terms):
+            add(
+                f"before_{index}",
+                "instr(lower(verses.text), lower(?)) > 0 AND "
+                "instr(lower(verses.text), lower(?)) > 0 AND "
+                "instr(lower(verses.text), lower(?)) < "
+                "instr(lower(verses.text), lower(?))",
+                (left, right, left, right),
+            )
         if scope_sql:
             add("scope", scope_sql)
         if resource:

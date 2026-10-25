@@ -180,6 +180,15 @@
     }
   },
   "readerFootnoteUnavailable": "Nota al pie no disponible.",
+  "readerFootnoteA11y": "Nota al pie {label}: {text}",
+  "@readerFootnoteA11y": {
+    "placeholders": {
+      "label": {"type": "String"},
+      "text": {"type": "String"}
+    }
+  },
+  "readerFootnoteOpenHint": "Ver la nota al pie",
+  "readerXrefOpenHint": "Ir a la referencia cruzada",
   "readerInvalidReference": "Referencia no válida: {reference}",
   "@readerInvalidReference": {
     "placeholders": {
@@ -350,7 +359,12 @@
   "scopeMorphNote": "M6",
   "fmtMarkers": "Marcadores",
   "fmtReformat": "Reformato",
-  "fmtReformatTitle": "Reformato del texto",
+    "fmtTypography": "Tipografía",
+  "@fmtTypography": {},
+  "fontSerif": "Serif",
+  "fontSans": "Sans",
+  "fontMono": "Mono",
+"fmtReformatTitle": "Reformato del texto",
   "fmtMarkersTitle": "Mostrar marcadores",
   "fmtBibleText": "Texto bíblico",
   "fmtBibleTextFormatting": "Formato del texto bíblico",
@@ -479,6 +493,8 @@
   "libraryFacetType": "Tipo",
   "libraryFacetLanguage": "Idioma",
   "libraryFacetAuthor": "Autor",
+  "libraryFacetSubject": "Tema",
+  "libraryFacetPublisher": "Editorial",
   "libraryLoadMore": "Cargar más",
   "libraryErrorTitle": "No se pudo consultar el catálogo",
   "libraryEmpty": "Sin recursos que coincidan con el filtro",
@@ -954,6 +970,8 @@
   "storeOpen": "Abrir",
   "storeSearch": "Buscar recursos",
   "storeAllTypes": "Todos los tipos",
+  "storeAllSubjects": "Todos los temas",
+  "storeAllPublishers": "Todas las editoriales",
   "storeEmpty": "No hay recursos que coincidan.",
   "storeError": "No se pudo cargar el catálogo local.",
   "storeRetry": "Reintentar",
@@ -1183,5 +1201,85 @@
   "storeSectionAvailable": "Disponibles",
   "storeSearchModuleHint": "El índice de búsqueda local también es un módulo: sin él la búsqueda funciona con el servicio, no en frío.",
   "libraryNotInstalledChip": "No instalado",
-  "libraryInstalledChip": "Instalado"
+  "libraryInstalledChip": "Instalado",
+  "dataCareTitle": "Datos y respaldo",
+  "backupExport": "Exportar respaldo…",
+  "backupExportHelp": "Guarda tus notas, resaltados, favoritos, planes y diseños en un archivo de respaldo.",
+  "backupExported": "Respaldo guardado en {path}",
+  "@backupExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "backupRestore": "Restaurar respaldo…",
+  "backupRestoreHelp": "Elige un respaldo anterior; se aplicará la próxima vez que abras Aletheia.",
+  "backupRestoreConfirmTitle": "¿Restaurar este respaldo?",
+  "backupRestoreConfirmBody": "Se restaurarán tus datos del {date} (respaldo hecho con la versión {version}). Tus datos actuales se guardan antes de reemplazarse.",
+  "@backupRestoreConfirmBody": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "backupRestoreApply": "Restaurar y reiniciar",
+  "backupStagedRestart": "Respaldo listo: se aplicará la próxima vez que abras Aletheia.",
+  "crashLogExport": "Exportar registro de fallos…",
+  "crashLogHelp": "Registro local de errores, sin telemetría; sirve para reportar problemas.",
+  "crashLogEmpty": "No hay registro de fallos.",
+  "crashLogExported": "Registro guardado en {path}",
+  "@crashLogExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "crashLogClear": "Borrar registro de fallos",
+  "crashLogCleared": "Registro borrado.",
+  "updateCheck": "Buscar actualizaciones",
+  "updateCheckHelp": "Compara tu versión con la última publicada en GitHub. Sin telemetría.",
+  "updateNone": "Estás usando la última versión.",
+  "updateAvailableTitle": "Hay una versión nueva: {version}",
+  "@updateAvailableTitle": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableBody": "Puedes descargar el binario para tu plataforma desde la página de releases de GitHub.",
+  "updateOpenReleases": "Abrir releases",
+  "aboutVersion": "Aletheia {version}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "exportPassage": "Exportar pasaje…",
+  "exportNote": "Exportar nota…",
+  "exportFormat": "Formato",
+  "exportFormatMarkdown": "Markdown",
+  "exportFormatHtml": "HTML",
+  "exportFormatPlain": "Texto plano",
+  "exportCopy": "Copiar al portapapeles",
+  "exportSave": "Guardar archivo…",
+  "exportPrint": "Imprimir…",
+  "exportPrintHelp": "Abre el pasaje en tu navegador con el diálogo de impresión.",
+  "exportSaved": "Archivo guardado en {path}",
+  "@exportSaved": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportCopied": "Exportación copiada al portapapeles"
 }

@@ -60,7 +60,12 @@ listado verificable de archivos:
 - **`routing_catalog_source.dart`** (`RoutingCatalogSource`): router de
   escritorio por ruta — módulo instalado → empaquetado → *no instalado*.
   Los empaquetados (enfrío sin red ni instalación) están en
-  `kBundledCatalogModules` (`bible.rv1909`, `lexicon.strongs`).
+  `kBundledCatalogModules` (`bible.rv1909`, `lexicon.strongs`,
+  `devotional.daily`, `factbook.core`) en el bundle publicado (slim) y el
+  árbol entero en desarrollo/pruebas:`app/tool/slim_release_bundle.py`
+  recorta el bundle compilado del release; el `search.meta.json` y el
+  índice FTS5 viajan como el módulo `catalog.search` (coherencia
+  meta-hash ↔ índice).
 - **`module_install_card.dart`**: tarjeta compartida Lector/Búsqueda/Tienda
   con estado instalando (barra + bytes + cancelar), error reintente y `onDone`
   para que la vista reintente la lectura al terminar.

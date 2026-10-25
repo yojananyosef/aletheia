@@ -926,6 +926,24 @@ abstract class AppLocalizations {
   /// **'Nota al pie no disponible.'**
   String get readerFootnoteUnavailable;
 
+  /// No description provided for @readerFootnoteA11y.
+  ///
+  /// In es, this message translates to:
+  /// **'Nota al pie {label}: {text}'**
+  String readerFootnoteA11y(String label, String text);
+
+  /// No description provided for @readerFootnoteOpenHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver la nota al pie'**
+  String get readerFootnoteOpenHint;
+
+  /// No description provided for @readerXrefOpenHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ir a la referencia cruzada'**
+  String get readerXrefOpenHint;
+
   /// No description provided for @readerInvalidReference.
   ///
   /// In es, this message translates to:
@@ -1345,6 +1363,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Reformato'**
   String get fmtReformat;
+
+  /// No description provided for @fmtTypography.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipografía'**
+  String get fmtTypography;
+
+  /// No description provided for @fontSerif.
+  ///
+  /// In es, this message translates to:
+  /// **'Serif'**
+  String get fontSerif;
+
+  /// No description provided for @fontSans.
+  ///
+  /// In es, this message translates to:
+  /// **'Sans'**
+  String get fontSans;
+
+  /// No description provided for @fontMono.
+  ///
+  /// In es, this message translates to:
+  /// **'Mono'**
+  String get fontMono;
 
   /// No description provided for @fmtReformatTitle.
   ///
@@ -1819,6 +1861,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Autor'**
   String get libraryFacetAuthor;
+
+  /// No description provided for @libraryFacetSubject.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema'**
+  String get libraryFacetSubject;
+
+  /// No description provided for @libraryFacetPublisher.
+  ///
+  /// In es, this message translates to:
+  /// **'Editorial'**
+  String get libraryFacetPublisher;
 
   /// No description provided for @libraryLoadMore.
   ///
@@ -3818,6 +3872,18 @@ abstract class AppLocalizations {
   /// **'Todos los tipos'**
   String get storeAllTypes;
 
+  /// No description provided for @storeAllSubjects.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos los temas'**
+  String get storeAllSubjects;
+
+  /// No description provided for @storeAllPublishers.
+  ///
+  /// In es, this message translates to:
+  /// **'Todas las editoriales'**
+  String get storeAllPublishers;
+
   /// No description provided for @storeEmpty.
   ///
   /// In es, this message translates to:
@@ -4723,6 +4789,216 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Instalado'**
   String get libraryInstalledChip;
+
+  /// No description provided for @dataCareTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos y respaldo'**
+  String get dataCareTitle;
+
+  /// No description provided for @backupExport.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar respaldo…'**
+  String get backupExport;
+
+  /// No description provided for @backupExportHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Guarda tus notas, resaltados, favoritos, planes y diseños en un archivo de respaldo.'**
+  String get backupExportHelp;
+
+  /// No description provided for @backupExported.
+  ///
+  /// In es, this message translates to:
+  /// **'Respaldo guardado en {path}'**
+  String backupExported(String path);
+
+  /// No description provided for @backupRestore.
+  ///
+  /// In es, this message translates to:
+  /// **'Restaurar respaldo…'**
+  String get backupRestore;
+
+  /// No description provided for @backupRestoreHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige un respaldo anterior; se aplicará la próxima vez que abras Aletheia.'**
+  String get backupRestoreHelp;
+
+  /// No description provided for @backupRestoreConfirmTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Restaurar este respaldo?'**
+  String get backupRestoreConfirmTitle;
+
+  /// No description provided for @backupRestoreConfirmBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Se restaurarán tus datos del {date} (respaldo hecho con la versión {version}). Tus datos actuales se guardan antes de reemplazarse.'**
+  String backupRestoreConfirmBody(String date, String version);
+
+  /// No description provided for @backupRestoreApply.
+  ///
+  /// In es, this message translates to:
+  /// **'Restaurar y reiniciar'**
+  String get backupRestoreApply;
+
+  /// No description provided for @backupStagedRestart.
+  ///
+  /// In es, this message translates to:
+  /// **'Respaldo listo: se aplicará la próxima vez que abras Aletheia.'**
+  String get backupStagedRestart;
+
+  /// No description provided for @crashLogExport.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar registro de fallos…'**
+  String get crashLogExport;
+
+  /// No description provided for @crashLogHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro local de errores, sin telemetría; sirve para reportar problemas.'**
+  String get crashLogHelp;
+
+  /// No description provided for @crashLogEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay registro de fallos.'**
+  String get crashLogEmpty;
+
+  /// No description provided for @crashLogExported.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro guardado en {path}'**
+  String crashLogExported(String path);
+
+  /// No description provided for @crashLogClear.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar registro de fallos'**
+  String get crashLogClear;
+
+  /// No description provided for @crashLogCleared.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro borrado.'**
+  String get crashLogCleared;
+
+  /// No description provided for @updateCheck.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar actualizaciones'**
+  String get updateCheck;
+
+  /// No description provided for @updateCheckHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Compara tu versión con la última publicada en GitHub. Sin telemetría.'**
+  String get updateCheckHelp;
+
+  /// No description provided for @updateNone.
+  ///
+  /// In es, this message translates to:
+  /// **'Estás usando la última versión.'**
+  String get updateNone;
+
+  /// No description provided for @updateAvailableTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Hay una versión nueva: {version}'**
+  String updateAvailableTitle(String version);
+
+  /// No description provided for @updateAvailableBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Puedes descargar el binario para tu plataforma desde la página de releases de GitHub.'**
+  String get updateAvailableBody;
+
+  /// No description provided for @updateOpenReleases.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir releases'**
+  String get updateOpenReleases;
+
+  /// No description provided for @aboutVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'Aletheia {version}'**
+  String aboutVersion(String version);
+
+  /// No description provided for @exportPassage.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar pasaje…'**
+  String get exportPassage;
+
+  /// No description provided for @exportNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar nota…'**
+  String get exportNote;
+
+  /// No description provided for @exportFormat.
+  ///
+  /// In es, this message translates to:
+  /// **'Formato'**
+  String get exportFormat;
+
+  /// No description provided for @exportFormatMarkdown.
+  ///
+  /// In es, this message translates to:
+  /// **'Markdown'**
+  String get exportFormatMarkdown;
+
+  /// No description provided for @exportFormatHtml.
+  ///
+  /// In es, this message translates to:
+  /// **'HTML'**
+  String get exportFormatHtml;
+
+  /// No description provided for @exportFormatPlain.
+  ///
+  /// In es, this message translates to:
+  /// **'Texto plano'**
+  String get exportFormatPlain;
+
+  /// No description provided for @exportCopy.
+  ///
+  /// In es, this message translates to:
+  /// **'Copiar al portapapeles'**
+  String get exportCopy;
+
+  /// No description provided for @exportSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar archivo…'**
+  String get exportSave;
+
+  /// No description provided for @exportPrint.
+  ///
+  /// In es, this message translates to:
+  /// **'Imprimir…'**
+  String get exportPrint;
+
+  /// No description provided for @exportPrintHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Abre el pasaje en tu navegador con el diálogo de impresión.'**
+  String get exportPrintHelp;
+
+  /// No description provided for @exportSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Archivo guardado en {path}'**
+  String exportSaved(String path);
+
+  /// No description provided for @exportCopied.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportación copiada al portapapeles'**
+  String get exportCopied;
 }
 
 class _AppLocalizationsDelegate

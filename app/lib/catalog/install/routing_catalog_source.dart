@@ -21,8 +21,15 @@ import 'mods_manifest.dart';
 import 'modules_store.dart';
 
 /// Módulos que siguen dentro del ejecutable aunque el catálogo sea
-/// desacoplado: leen en frío sin red ni instalación.
-const kBundledCatalogModules = {'bible.rv1909', 'lexicon.strongs'};
+/// desacoplado: leen en frío sin red ni instalación. RV1909 y el léxico
+/// cubren la primera lectura; el devocional diario y el Factbook son el
+/// «arranque en frío» de Inicio e Ideas (y suman ~40 KB embebidos).
+const kBundledCatalogModules = {
+  'bible.rv1909',
+  'lexicon.strongs',
+  'devotional.daily',
+  'factbook.core',
+};
 
 class RoutingCatalogSource implements CatalogAssetSource {
   RoutingCatalogSource({

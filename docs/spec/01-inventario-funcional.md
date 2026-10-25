@@ -10,7 +10,7 @@ Derivado del reconocimiento de las fases 1–3. Las columnas:
 |---|---|---|---|---|
 | 1.1 | Sidebar fijo: Dashboard, Library, Search, Bible, Study Assistant, Factbook, Guided study, Notes, Tools | P0 | L1/L2 | Íconos + labels; colapsable |
 | 1.2 | Quick actions: Open a Commentary / Study Bible / Compare Bible Versions / Bible Dictionary / Today's Devotional | P1 | L1/L2 | Abren recursos por "tipo" desde el catálogo |
-| 1.3 | Store, Layouts, Close all tabs (pie de sidebar) | P2 | L2/L3 | **Hecho (paridad 1)**: Tienda local con búsqueda, filtro por tipo, licencia y apertura de los 14 recursos incluidos; sin compras |
+| 1.3 | Store, Layouts, Close all tabs (pie de sidebar) | P2 | L2/L3 | **Hecho (paridad 1, extendida)**: Tienda con búsqueda, filtros por tipo/tema/editorial, licencia y apertura de los 27 recursos incluidos; en escritorio instala módulos del catálogo remoto con progreso, cancelación y actualizaciones delta; sin compras |
 | 1.4 | Menú de cuenta (kebab): Profile, Help Center, Settings, Shop, Download | P1 | L2/L3 | Settings = `/settings` |
 | 1.5 | Banner promocional descartable | P3 | L2 | No replicar up-sells de pago; opcional banner propio |
 | 1.6 | Omnilox "Passage or topic": parser de referencias + lookup + búsqueda | P0 | L2/L3 | Opciones: "Look up …", "Search top Bible for …", "Search all resources for …", "Go to" |
@@ -67,7 +67,7 @@ Derivado del reconocimiento de las fases 1–3. Las columnas:
 | # | Función | P | Ev. | Notas |
 |---|---|---|---|---|
 | 5.1 | Caja de búsqueda con scopes: All · Bible · Books · Factbook · Morph · Media · Maps | P0 (All/Bible/Books) | L2 | **Hecho**: los siete ámbitos están habilitados; Morph/Media/Maps usan `morphology.json`/`map_sections.json` y no abren el índice FTS |
-| 5.2 | Sintaxis v2 (OR/AND/NEAR/WITHIN n WORDS, frases, campos `bible:"Jn 3"`, `book:`, `type:`, `language:`, `resource:`) | P1 | L1/L2 | **Hecho**; `BEFORE` se evalúa en el índice local (el servicio remoto no lo implementa) |
+| 5.2 | Sintaxis v2 (OR/AND/NEAR/WITHIN n WORDS, frases, campos `bible:"Jn 3"`, `book:`, `type:`, `language:`, `resource:`) | P1 | L1/L2 | **Hecho**; `BEFORE` (términos simples, orden en el texto original vía `instr`) se evalúa igual en el índice local y en el servicio |
 | 5.3 | Resultados: título→`offset+textranges`, snippet con énfasis, fuente, cita (ref, vol/pág), candado | P0 | L2 | |
 | 5.4 | Historial y back/forward | P1 | L2 | |
 | 5.5 | Tarjeta **Synopsis** (IA) con citas numeradas y medición/upsell | P3 | L2 | Plugin IA opcional |
@@ -233,12 +233,12 @@ El clon sustituye la sesión por el **plugin de IA** (`lib/assistant/`): `assist
 
 ## 18. Autonomía local implementada — catálogo e índice FTS5 dentro de la app
 
-La app ya no depende del servicio Python para el uso normal. `app/assets/catalog/` incluye las nueve Biblias completas (RV1909, KJV, ASV, BLL, SBLM, BES, VBL, TAHOT y TAGNT), el léxico Strong, el comentario, el diccionario, el devocional y el Factbook, además de:
+La app ya no depende del servicio Python para el uso normal. `app/assets/catalog/` incluye las doce Biblias completas (RV1909, KJV, ASV, BLL, SBLM, BES, VBL, TAHOT, TAGNT, BSB, WEB y Platense), el léxico Strong, los comentarios y diccionarios, los devocionales, el Factbook, los documentos y el gazetteer, además de:
 
-- `index.json` con los catorce summaries (Biblioteca local, 14 recursos);
-- `search.sqlite.gz` (48,8 MB comprimido) con el índice FTS5 de 248 870 versículos y 23 633 secciones no bíblicas (272 503 entradas), la tabla `cross_references` con 376 083 enlaces y `search.meta.json` con su hash y tamaño.
+- `index.json` con los veintisiete summaries (Biblioteca local, 27 recursos);
+- `search.sqlite.gz` (75,9 MB comprimido) con el índice FTS5 de 346 798 versículos y 94 335 secciones no bíblicas (441 133 entradas), la tabla `cross_references` con 376 083 enlaces y `search.meta.json` con su hash y tamaño.
 
-En el primer uso, `LocalCatalogIndex` extrae el índice a `catalog.search.<hash>.sqlite` en el directorio de datos y lo abre en solo lectura. El hash en el nombre evita reutilizar una copia vieja. La búsqueda local replica exactamente la sintaxis del servicio (palabras, frases, `AND`/`OR`/`NOT`, `NEAR`, `WITHIN n WORDS`, campos `bible:`/`book:`/`type:`/`language:`/`resource:`, filtros y facetas) y el modo `auto` cae a ella si el servicio no responde; Ajustes muestra `Modo local: 14 recursos, 248 870 versículos y 23 633 secciones indexadas` en vez de «Sin conexión».
+En el primer uso, `LocalCatalogIndex` extrae el índice a `catalog.search.<hash>.sqlite` en el directorio de datos y lo abre en solo lectura. El hash en el nombre evita reutilizar una copia vieja. La búsqueda local replica exactamente la sintaxis del servicio (palabras, frases, `AND`/`OR`/`NOT`, `NEAR`, `WITHIN n WORDS`, campos `bible:`/`book:`/`type:`/`language:`/`resource:`, filtros y facetas) y el modo `auto` cae a ella si el servicio no responde; Ajustes muestra `Modo local: 27 recursos, 346 798 versículos y 94 335 entradas indexadas` en vez de «Sin conexión».
 
 `catalog/tools/sync_app_catalog.py` sincroniza contenido e índice desde `catalog/data/`. Pruebas: `local_search_query_test.dart` (7, parser), `catalog_gateway_local_test.dart` (extracción/búsqueda/facetas/TSK/auto), `catalog_content_test.dart` (índice y detalle del comentario/diccionario) y `document_repository_test.dart` (KJV empaquetada); la integración `offline_catalog_test.dart` recorre Biblioteca → KJV → búsqueda global → búsqueda en el panel → Factbook y devocional → comentario y diccionario → RV1909 → Ideas con TSK **sin servicio**.
 
@@ -259,7 +259,7 @@ Verificación de la mejora: `selftest.py` **52/52**, suite completa de Flutter y
 ## 20. Paridad 1 implementada — Link sets, Tienda local, pantalla completa y tema oscuro
 
 - **Link sets A–F.** `WorkspaceTab.linkSet` se persiste en `tabs.link_set` (esquema SQLite v3). El botón «Conjunto de vínculos» del lector abre un menú con `Sin conjunto` y A–F; al asignar una letra, los paneles bíblicos de ese grupo adoptan la referencia actual y siguen cualquier navegación posterior (referencia, historial o apertura desde búsqueda). El seguimiento es unidireccional para no crear bucles y no incluye paneles que no son Biblia.
-- **Tienda local.** `StorePanel` lista los 14 recursos incluidos con búsqueda, filtro por tipo, licencia, tipo/idioma/autor y botón `Abrir`; también se llega desde la pestaña `Store` de la Biblioteca. No hay compras, descargas ni telemetría: es un catálogo de descubrimiento de lo ya empaquetado.
+- **Tienda.** `StorePanel` lista los 27 recursos incluidos con búsqueda, filtro por tipo/tema/editorial, licencia y botón `Abrir`; en escritorio instala módulos desde `aletheia-mods` md5/sha256 verificado con delta updates (reinstalar lo idéntico no transfiere bytes); también se llega desde la pestaña `Store` de la Biblioteca. No hay compras ni telemetría.
 - **Pantalla completa por panel.** Estado transitorio en `workspace/panel_fullscreen.dart`; `Shell` renderiza solo el panel elegido, con una barra mínima y salida por botón o `Esc`. Sustituye a la pantalla completa de la ventana anterior.
 - **Tema claro/oscuro/sistema.** `WorkspaceState.themeMode` se persiste en SQLite; `AletheiaApp` usa `theme`/`darkTheme`/`themeMode` y una paleta activa (`AletheiaPalette`) que adapta fondos, bordes, textos, campos y menús. El cambio recrea el subárbol para que los widgets `const` recalculen sus colores.
 - **Corrección de runtime.** Los cuatro `Scrollbar` explícitos (devocional, Factbook, comparación y comentario/diccionario) usan ahora su propio `ScrollController`, eliminando el error «Scrollbar's ScrollController has no ScrollPosition attached» detectado en la prueba manual.

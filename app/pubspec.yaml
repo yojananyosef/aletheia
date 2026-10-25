@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.1+1
 
 environment:
   sdk: ^3.13.5
@@ -49,6 +49,10 @@ dependencies:
   web: ^1.1.1
   # Verificación sha256 de los módulos descargados de la Tienda.
   crypto: ^3.0.6
+  # Respaldo/restauración de datos sin cuenta (zip con la base y metadatos).
+  archive: ^4.0.0
+  # Diálogos nativos de guardar/abrir en escritorio (respaldo, exportaciones).
+  file_selector: ^1.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -82,11 +86,18 @@ flutter:
     - assets/catalog/index.json
     - assets/catalog/map_sections.json
     - assets/catalog/morphology.json
+    # El meta del índice FTS5: la extracción del módulo instalado
+    # (`catalog.search`) compara contra su hash; si no viaja en el bundle se
+    # quedara pegada una copia vieja de una build anterior.
+    - assets/catalog/search.meta.json
     - assets/catalog/rv1909/
     - assets/catalog/rv1909/books/
     # Léxico Strong: el estudio de palabras del Griego/Hebreo funciona en
     # frío sin instalar nada más.
     - assets/catalog/lexicon.strongs/
+    # Arranque en frío de Inicio e Ideas (suman ~40 KB embebidos).
+    - assets/catalog/devotional.daily/
+    - assets/catalog/factbook.core/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -55,6 +55,8 @@ class _LibraryOverlayState extends ConsumerState<LibraryOverlay> {
   String? _type;
   String? _language;
   String? _author;
+  String? _subject;
+  String? _publisher;
   int _page = 1;
 
   ResourceListing? _listing;
@@ -92,6 +94,8 @@ class _LibraryOverlayState extends ConsumerState<LibraryOverlay> {
             type: _type,
             language: _language,
             author: _author,
+            subject: _subject,
+            publisher: _publisher,
             sort: _sort,
             page: _page,
             pageSize: _pageSize,
@@ -140,6 +144,10 @@ class _LibraryOverlayState extends ConsumerState<LibraryOverlay> {
           _language = _language == value ? null : value;
         case 'author':
           _author = _author == value ? null : value;
+        case 'subject':
+          _subject = _subject == value ? null : value;
+        case 'publisher':
+          _publisher = _publisher == value ? null : value;
       }
       _page = 1;
     });
@@ -151,12 +159,19 @@ class _LibraryOverlayState extends ConsumerState<LibraryOverlay> {
       _type = null;
       _language = null;
       _author = null;
+      _subject = null;
+      _publisher = null;
       _page = 1;
     });
     _load();
   }
 
-  bool get _hasFilters => _type != null || _language != null || _author != null;
+  bool get _hasFilters =>
+      _type != null ||
+      _language != null ||
+      _author != null ||
+      _subject != null ||
+      _publisher != null;
 
   String _sortLabel(AppLocalizations l10n, String sort) => switch (sort) {
     'author' => l10n.librarySortAuthor,
@@ -477,6 +492,18 @@ class _LibraryOverlayState extends ConsumerState<LibraryOverlay> {
             facets['author'] ?? const {},
             lang: lang,
           ),
+          _facetSection(
+            l10n.libraryFacetSubject,
+            'subject',
+            facets['subject'] ?? const {},
+            lang: lang,
+          ),
+          _facetSection(
+            l10n.libraryFacetPublisher,
+            'publisher',
+            facets['publisher'] ?? const {},
+            lang: lang,
+          ),
         ],
       ),
     );
@@ -492,6 +519,8 @@ class _LibraryOverlayState extends ConsumerState<LibraryOverlay> {
     final selected = switch (dimension) {
       'type' => _type,
       'language' => _language,
+      'subject' => _subject,
+      'publisher' => _publisher,
       _ => _author,
     };
     return Padding(

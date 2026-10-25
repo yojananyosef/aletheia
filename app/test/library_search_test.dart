@@ -118,7 +118,24 @@ void main() {
     expect(find.text('Reina-Valera 1909'), findsNothing);
     expect(find.text('1 recurso'), findsOneWidget);
 
-    // Limpiar filtros y abrir la Biblia desde el detalle.
+    // Limpiar filtros y probar las facetas de tema y editorial.
+    await tester.tap(find.text('Limpiar filtros'));
+    await tester.pumpAndSettle();
+    find.text('2 recursos');
+
+    await tester.tap(find.byKey(const ValueKey('facet-subject-Comentario')));
+    await tester.pumpAndSettle();
+    expect(find.text('Comentario de prueba'), findsOneWidget);
+    expect(find.text('Reina-Valera 1909'), findsNothing);
+
+    await tester.tap(find.text('Limpiar filtros'));
+    await tester.pumpAndSettle();
+    await tester
+        .tap(find.byKey(const ValueKey('facet-publisher-Sociedad Bíblica de prueba')));
+    await tester.pumpAndSettle();
+    expect(find.text('Reina-Valera 1909'), findsOneWidget);
+    expect(find.text('Comentario de prueba'), findsNothing);
+
     await tester.tap(find.text('Limpiar filtros'));
     await tester.pumpAndSettle();
     expect(find.text('2 recursos'), findsOneWidget);

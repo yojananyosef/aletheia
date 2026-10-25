@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'catalog/catalog_source_providers.dart';
 import 'catalog/install/modules_store.dart';
 import 'catalog/mods_catalog_source.dart';
+import 'core/app_backup.dart';
 import 'core/app_database.dart';
+import 'core/crash_log.dart';
+import 'core/data_care.dart';
 import 'core/localization.dart';
 import 'core/theme.dart';
 import 'courses/course_progress_persistence.dart';
@@ -18,6 +21,10 @@ import 'workspace/workspace_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Registro local de fallos (escritorio): captura errores de framework y de
+  // zona en `<datos>/crash.log`, exportable desde Ajustes. Sin telemetría.
+  final crashLog = CrashLog.install(resolveDir: openAppSupportDirectory);
 
   // Persistencia local-first en un único SQLite (archivo nativo o IndexedDB
   // en web).
@@ -33,9 +40,16 @@ Future<void> main() async {
   // `<datos>/modules` desde la Tienda; en web el service worker cachea.
   ModsCatalogSource? mods;
   ModulesStore? modules;
+  AppBackup? backup;
   if (!kIsWeb) {
     mods = ModsCatalogSource();
-    modules = await _openModulesStore(mods);
+    final support = await openAppSupportDirectory();
+    modules = ModulesStore(
+      baseDirectory: '${support.path}/modules',
+      loadManifest: mods.loadManifest,
+    );
+    await modules.load();
+    backup = AppBackup(dataDirectory: support);
   }
 
   runApp(
@@ -44,6 +58,8 @@ Future<void> main() async {
         if (!kIsWeb) ...[
           modsCatalogSourceProvider.overrideWithValue(mods!),
           modulesStoreProvider.overrideWithValue(modules!),
+          appBackupProvider.overrideWithValue(backup!),
+          crashLogProvider.overrideWithValue(crashLog),
         ],
         workspaceStoreProvider.overrideWithValue(store),
         notesStoreProvider.overrideWithValue(notes),
@@ -54,17 +70,6 @@ Future<void> main() async {
       child: const AletheiaApp(),
     ),
   );
-}
-
-/// Store de módulos con el directorio real de datos ya cargado en memoria.
-Future<ModulesStore> _openModulesStore(ModsCatalogSource mods) async {
-  final support = await openAppSupportDirectory();
-  final modules = ModulesStore(
-    baseDirectory: '${support.path}/modules',
-    loadManifest: mods.loadManifest,
-  );
-  await modules.load();
-  return modules;
 }
 
 class AletheiaApp extends ConsumerWidget {

@@ -264,8 +264,7 @@ void main() {
       );
       expect(highlights[1]!.single.noteId, 'h');
       expect(highlights[1]!.single.start, 0);
-      expect(highlights[1]!.single.end, 5);
-      expect(
+      expect(highlights[1]!.single.end, 5);      expect(
         highlightsByVerse(
           all,
           resourceId: 'r',
@@ -316,6 +315,114 @@ void main() {
     });
   });
 
+  group('resaltados multi-verso', () {
+    final multi = _note(
+      id: 'm',
+      kind: 'highlight',
+      anchors: const [
+        NoteAnchor(
+          resourceId: 'r',
+          bookCode: 'JHN',
+          chapter: 1,
+          verse: 1,
+          verseEnd: 3,
+          startOffset: 4,
+          endOffset: 9,
+          reference: 'JHN.1.1',
+        ),
+      ],
+    );
+
+    test('highlightsByVerse cubre primero, intermedios y último', () {
+      final map = highlightsByVerse(
+        [multi],
+        resourceId: 'r',
+        bookCode: 'JHN',
+        chapter: 1,
+      );
+      expect(map[1]!.single.start, 4);
+      expect(map[1]!.single.end, kHighlightOpenEnd);
+      expect(map[2]!.single.start, 0);
+      expect(map[2]!.single.end, kHighlightOpenEnd);
+      expect(map[3]!.single.start, 0);
+      expect(map[3]!.single.end, 9);
+      expect(map[4], isNull);
+    });
+
+    test('highlightsForRange detecta el solape de la selección que lo cubre',
+        () {
+      final hits = highlightsForRange(
+        [multi],
+        resourceId: 'r',
+        bookCode: 'JHN',
+        chapter: 1,
+        verse: 1,
+        start: 0,
+        end: 5,
+        verseEnd: 3,
+      );
+      expect(hits.map((n) => n.id), ['m']);
+    });
+
+    test('selección que sólo roza el primer versículo también solapa', () {
+      // La selección va del fin del v1 al v2: comparte el fin del v1.
+      final hits = highlightsForRange(
+        [multi],
+        resourceId: 'r',
+        bookCode: 'JHN',
+        chapter: 1,
+        verse: 1,
+        start: 4,
+        end: 6,
+        verseEnd: 2,
+      );
+      expect(hits.map((n) => n.id), ['m']);
+    });
+
+    test('selección en otro tramo no solapa', () {
+      // v1 offset 0..3 termina antes de que empiece el resaltado (4..fin).
+      final hits = highlightsForRange(
+        [multi],
+        resourceId: 'r',
+        bookCode: 'JHN',
+        chapter: 1,
+        verse: 1,
+        start: 0,
+        end: 3,
+      );
+      expect(hits, isEmpty);
+    });
+
+    test('un ancla de un verso no cruza el umbral de un multi', () {
+      final single = _note(
+        id: 's',
+        kind: 'highlight',
+        anchors: const [
+          NoteAnchor(
+            resourceId: 'r',
+            bookCode: 'JHN',
+            chapter: 1,
+            verse: 2,
+            startOffset: 0,
+            endOffset: 4,
+          ),
+        ],
+      );
+      // La selección multi [v1..v3] atraviesa el v2 entero: solapa igual.
+      final hits = highlightsForRange(
+        [single],
+        resourceId: 'r',
+        bookCode: 'JHN',
+        chapter: 1,
+        verse: 1,
+        start: 0,
+        end: 3,
+        verseEnd: 3,
+      );
+      expect(hits.map((n) => n.id), ['s']);
+    });
+  });
+
   group('resolución de selecciones', () {
     const verses = [
       SelectionVerse(
@@ -350,15 +457,61 @@ void main() {
       expect(match.exact, isTrue);
     });
 
-    test('selección larga que cruza versículos: ancla al primer versículo', () {
+    test('selección larga que cruza versículos: rango exacto multi-verso', () {
       final match = resolveSelection(
         selection: 'En el principio era el Verbo Este era en el principio con Dios',
         verses: verses,
       );
       expect(match, isNotNull);
       expect(match!.verse, 1);
-      expect(match.exact, isFalse);
+      expect(match.verseEnd, 2);
+      expect(match.start, 0);
+      expect(match.end, 33);
+      expect(match.isMultiVerse, isTrue);
+      expect(match.exact, isTrue);
       expect(match.quote, contains('En el principio'));
+    });
+
+    test('selección multi-verso con números del render intercalados', () {
+      final match = resolveSelection(
+        selection: 'En el principio era el Verbo 2 Este era en el principio con Dios',
+        verses: verses,
+      );
+      expect(match, isNotNull);
+      expect(match!.verse, 1);
+      expect(match.verseEnd, 2);
+      expect(match.exact, isTrue);
+    });
+
+    test('selección que termina a mitad del segundo versículo', () {
+      final match = resolveSelection(
+        selection: 'era el Verbo 2 Este era',
+        verses: verses,
+      );
+      expect(match, isNotNull);
+      expect(match!.verse, 1);
+      expect(match.verseEnd, 2);
+      expect(match.start, 16);
+      expect(match.end, 8);
+      expect(match.exact, isTrue);
+    });
+
+    test('selección de una palabra con acento no muerde la tilde', () {
+      const acentos = [
+        SelectionVerse(
+          bookCode: 'JHN',
+          chapter: 1,
+          verse: 1,
+          text: 'Dijo: amó misericordia «señor»',
+        ),
+      ];
+      final match = resolveSelection(
+        selection: 'amó misericordia «señor»',
+        verses: acentos,
+      );
+      expect(match, isNotNull);
+      expect(match!.exact, isTrue);
+      expect(match.verseEnd, isNull);
     });
 
     test('sin coincidencia devuelve null', () {

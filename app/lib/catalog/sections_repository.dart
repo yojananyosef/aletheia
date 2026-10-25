@@ -3,7 +3,8 @@
 ///
 /// Los recursos pequeños traen las secciones embebidas en `sections.json`;
 /// los grandes (comentario y diccionario) guardan un índice de metadatos y el
-/// cuerpo en `sections/<id>.json`, que se carga solo al abrir una entrada. El
+/// cuerpo en `sections/<id>.json` (publicado comprimido como `.json.gz`), que
+/// se carga solo al abrir una entrada. El
 /// formato es el mismo que sirve el servicio (ver
 /// `docs/spec/03-contrato-catalogo.md`).
 library;
@@ -75,19 +76,26 @@ class AssetSectionsRepository implements SectionsRepository {
       return section;
     }
     final dir = AssetDocumentRepository.dirFor(resourceId);
-    try {
-      final text = await _source.loadText(
-        'assets/catalog/$dir/sections/$sectionId.json',
-      );
-      final section = CatalogSection.fromJson(
-        (jsonDecode(text) as Map).cast<String, dynamic>(),
-      );
-      _sections[key] = section;
-      return section;
-    } on Object {
-      _sections[key] = null;
-      return null;
+    // El cuerpo por sección se publica comprimido (`<id>.json.gz`, como los
+    // libros); se cae al `.json` plano por módulos instalados viejos.
+    for (final path in [
+      'assets/catalog/$dir/sections/$sectionId.json.gz',
+      'assets/catalog/$dir/sections/$sectionId.json',
+    ]) {
+      try {
+        final text = await _source.loadText(path);
+        final section = CatalogSection.fromJson(
+          (jsonDecode(text) as Map).cast<String, dynamic>(),
+        );
+        _sections[key] = section;
+        return section;
+      } on Object {
+        // Prueba la siguiente variante; si ninguna existe, la sección no
+        // está disponible en esta fuente.
+      }
     }
+    _sections[key] = null;
+    return null;
   }
 }
 

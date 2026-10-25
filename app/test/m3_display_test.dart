@@ -255,6 +255,58 @@ void main() {
     await _flushSave(tester);
   });
 
+  testWidgets('la tipografía por recurso cambia la pila del lector',
+      (tester) async {
+    final container = await _pumpReader(tester);
+
+    RichText verseRichText() => tester.widget<RichText>(
+          find
+              .byWidgetPredicate(
+                (w) =>
+                    w is RichText &&
+                    w.text.toPlainText().contains('EN el'),
+              )
+              .first,
+        );
+
+    // Família efectiva: Text.rich pone el estilo explícito del lector en el
+    // TextSpan hijo (el raíz solo carga el DefaultTextStyle del tema).
+    String? paragraphFamily(RichText w) {
+      final stack = (w.text is TextSpan)
+          ? List<InlineSpan>.from((w.text as TextSpan).children ?? const [])
+          : <InlineSpan>[];
+      while (stack.isNotEmpty) {
+        final span = stack.removeLast();
+        if (span.style?.fontFamily != null) return span.style!.fontFamily;
+        if (span is TextSpan) stack.addAll(span.children ?? const []);
+      }
+      return w.text.style?.fontFamily;
+    }
+
+    // Predeterminado: serif del sistema.
+    expect(_display(container).font, 'serif');
+    expect(paragraphFamily(verseRichText()), 'DejaVu Serif');
+
+    // Formato ▸ Tipografía → Sans.
+    await _tap(tester, find.byKey(const ValueKey('reader-mode-format')));
+    await _tap(tester, find.byKey(const ValueKey('reader-reformat')));
+    await _tap(tester, find.text('Sans'));
+    await tester.pumpAndSettle();
+    expect(_display(container).font, 'sans');
+    expect(paragraphFamily(verseRichText()), 'DejaVu Sans');
+
+    await _tap(tester, find.text('Mono'));
+    await tester.pumpAndSettle();
+    expect(_display(container).font, 'mono');
+    expect(paragraphFamily(verseRichText()), 'DejaVu Sans Mono');
+
+    // De vuelta a serif.
+    await _tap(tester, find.text('Serif'));
+    await tester.pumpAndSettle();
+    expect(_display(container).font, 'serif');
+    await _flushSave(tester);
+  });
+
   testWidgets('la vista limitada desactiva la paginación y lista las notas',
       (tester) async {
     final container = await _pumpReader(tester);

@@ -68,6 +68,7 @@ class TabDisplay {
     this.columns = 'auto',
     this.footnotesOnPage = false,
     this.zoom = 100,
+    this.font = 'serif',
     this.locationBar = true,
     this.secondaryToolbar = true,
   });
@@ -100,6 +101,9 @@ class TabDisplay {
 
   /// Zoom del panel en porcentaje (100 = tamaño normal).
   final int zoom;
+
+  /// Pila tipográfica del recurso (`serif` | `sans` | `mono`).
+  final String font;
 
   /// Barra de ubicación visible (View → Locator bar).
   final bool locationBar;
@@ -147,6 +151,7 @@ class TabDisplay {
     String? columns,
     bool? footnotesOnPage,
     int? zoom,
+    String? font,
     bool? locationBar,
     bool? secondaryToolbar,
   }) => TabDisplay(
@@ -164,6 +169,7 @@ class TabDisplay {
     columns: columns ?? this.columns,
     footnotesOnPage: footnotesOnPage ?? this.footnotesOnPage,
     zoom: zoom ?? this.zoom,
+    font: font ?? this.font,
     locationBar: locationBar ?? this.locationBar,
     secondaryToolbar: secondaryToolbar ?? this.secondaryToolbar,
   );
@@ -183,6 +189,7 @@ class TabDisplay {
     if (columns != 'auto') 'columns': columns,
     if (footnotesOnPage) 'footnotesOnPage': true,
     if (zoom != 100) 'zoom': zoom,
+    if (font != 'serif') 'font': font,
     if (!locationBar) 'locationBar': false,
     if (!secondaryToolbar) 'secondaryToolbar': false,
   };
@@ -206,6 +213,7 @@ class TabDisplay {
     columns: json['columns'] as String? ?? 'auto',
     footnotesOnPage: json['footnotesOnPage'] as bool? ?? false,
     zoom: json['zoom'] as int? ?? 100,
+    font: json['font'] as String? ?? 'serif',
     locationBar: json['locationBar'] as bool? ?? true,
     secondaryToolbar: json['secondaryToolbar'] as bool? ?? true,
   );

@@ -65,6 +65,8 @@ class CatalogClient {
     String? type,
     String? language,
     String? author,
+    String? subject,
+    String? publisher,
     String sort = 'title',
     int page = 1,
     int pageSize = 50,
@@ -77,6 +79,8 @@ class CatalogClient {
       'type': ?type,
       'language': ?language,
       'author': ?author,
+      'subject': ?subject,
+      'publisher': ?publisher,
     };
     final json = await _getJson(
       '/v1/resources?${Uri(queryParameters: params).query}',

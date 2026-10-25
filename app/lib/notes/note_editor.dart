@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/content_export.dart';
+import '../core/export_dialog.dart';
 import '../core/localization.dart';
 import '../core/theme.dart';
 import '../references/reference_parser.dart';
@@ -292,6 +294,33 @@ class _NoteEditorViewState extends ConsumerState<NoteEditorView> {
     );
   }
 
+  /// Exporta la nota a un archivo (Markdown/HTML/Texto) desde el mismo menú
+  /// de compartir.
+  void _exportNote(Note note) {
+    final anchor = note.mainAnchor;
+    final title = note.title.trim().isNotEmpty
+        ? note.title.trim()
+        : 'Nota';
+    final doc = NoteExportDocument(
+      title: title,
+      body: _noteAsMarkdown(note),
+      citation: anchor?.reference != null
+          ? displayFromCanonical(anchor!.reference!, lang: context.l10nLang)
+          : null,
+      tags: note.tags,
+    );
+    final slug = title
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9áéíóúñü]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+    ExportDialog.show(
+      context,
+      title: context.l10n.exportNote,
+      buildContent: doc.build,
+      suggestedBaseName: 'aletheia-nota-${slug.isEmpty ? 'nota' : slug}',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -407,8 +436,13 @@ class _NoteEditorViewState extends ConsumerState<NoteEditorView> {
                 key: const Key('note-editor-share'),
                 tooltip: l10n.notesShare,
                 icon: const Icon(Icons.ios_share, size: 17),
-                onSelected: (value) =>
-                    _share(note, markdown: value == 'markdown'),
+                onSelected: (value) {
+                  if (value == 'export') {
+                    _exportNote(note);
+                    return;
+                  }
+                  _share(note, markdown: value == 'markdown');
+                },
                 itemBuilder: (context) => [
                   PopupMenuItem(
                     value: 'markdown',
@@ -421,6 +455,14 @@ class _NoteEditorViewState extends ConsumerState<NoteEditorView> {
                     value: 'text',
                     child: Text(
                       l10n.noteShareText,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'export',
+                    child: Text(
+                      l10n.exportNote,
                       style: const TextStyle(fontSize: 13),
                     ),
                   ),

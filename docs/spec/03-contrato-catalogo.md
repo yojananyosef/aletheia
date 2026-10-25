@@ -199,7 +199,7 @@ catalog-data/
 
 ## 7. Estado de implementación (servicio v1, M2–M6)
 
-Implementado en `catalog/server/catalog_server.py` (Python 3 stdlib + sqlite3/FTS5) sobre los datos que construye `catalog/tools/build_catalog.py` desde `catalog/config/resources.json` (y `catalog/tools/seed_m5.py` para el devocional y el Factbook). El índice incluye **14 recursos**: 9 Biblias (RV1909, KJV, ASV, BLL, SBLM, BES, VBL, TAHOT y TAGNT), 2 diccionarios (Easton y léxico Strong), comentario, devocional y Factbook; además de **376 083 referencias cruzadas** del TSK. Autoprueba end-to-end: `python3 catalog/server/selftest.py` (52 comprobaciones). Guía de build/run en `catalog/README.md`.
+Implementado en `catalog/server/catalog_server.py` (Python 3 stdlib + sqlite3/FTS5) sobre los datos que construye `catalog/tools/build_catalog.py` desde `catalog/config/resources.json` (y `catalog/tools/seed_m5.py` para el devocional y el Factbook). El índice incluye **27 recursos**: 12 Biblias (RV1909, KJV, ASV, BLL, SBLM, BES, VBL, TAHOT, TAGNT, BSB, WEB y Platense), 3 diccionarios (Easton, Webster 1828 y léxico Strong), 6 comentarios (Matthew Henry Concise, Catena, Clarke, Wesley, Lutero y Calvin), 2 devocionales, Factbook, 2 documentos (Didajé, Josefo) y 1 dataset (gazetteer); además de **376 083 referencias cruzadas** del TSK y facetas de tipo/idioma/tema/editorial. Autoprueba end-to-end: `python3 catalog/server/selftest.py` (56 comprobaciones). Guía de build/run en `catalog/README.md`.
 
 | Endpoint | Estado | Notas |
 |---|---|---|

@@ -459,6 +459,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get readerFootnoteUnavailable => 'Footnote not available.';
 
   @override
+  String readerFootnoteA11y(String label, String text) {
+    return 'Footnote $label: $text';
+  }
+
+  @override
+  String get readerFootnoteOpenHint => 'Open the footnote';
+
+  @override
+  String get readerXrefOpenHint => 'Go to the cross-reference';
+
+  @override
   String readerInvalidReference(String reference) {
     return 'Invalid reference: $reference';
   }
@@ -706,6 +717,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fmtReformat => 'Reformat';
+
+  @override
+  String get fmtTypography => 'Typeface';
+
+  @override
+  String get fontSerif => 'Serif';
+
+  @override
+  String get fontSans => 'Sans';
+
+  @override
+  String get fontMono => 'Mono';
 
   @override
   String get fmtReformatTitle => 'Reformat text';
@@ -963,6 +986,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryFacetAuthor => 'Author';
+
+  @override
+  String get libraryFacetSubject => 'Subject';
+
+  @override
+  String get libraryFacetPublisher => 'Publisher';
 
   @override
   String get libraryLoadMore => 'Load more';
@@ -2115,6 +2144,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeAllTypes => 'All types';
 
   @override
+  String get storeAllSubjects => 'All subjects';
+
+  @override
+  String get storeAllPublishers => 'All publishers';
+
+  @override
   String get storeEmpty => 'No matching resources.';
 
   @override
@@ -2640,4 +2675,128 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryInstalledChip => 'Installed';
+
+  @override
+  String get dataCareTitle => 'Data & backup';
+
+  @override
+  String get backupExport => 'Export backup…';
+
+  @override
+  String get backupExportHelp =>
+      'Save your notes, highlights, favorites, plans and layouts into a backup file.';
+
+  @override
+  String backupExported(String path) {
+    return 'Backup saved to $path';
+  }
+
+  @override
+  String get backupRestore => 'Restore backup…';
+
+  @override
+  String get backupRestoreHelp =>
+      'Pick an earlier backup; it will be applied next time you open Aletheia.';
+
+  @override
+  String get backupRestoreConfirmTitle => 'Restore this backup?';
+
+  @override
+  String backupRestoreConfirmBody(String date, String version) {
+    return 'Your data from $date (backup created with version $version) will be restored. Your current data is kept before replacing it.';
+  }
+
+  @override
+  String get backupRestoreApply => 'Restore and restart';
+
+  @override
+  String get backupStagedRestart =>
+      'Backup ready: it will be applied next time you open Aletheia.';
+
+  @override
+  String get crashLogExport => 'Export crash log…';
+
+  @override
+  String get crashLogHelp =>
+      'Local error log, no telemetry; useful to report issues.';
+
+  @override
+  String get crashLogEmpty => 'No crash log yet.';
+
+  @override
+  String crashLogExported(String path) {
+    return 'Log saved to $path';
+  }
+
+  @override
+  String get crashLogClear => 'Clear crash log';
+
+  @override
+  String get crashLogCleared => 'Log cleared.';
+
+  @override
+  String get updateCheck => 'Check for updates';
+
+  @override
+  String get updateCheckHelp =>
+      'Compares your version with the latest GitHub release. No telemetry.';
+
+  @override
+  String get updateNone => 'You are using the latest version.';
+
+  @override
+  String updateAvailableTitle(String version) {
+    return 'New version available: $version';
+  }
+
+  @override
+  String get updateAvailableBody =>
+      'You can download the binary for your platform from the GitHub releases page.';
+
+  @override
+  String get updateOpenReleases => 'Open releases';
+
+  @override
+  String aboutVersion(String version) {
+    return 'Aletheia $version';
+  }
+
+  @override
+  String get exportPassage => 'Export passage…';
+
+  @override
+  String get exportNote => 'Export note…';
+
+  @override
+  String get exportFormat => 'Format';
+
+  @override
+  String get exportFormatMarkdown => 'Markdown';
+
+  @override
+  String get exportFormatHtml => 'HTML';
+
+  @override
+  String get exportFormatPlain => 'Plain text';
+
+  @override
+  String get exportCopy => 'Copy to clipboard';
+
+  @override
+  String get exportSave => 'Save file…';
+
+  @override
+  String get exportPrint => 'Print…';
+
+  @override
+  String get exportPrintHelp =>
+      'Opens the passage in your browser with the print dialog.';
+
+  @override
+  String exportSaved(String path) {
+    return 'File saved to $path';
+  }
+
+  @override
+  String get exportCopied => 'Export copied to clipboard';
 }

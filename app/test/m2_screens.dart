@@ -162,6 +162,8 @@ class _FixtureGateway extends CatalogGateway {
     String? type,
     String? language,
     String? author,
+    String? subject,
+    String? publisher,
     String sort = 'title',
     int page = 1,
     int pageSize = 50,

@@ -119,6 +119,8 @@ class CatalogGateway {
     String? type,
     String? language,
     String? author,
+    String? subject,
+    String? publisher,
     String sort = 'title',
     int page = 1,
     int pageSize = 50,
@@ -130,6 +132,8 @@ class CatalogGateway {
           type: type,
           language: language,
           author: author,
+          subject: subject,
+          publisher: publisher,
           sort: sort,
           page: page,
           pageSize: pageSize,
@@ -143,6 +147,8 @@ class CatalogGateway {
       type: type,
       language: language,
       author: author,
+      subject: subject,
+      publisher: publisher,
       sort: sort,
       page: page,
       pageSize: pageSize,
@@ -228,6 +234,8 @@ class CatalogGateway {
     required String? type,
     required String? language,
     required String? author,
+    required String? subject,
+    required String? publisher,
     required String sort,
     required int page,
     required int pageSize,
@@ -240,6 +248,14 @@ class CatalogGateway {
         return false;
       }
       if (author != null && skip != 'author' && !r.authors.contains(author)) {
+        return false;
+      }
+      if (subject != null &&
+          skip != 'subject' &&
+          (r.tags.isEmpty || r.tags.first != subject)) {
+        return false;
+      }
+      if (publisher != null && skip != 'publisher' && r.publisher != publisher) {
         return false;
       }
       if (query.trim().isNotEmpty && !_textMatch(r, query)) return false;
@@ -273,6 +289,14 @@ class CatalogGateway {
         'author': _counts([
           for (final r in all.where((r) => matches(r, skip: 'author')))
             ...r.authors,
+        ]),
+        'subject': _counts([
+          for (final r in all.where((r) => matches(r, skip: 'subject')))
+            if (r.tags.isNotEmpty) r.tags.first,
+        ]),
+        'publisher': _counts([
+          for (final r in all.where((r) => matches(r, skip: 'publisher')))
+            if (r.publisher != null && r.publisher!.isNotEmpty) r.publisher!,
         ]),
       },
     );

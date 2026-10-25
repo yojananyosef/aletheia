@@ -759,6 +759,7 @@ class OsisProcessor:
         self.headings: list[tuple[str, str]] = []
         self.sections: list[dict] = []
         self.xrefs: list[dict] = []
+        self.footnotes: list[dict] = []   # [{id, label, text}] capturadas
         self._skip: list[str] = []       # tags cuyo contenido se descarta
         self._fmt: list[str] = []        # pila de estilos de texto
         self._buf: list[str | dict] = []  # tramos en construcción
@@ -768,10 +769,19 @@ class OsisProcessor:
         self._title_text: list[str] = []
         self._section: dict | None = None
         self._ref_attrs: dict | None = None  # <reference osisRef=...> abierto
+        self._note_depth = 0             # profundidad de <note> en captura
+        self._note_buffer: list[str] | None = None  # texto de la nota abierta
+        self._note_label = ""            # atributo n= de la nota en captura
+        self._note_seq = 0               # contador de notas de esta llamada
+        self._note_scope = ""            # prefijo de id (verso del módulo)
 
     # -- primitivas ----------------------------------------------------------
 
     def _text(self, piece: str) -> None:
+        if self._note_depth > 0 and self._note_buffer is not None:
+            if piece:
+                self._note_buffer.append(piece.replace("\xa0", " "))
+            return
         if self._skip:
             return
         if self._in_title is not None:
@@ -794,7 +804,8 @@ class OsisProcessor:
                 text_parts.append(piece)
         runs.extend(self._finalize_style(style, "".join(text_parts)))
         self._buf = []
-        return [r for r in runs if r.get("v")]
+        return [r for r in runs
+                if r.get("v") or r.get("t") in ("footnote", "xref")]
 
     def _finalize_style(self, style: str | None, text: str) -> list[dict]:
         text = re.sub(r"\s+", " ", text)
@@ -827,6 +838,37 @@ class OsisProcessor:
     # -- analizador ----------------------------------------------------------
 
     def _handle(self, tag: str, attrs: dict, closing: bool, self_done: bool) -> None:
+        # notas al pie: se capturan (texto plano) y se emite un marcador inline
+        # en la posición donde acaba la nota (su contenido no entra al flujo).
+        if tag == "note":
+            if closing or self_done:
+                self._note_depth = max(0, self._note_depth - 1)
+                if self._note_depth == 0 and self._note_buffer is not None:
+                    body = re.sub(r"\s+", " ", " ".join(self._note_buffer)).strip()
+                    self._note_buffer = None
+                    if body:
+                        self._note_seq += 1
+                        note_id = f"{self._note_scope}n{self._note_seq}"
+                        self.footnotes.append(
+                            {"id": note_id, "label": self._note_label, "text": body}
+                        )
+                        self._buf.append(
+                            {"t": "footnote", "id": note_id, "label": self._note_label}
+                        )
+                return
+            if self._note_depth == 0:
+                self._note_depth = 1
+                self._note_buffer = []
+                self._note_label = attrs.get("n", "") or "a"
+            else:
+                self._note_depth += 1
+            return
+        if self._note_depth > 0:
+            # dentro de una nota: solo el texto fluye; etiquetas ignoradas
+            # (con <lb> suave como separador).
+            if tag == "lb" and not closing and self._note_buffer is not None:
+                self._note_buffer.append(" ")
+            return
         # contenido descartado (notas, w, referencias…)
         if self._skip:
             if closing or self_done:
@@ -966,8 +1008,9 @@ class OsisProcessor:
             self._text(html.unescape(text[pos:]))
         self.flush_all()
 
-def osis_runs(text: str, mode: str = "bible") -> OsisProcessor:
+def osis_runs(text: str, mode: str = "bible", note_scope: str = "") -> OsisProcessor:
     proc = OsisProcessor(mode)
+    proc._note_scope = note_scope
     proc.feed(text)
     return proc
 
@@ -1010,10 +1053,7 @@ def clean_runs(runs: list[dict]) -> list[dict]:
     """Une tramos contiguos del mismo estilo, colapsando espacios."""
     out: list[dict] = []
     for chunk in runs:
-        if chunk.get("t") == "xref":
-            if out:
-                out.append(chunk)
-                continue
+        if chunk.get("t") in ("footnote", "xref"):
             out.append(chunk)
             continue
         text = chunk.get("v", "")
@@ -1021,17 +1061,21 @@ def clean_runs(runs: list[dict]) -> list[dict]:
             continue
         if out:
             prev = out[-1]
-            if prev.get("t") == chunk.get("t") and prev.get("style") == chunk.get("style") and prev.get("t") != "xref":
+            if prev.get("t") == chunk.get("t") and prev.get("style") == chunk.get("style") and prev.get("t") not in ("xref", "footnote"):
                 prev["v"] += text
                 continue
         out.append(dict(chunk))
     for r in out:
         if r.get("t") in ("text", "span"):
             r["v"] = re.sub(r"\s+", " ", r.get("v", ""))
-    out[0]["v"] = out[0]["v"].lstrip() if out else ""
     if out:
-        out[-1]["v"] = out[-1]["v"].rstrip()
-    return [r for r in out if r.get("v") and r.get("v").strip()]
+        first, last = out[0], out[-1]
+        if "v" in first:
+            first["v"] = first["v"].lstrip()
+        if "v" in last:
+            last["v"] = last["v"].rstrip()
+    return [r for r in out if r.get("t") in ("footnote", "xref")
+            or (r.get("v") and r.get("v").strip())]
 
 
 # ---------------------------------------------------------------------------
@@ -1109,7 +1153,7 @@ def parse_bible(data: dict[str, bytes], v11n_code: str) -> dict:
                 book["chapters"].append(chapter)
                 verse_n = 0
                 # títulos incluidos en la cabeza del capítulo
-                proc = osis_runs(text)
+                proc = osis_runs(text, note_scope=f"{code}.{n}.")
                 for style, head in proc.headings:
                     chapter["blocks"].append({"type": "heading", "style": style, "text": head})
                 continue
@@ -1119,9 +1163,13 @@ def parse_bible(data: dict[str, bytes], v11n_code: str) -> dict:
             if kind == "empty":
                 continue
             verse: dict | None = None
-            proc = osis_runs(text)
+            proc = osis_runs(text, note_scope=f"{code}.{chapter['n']}.{verse_n + 1}.")
             for style, head in proc.headings:
                 chapter["blocks"].append({"type": "heading", "style": style, "text": head})
+            for note in proc.footnotes:
+                chapter.setdefault("footnotes", {}).setdefault(
+                    note["id"], {"label": note["label"], "text": note["text"]}
+                )
             units = [u for u in proc.units if u.get("runs")]
             if not units:
                 continue
@@ -1632,7 +1680,11 @@ def selfcheck_module(name: str, zips_dir: Path) -> None:
         if gen1:
             for g in gen1["blocks"]:
                 if g["type"] == "verseGroup":
-                    print("  GEN 1:", "<|>".join(v["inlines"][0]["v"] for v in g["verses"])[:160])
+                    guts = "<|>".join(
+                        (v["inlines"][0]["v"] if "v" in v["inlines"][0]
+                         else f'<{v["inlines"][0].get("t")}>')
+                        for v in g["verses"])
+                    print("  GEN 1:", guts[:160])
         exo8 = next((ch for ch in books.get("EXO", {}).get("chapters", []) if ch["n"] == 8), None)
         if exo8:
             verses = [v for g in exo8["blocks"] if g["type"] == "verseGroup" for v in g["verses"]]

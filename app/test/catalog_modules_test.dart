@@ -31,12 +31,16 @@ class _FakeModsServer {
   HttpServer? _server;
   Duration _delay = Duration.zero;
 
+  /// Rutas pedidas por el store (para probar actualizaciones delta).
+  final List<String> requests = [];
+
   Future<String> start() async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     _server = server;
     unawaited(
       server.forEach((request) async {
         final path = request.uri.path.replaceFirst(RegExp(r'^/'), '');
+        requests.add(path);
         if (_delay > Duration.zero) {
           await Future<void>.delayed(_delay);
         }
@@ -315,6 +319,98 @@ void main() {
     expect(store.isInstalled('bible.asv'), isFalse);
 
     store.dispose();
+  });
+
+  test('delta: reinstalar con todo idéntico no baja nada', () async {
+    final (store, server, modulesDir, manifest) = await _freshInstall();
+    addTearDown(server.close);
+
+    final entry = manifest.entries.single;
+    expect(await store.install(entry), isTrue);
+    expect(server.requests, hasLength(2)); // manifest.json + GEN.json.gz
+
+    // Reinstalación sin cambios en el remoto: cero descargas.
+    final before = server.requests.length;
+    expect(await store.install(entry), isTrue);
+    expect(server.requests.length, before);
+    expect(store.versionOf('bible.asv'), '2026.01');
+
+    // Y sigue leyendo bien del disco.
+    expect(
+      await File(
+        '$modulesDir${Platform.pathSeparator}asv'
+        '${Platform.pathSeparator}manifest.json',
+      ).readAsString(),
+      _asvManifestBody,
+    );
+    store.dispose();
+  });
+
+  test('delta: al cambiar un archivo sólo se baja el que cambió', () async {
+    final root = await Directory.systemTemp.createTemp('aletheia-mods-');
+    addTearDown(() => root.delete(recursive: true));
+    final (manifest, _) = await _seed(root);
+    final server = _FakeModsServer(root);
+    final baseUrl = await server.start();
+    addTearDown(server.close);
+
+    // Manifiesto mutable (simula una nueva publicación del catálogo).
+    CatalogModulesManifest current = manifest;
+    final modulesDir =
+        '${(await Directory.systemTemp.createTemp('aletheia-app-')).path}'
+        '${Platform.pathSeparator}modules';
+    final store = ModulesStore(
+      baseDirectory: modulesDir,
+      loadManifest: () async => current,
+      modsBaseUrl: baseUrl,
+      client: http.Client(),
+    );
+    await store.load();
+    addTearDown(store.dispose);
+
+    expect(await store.install(manifest.entries.single), isTrue);
+    expect(server.requests, hasLength(2));
+
+    // Nueva publicación: sólo GEN.json.gz cambia de contenido + sha.
+    final newGenesis = _gzip('[{"texto plano de Genesis 1 (v2)"}]');
+    await File(
+      '${root.path}/asv/books/GEN.json.gz',
+    ).writeAsBytes(newGenesis);
+    final oldEntry = manifest.entries.single;
+    current = CatalogModulesManifest(
+      version: '2026.02',
+      publishedAt: '2026-02-01',
+      entries: [
+        ModuleEntry(
+          id: oldEntry.id,
+          type: oldEntry.type,
+          title: oldEntry.title,
+          language: oldEntry.language,
+          files: [
+            oldEntry.files.first, // manifest.json idéntico
+            ModuleFile(
+              path: 'asv/books/GEN.json.gz',
+              bytes: newGenesis.length,
+              sha256: _sha(newGenesis),
+            ),
+          ],
+          size: oldEntry.files.first.bytes + newGenesis.length,
+        ),
+      ],
+    );
+
+    expect(await store.install(current.entries.single), isTrue);
+    expect(store.versionOf('bible.asv'), '2026.02');
+    // Sólo se bajó el archivo cambiado (el manifest.json se saltó).
+    expect(server.requests.length, 3);
+    expect(server.requests.last, 'asv/books/GEN.json.gz');
+    expect(
+      await File(
+        '$modulesDir${Platform.pathSeparator}asv'
+        '${Platform.pathSeparator}books${Platform.pathSeparator}GEN.json.gz',
+      ).readAsBytes(),
+      newGenesis,
+    );
   });
 
   test('desinstalar borra la carpeta y vacía el índice', () async {
