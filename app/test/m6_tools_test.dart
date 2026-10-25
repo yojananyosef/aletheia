@@ -161,7 +161,7 @@ void main() {
         .read(workspaceProvider)
         .tiles
         .expand((tile) => tile.tabs)
-        .where((tab) => tab.resourceId == 'bible.rv1909')
+        .where((tab) => tab.resourceId == 'bible.platense')
         .toList();
     expect(opened, hasLength(1));
     expect(opened.single.reference, 'ACT.13.1');

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'models.dart';
 import 'persistence.dart';
+import '../catalog/catalog_gateway.dart';
 
 class WorkspaceController extends Notifier<WorkspaceState> {
   Timer? _saveTimer;
@@ -143,7 +144,12 @@ class WorkspaceController extends Notifier<WorkspaceState> {
 
   /// Abre una pestaña en el panel activo o, si no hay uno claro, en el primer
   /// panel libre; si no queda ninguno, en el primero.
-  void openTab(TabSpec spec) {
+  ///
+  /// Cuando se abre un recurso por [TabSpec.resourceType] sin [TabSpec.resourceId]
+  /// (p. ej. acciones rápidas "Abrir un comentario"), se resuelve el ID del
+  /// primer recurso de ese tipo en el catálogo para que el panel no quede con
+  /// un `resourceId` vacío.
+  void openTab(TabSpec spec) async {
     // Un workspace sin tiles (estado inicial mínimo) crea el suyo: así el
     // panel siempre tiene dónde abrirse.
     if (state.tiles.isEmpty) {
@@ -151,6 +157,31 @@ class WorkspaceController extends Notifier<WorkspaceState> {
     }
     final tiles = state.tiles;
     if (tiles.isEmpty) return;
+
+    // Resolver resourceId para recursos abiertos por tipo (quick actions)
+    // sin ID explícito: buscar el primero del tipo solicitado en el catálogo.
+    if (spec.kind == PanelKind.resource &&
+        spec.resourceId == null &&
+        spec.resourceType != null) {
+      try {
+        final gateway = ref.read(catalogGatewayProvider);
+        final listing =
+            await gateway.listResources(type: spec.resourceType, pageSize: 1);
+        if (listing.items.isNotEmpty) {
+          spec = TabSpec(
+            kind: spec.kind,
+            title: spec.title,
+            reference: spec.reference,
+            query: spec.query,
+            resourceType: spec.resourceType,
+            resourceId: listing.items.first.id,
+          );
+        }
+      } catch (_) {
+        // Si falla la consulta al catálogo, continuar sin resourceId:
+        // el panel mostrará su propio estado de error.
+      }
+    }
 
     // Reutilizar la pestaña existente del mismo tipo (y referencia y recurso,
     // si aplica): abrir otra versión no debe quedarse con el panel anterior.

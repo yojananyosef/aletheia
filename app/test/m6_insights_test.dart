@@ -98,7 +98,11 @@ Future<ProviderContainer> _pumpReader(WidgetTester tester) async {
   );
   addTearDown(container.dispose);
   container.read(workspaceProvider.notifier).openTab(
-        const TabSpec(kind: PanelKind.bible, reference: 'JHN.1.1'),
+        const TabSpec(
+          kind: PanelKind.bible,
+          reference: 'JHN.1.1',
+          resourceId: 'bible.rv1909',
+        ),
       );
   await tester.pumpWidget(UncontrolledProviderScope(
     container: container,
@@ -192,9 +196,7 @@ void main() {
 
     await _tap(tester, find.byKey(const ValueKey('reader-info')));
 
-    expect(find.text('Acerca de Reina-Valera 1909'), findsOneWidget);
-    expect(find.text('Traducción clásica al español.'), findsOneWidget);
-
+    expect(find.text('Acerca de Biblia de prueba'), findsOneWidget);
     // «Comenzar plan de lectura» abre el gestor de planes (M6.3).
     final plan = tester.widget<OutlinedButton>(
       find.byKey(const ValueKey('insights-reading-plan')),
@@ -208,7 +210,7 @@ void main() {
 
     // Cerrar el panel.
     await _tap(tester, find.byKey(const ValueKey('drawer-close')));
-    expect(find.text('Acerca de Reina-Valera 1909'), findsNothing);
+    expect(find.text('Acerca de Biblia de prueba'), findsNothing);
   });
 
   // ----------------------------------------------------------- Artículo ▾

@@ -90,8 +90,8 @@ flutter:
     # (`catalog.search`) compara contra su hash; si no viaja en el bundle se
     # quedara pegada una copia vieja de una build anterior.
     - assets/catalog/search.meta.json
-    - assets/catalog/rv1909/
-    - assets/catalog/rv1909/books/
+    - assets/catalog/platense/
+    - assets/catalog/platense/books/
     # Léxico Strong: el estudio de palabras del Griego/Hebreo funciona en
     # frío sin instalar nada más.
     - assets/catalog/lexicon.strongs/

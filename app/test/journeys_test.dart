@@ -119,9 +119,9 @@ void main() {
       expect(triangle[0].dy, closeTo(100, 0.01));
       expect(triangle[0].dx, closeTo(112, 0.01));
       // Base apartada perpendicular y a favor de la dirección.
-      expect(triangle[1].dy, closeTo(103.2, 0.01));
-      expect(triangle[2].dy, closeTo(96.8, 0.01));
-      expect(triangle[1].dx, closeTo(120, 0.01));
+      expect(triangle[1].dy, closeTo(104.5, 0.01));
+      expect(triangle[2].dy, closeTo(95.5, 0.01));
+      expect(triangle[1].dx, closeTo(122, 0.01));
     });
 
     test('tramo corto o degenerado no dibuja flecha', () {

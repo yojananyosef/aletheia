@@ -300,12 +300,18 @@ class BibleMap extends ConsumerWidget {
                       ...block.markers.map((marker) => marker.name),
                     ].join('. '),
                     child: ClipRect(
-                      child: InteractiveViewer(
-                        minScale: 1,
-                        maxScale: 4,
-                        panEnabled: true,
-                        scaleEnabled: true,
-                        child: map,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxHeight: 520,
+                          maxWidth: 900,
+                        ),
+                        child: InteractiveViewer(
+                          minScale: 1,
+                          maxScale: 4,
+                          panEnabled: true,
+                          scaleEnabled: true,
+                          child: map,
+                        ),
                       ),
                     ),
                   );
@@ -376,8 +382,8 @@ List<Offset>? routeArrowTriangle(
   Offset from,
   Offset to, {
   double inset = 8,
-  double halfHeight = 3.2,
-  double length = 8,
+  double halfHeight = 4.5,
+  double length = 10,
   double minLeg = 17,
 }) {
   final delta = to - from;

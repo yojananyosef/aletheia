@@ -33,7 +33,7 @@ const kDefaultCatalogUrl = 'http://127.0.0.1:8787';
 const kCatalogModes = ['auto', 'local', 'remote'];
 
 /// Biblia por defecto de la app (pestañas sin `resourceId` explícito).
-const kDefaultBibleResourceId = 'bible.rv1909';
+const kDefaultBibleResourceId = 'bible.platense';
 
 /// Ubicación de la barra de aplicaciones (Ajustes 8.1).
 const kToolbarLocations = ['left', 'top'];

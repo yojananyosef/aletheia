@@ -64,7 +64,7 @@ void main() {
   test('lo empaquetado (RV1909, Strong, devocional, Factbook) sale de assets',
       () async {
     const bundled = [
-      'assets/catalog/rv1909/manifest.json',
+      'assets/catalog/platense/manifest.json',
       'assets/catalog/lexicon.strongs/manifest.json',
       'assets/catalog/devotional.daily/sections.json.gz',
       'assets/catalog/factbook.core/sections.json.gz',

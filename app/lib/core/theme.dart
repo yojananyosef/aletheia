@@ -158,6 +158,12 @@ ThemeData _buildTheme(AletheiaPalette palette) {
       hintStyle: TextStyle(color: palette.textSecondary),
     ),
     visualDensity: VisualDensity.compact,
+    // Scroll fino y discreto en toda la app (sidebar, paneles, tiendas, etc.).
+    // El lector ya lo aplica a su Stack; esto lo extiende al resto.
+    scrollbarTheme: ScrollbarThemeData(
+      thickness: WidgetStateProperty.all(2.0),
+      radius: const Radius.circular(2),
+    ),
   );
 }
 
