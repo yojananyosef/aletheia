@@ -2268,8 +2268,8 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
                     const SizedBox(height: 6),
                     Flexible(
                       child: Scrollbar(
-                        thickness: 4,
-                        radius: const Radius.circular(4),
+                        thickness: 2,
+                        radius: const Radius.circular(2),
                         child: SingleChildScrollView(
                           padding: const EdgeInsets.only(right: 2, bottom: 2),
                           child: SelectableText(
