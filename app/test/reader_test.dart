@@ -367,10 +367,22 @@ void main() {
     expect(find.text('Nota *'), findsOneWidget);
     expect(find.text('Cf. la nota del traductor.'), findsOneWidget);
 
-    // Al salir del marcador, la tarjeta (sin fijar) se cierra.
+    // Al salir del marcador la tarjeta (sin fijar) se cierra tras la gracia
+    // de cierre (180 ms): la salida definitiva no devuelve al puntero.
     await hover.moveTo(const Offset(40, 620));
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 320));
     expect(find.text('Nota *'), findsNothing);
+
+    // Micro-salida y retorno dentro de la gracia: la tarjeta no parpadea
+    // (la re-entrada al glifo cancela el cierre diferido).
+    await hover.moveTo(tester.getCenter(find.text('*')));
+    await tester.pump(const Duration(milliseconds: 320));
+    expect(find.text('Nota *'), findsOneWidget);
+    await hover.moveTo(const Offset(40, 620)); // sale
+    await tester.pump(const Duration(milliseconds: 60));
+    await hover.moveTo(tester.getCenter(find.text('*'))); // vuelve en la gracia
+    await tester.pump(const Duration(milliseconds: 700)); // rebasa la gracia
+    expect(find.text('Nota *'), findsOneWidget);
 
     // Con clic queda fijada: salir del marcador no la cierra, el segundo
     // clic sobre el mismo marcador sí.

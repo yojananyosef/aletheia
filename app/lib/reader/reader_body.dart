@@ -324,7 +324,8 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       _outsideLayersRoute,
     );
     _pages.removeListener(_hideFloatingOnPageChange);
-    _footnoteHoverTimer?.cancel();
+    _footnoteOpenTimer?.cancel();
+    _footnoteCloseTimer?.cancel();
     _disposeWordRecognizers();
     _scroll.dispose();
     _pages.dispose();
@@ -1892,7 +1893,12 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     id,
     () => GlobalObjectKey('reader-footnote-$id'),
   );
-  Timer? _footnoteHoverTimer;
+  Timer? _footnoteOpenTimer;
+  Timer? _footnoteCloseTimer;
+
+  /// Última posición global conocida del puntero (enter/exit del marcador y
+  /// de la tarjeta): permite confirmar una salida real antes de cerrar.
+  Offset? _footnotePointer;
   bool _footnotePinned = false;
   bool _footnoteOpen = false;
   String? _activeFootnoteId;
@@ -1934,8 +1940,14 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
         padding: const EdgeInsets.only(left: 1, right: 1),
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
-          onEnter: (event) => _scheduleFootnoteHover(f.id, glyph, label, text),
-          onExit: (event) => _cancelFootnoteHover(),
+          onEnter: (event) {
+            _footnotePointer = event.position;
+            _scheduleFootnoteHover(f.id, glyph, label, text);
+          },
+          onExit: (event) {
+            _footnotePointer = event.position;
+            _onFootnoteMarkerExit();
+          },
           child: GestureDetector(
             onTapDown: (details) => _toggleFootnote(f.id, glyph, label, text),
             child: KeyedSubtree(
@@ -1961,16 +1973,18 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
   }
 
   /// Hover en el marcador: con una demora breve (evita el parpadeo al pasar
-  /// por encima leyendo) muestra la tarjeta sin fijar.
+  /// por encima leyendo) muestra la tarjeta sin fijar. Cancela un cierre
+  /// pendiente: re-entrar al glifo mantiene la tarjeta abierta.
   void _scheduleFootnoteHover(
     String id,
     String glyph,
     String label,
     String text,
   ) {
-    _footnoteHoverTimer?.cancel();
+    _footnoteCloseTimer?.cancel();
+    _footnoteOpenTimer?.cancel();
     if (_footnoteOpen && _footnotePinned) return; // una fijada manda
-    _footnoteHoverTimer = Timer(const Duration(milliseconds: 220), () {
+    _footnoteOpenTimer = Timer(const Duration(milliseconds: 220), () {
       if (!mounted) return;
       _openFootnoteCard(
         id: id,
@@ -1982,15 +1996,42 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     });
   }
 
-  /// Sale del marcador: si la tarjeta no está fijada, se cierra.
-  void _cancelFootnoteHover() {
-    _footnoteHoverTimer?.cancel();
+  /// Sale del glifo: si la tarjeta no está fijada se cierra con una demora
+  /// breve. La salida del glifo es habitual (área mínima) y el cierre
+  /// instantáneo parpadeaba en bucle; la gracia permite salir y volver.
+  void _onFootnoteMarkerExit() {
+    _footnoteOpenTimer?.cancel();
     if (!_footnoteOpen || _footnotePinned) return;
-    _closeFootnoteCard();
+    _scheduleFootnoteClose();
+  }
+
+  /// Cierre diferido del hover. Al dispararse confirma que el puntero ya no
+  /// está sobre el marcador ni la tarjeta: el framework entrega exits
+  /// sintéticos al re-apilarse widgets (la tarjeta aparece sobre texto) y
+  /// cerrar en ese punto produciría un ciclo abrir/cerrar.
+  void _scheduleFootnoteClose() {
+    _footnoteCloseTimer?.cancel();
+    _footnoteCloseTimer = Timer(const Duration(milliseconds: 180), () {
+      if (!mounted || !_footnoteOpen || _footnotePinned) return;
+      final pointer = _footnotePointer;
+      if (pointer != null) {
+        final id = _activeFootnoteId;
+        if (id != null && _containsGlobalKey(_footnoteMarkerKey(id), pointer)) {
+          return;
+        }
+        if (_containsGlobalKey(_footnoteCardKey, pointer)) return;
+      }
+      _closeFootnoteCard();
+    });
+  }
+
+  void _cancelFootnoteTimers() {
+    _footnoteOpenTimer?.cancel();
+    _footnoteCloseTimer?.cancel();
   }
 
   void _toggleFootnote(String id, String glyph, String label, String text) {
-    _footnoteHoverTimer?.cancel();
+    _cancelFootnoteTimers();
     if (_footnoteOpen && _footnotePinned && _activeFootnoteId == id) {
       // Segundo clic sobre el mismo marcador: se desfija y cierra.
       _closeFootnoteCard();
@@ -2121,6 +2162,7 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       final pending = _footnoteCardHeight;
       if (pending != null && (pending - h).abs() < 0.5) return;
       setState(() => _footnoteCardHeight = h);
+      setState(() => _footnoteCardHeight = h);
     });
   }
 
@@ -2147,33 +2189,49 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       left: left,
       top: top,
       width: cardW,
-      child: KeyedSubtree(
-        key: _footnoteCardKey,
-        child: Material(
-          key: const ValueKey('footnote-card'),
-          color: kPanelBg,
-          elevation: 4,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  context.l10n.readerFootnote(_activeFootnoteGlyph),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: kTextSecondary,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.basic,
+        onEnter: (event) {
+          _footnotePointer = event.position;
+          // Entrar a la tarjeta cancela el cierre diferido: se puede leer o
+          // seleccionar su contenido sin que se cierre.
+          _footnoteCloseTimer?.cancel();
+        },
+        onExit: (event) {
+          _footnotePointer = event.position;
+          if (_footnotePinned) return;
+          // Salir de la tarjeta reagenda el cierre con la misma gracia del
+          // marcador; si el puntero vuelve (marcador o tarjeta) se cancela.
+          _scheduleFootnoteClose();
+        },
+        child: KeyedSubtree(
+          key: _footnoteCardKey,
+          child: Material(
+            key: const ValueKey('footnote-card'),
+            color: kPanelBg,
+            elevation: 4,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    context.l10n.readerFootnote(_activeFootnoteGlyph),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: kTextSecondary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                SelectableText(
-                  text,
-                  style: readerBodyStyle(size: 12.5, font: _font),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  SelectableText(
+                    text,
+                    style: readerBodyStyle(size: 12.5, font: _font),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
