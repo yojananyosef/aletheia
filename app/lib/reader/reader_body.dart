@@ -2119,6 +2119,11 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
   }
 
   static const double _footnoteCardMaxWidth = 360;
+
+  /// Las notas de estudio muy largas (p. ej. la de Gen 1:1 de Platense) se
+  /// leen mejor en una tarjeta más ancha: menos líneas y menos scroll.
+  static const double _footnoteCardWideWidth = 480;
+  static const int _footnoteCardWideThreshold = 700;
   static const double _footnoteCardGap = 10;
   static const double _footnoteCardMargin = 8;
 
@@ -2132,7 +2137,9 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     final stackW = stackBox.size.width;
     final stackH = stackBox.size.height;
     if (stackW <= _footnoteCardMargin * 2) return null;
-    var cardW = _footnoteCardMaxWidth;
+    var cardW = (_footnoteText?.length ?? 0) > _footnoteCardWideThreshold
+        ? _footnoteCardWideWidth
+        : _footnoteCardMaxWidth;
     if (cardW > stackW - _footnoteCardMargin * 2) {
       cardW = stackW - _footnoteCardMargin * 2;
     }
@@ -2162,7 +2169,6 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
       final pending = _footnoteCardHeight;
       if (pending != null && (pending - h).abs() < 0.5) return;
       setState(() => _footnoteCardHeight = h);
-      setState(() => _footnoteCardHeight = h);
     });
   }
 
@@ -2185,6 +2191,12 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
     final layout = _footnoteCardLayout(marker);
     if (layout == null) return const SizedBox.shrink();
     final (left, top, cardW) = layout;
+    final stackBox =
+        _selectionStackKey.currentContext?.findRenderObject() as RenderBox?;
+    final stackH = stackBox?.size.height ?? 0.0;
+    // La tarjeta nunca excede el área del lector: notas muy largas hacen
+    // scroll interno en lugar de desbordar y cortarse al fondo.
+    final cardMaxHeight = math.max(120.0, stackH - _footnoteCardMargin * 2);
     return Positioned(
       left: left,
       top: top,
@@ -2211,26 +2223,64 @@ class _ReaderBodyState extends ConsumerState<ReaderBody> {
             color: kPanelBg,
             elevation: 4,
             borderRadius: BorderRadius.circular(8),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    context.l10n.readerFootnote(_activeFootnoteGlyph),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: kTextSecondary,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: cardMaxHeight),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            context.l10n.readerFootnote(_activeFootnoteGlyph),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: kTextSecondary,
+                            ),
+                          ),
+                        ),
+                        // Cierre accesible: con la tarjeta cubriendo el
+                        // texto queda lejos del marcador y hasta del clic
+                        // fuera cuando la nota es muy alta.
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _closeFootnoteCard,
+                          child: Semantics(
+                            button: true,
+                            label: context.l10n.close,
+                            child: Padding(
+                              padding: const EdgeInsets.all(3),
+                              child: Icon(
+                                Icons.close,
+                                size: 16,
+                                color: kTextSecondary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  SelectableText(
-                    text,
-                    style: readerBodyStyle(size: 12.5, font: _font),
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    Flexible(
+                      child: Scrollbar(
+                        thickness: 4,
+                        radius: const Radius.circular(4),
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.only(right: 2, bottom: 2),
+                          child: SelectableText(
+                            text,
+                            style: readerBodyStyle(size: 12.5, font: _font),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
