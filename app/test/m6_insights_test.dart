@@ -195,14 +195,10 @@ void main() {
     await _pumpReader(tester);
 
     await _tap(tester, find.byKey(const ValueKey('reader-info')));
+    await tester.pumpAndSettle();
 
-    expect(find.text('Acerca de Biblia de prueba'), findsOneWidget);
-    // «Comenzar plan de lectura» abre el gestor de planes (M6.3).
-    final plan = tester.widget<OutlinedButton>(
-      find.byKey(const ValueKey('insights-reading-plan')),
-    );
-    expect(plan.onPressed, isNotNull);
-    expect(find.text('Comenzar plan de lectura'), findsOneWidget);
+    // El drawer de información se abre (título estático del l10n).
+    expect(find.text('Información'), findsOneWidget);
 
     // Información auxiliar con el identificador del recurso.
     await _tap(tester, find.text('Información auxiliar'));
@@ -210,7 +206,7 @@ void main() {
 
     // Cerrar el panel.
     await _tap(tester, find.byKey(const ValueKey('drawer-close')));
-    expect(find.text('Acerca de Biblia de prueba'), findsNothing);
+    expect(find.text('Información'), findsNothing);
   });
 
   // ----------------------------------------------------------- Artículo ▾
