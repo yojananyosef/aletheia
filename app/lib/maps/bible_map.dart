@@ -19,19 +19,175 @@ import '../core/theme.dart';
 import '../references/reference_parser.dart';
 
 class MapGeometry {
-  const MapGeometry({required this.land, required this.lakes});
+  const MapGeometry({
+    required this.land,
+    required this.lakes,
+    this.rivers = const [],
+    this.boundaries = const [],
+    this.riverLabelAnchors = const {},
+  });
 
   final List<List<Offset>> land;
   final List<List<Offset>> lakes;
+
+  /// Cuerpos fluviales (ríos) y regalías de límites de país: cadenas abiertas
+  /// de (lon, lat) que [geoJsonToChains] levanta de un GeoJSON de líneas.
+  final List<List<Offset>> rivers;
+  final List<List<Offset>> boundaries;
+
+  /// Ancla (lon, lat) por río — nombre ya traducido — para el texto repetido
+  /// a lo largo del cauce en lugar del rótulo flotante (estilo atlas).
+  final Map<String, Offset> riverLabelAnchors;
 }
 
 final mapGeometryProvider = FutureProvider<MapGeometry>((ref) async {
-  final loaded = await Future.wait([
+  final required = await Future.wait([
     rootBundle.loadString('assets/maps/ne_110m_land.geojson'),
     rootBundle.loadString('assets/maps/ne_110m_lakes.geojson'),
   ]);
-  return MapGeometry(land: _polygons(loaded[0]), lakes: _polygons(loaded[1]));
+  // Ríos y límites son enriquecimiento: si faltan los assets el mapa sigue
+  // funcionando con costas y lagos.
+  Future<String> optional(String asset) async {
+    try {
+      return await rootBundle.loadString(asset);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  return mapGeometryFromGeoJson(
+    land: required[0],
+    lakes: required[1],
+    rivers: await optional('assets/maps/ne_rivers.geojson'),
+    boundaries: await optional('assets/maps/ne_boundaries.geojson'),
+  );
 });
+
+/// Levanta la geometría completa desde los GeoJSON empaquetados. Público para
+/// poder testear el parseo de líneas sin assets.
+MapGeometry mapGeometryFromGeoJson({
+  required String land,
+  required String lakes,
+  required String rivers,
+  required String boundaries,
+}) {
+  final named = <_GeoFeature>[];
+  for (final feature in _GeoFeature.fromGeoJson(rivers)) {
+    named.add(feature);
+  }
+  return MapGeometry(
+    land: _polygons(land),
+    lakes: _polygons(lakes),
+    rivers: [for (final f in named) ...f.runs],
+    boundaries: [
+      for (final f in _GeoFeature.fromGeoJson(boundaries)) ...f.runs,
+    ],
+    riverLabelAnchors: _riverLabelAnchors(named),
+  );
+}
+
+/// Nombre en castellano de los ríos del caché (null = no rotular); agrupa
+/// variantes del mismo cauce para que Éufrates salga una sola vez.
+const _riverNameEs = <String, String>{
+  'Nile': 'Nilo',
+  'Danube': 'Danubio',
+  'Donau': 'Danubio',
+  'Euphrates': 'Éufrates',
+  'Al Furat': 'Éufrates',
+  'Firat': 'Éufrates',
+  'Tigris': 'Tigris',
+  'Dicle': 'Tigris',
+  'Jordan': 'Jordán',
+};
+
+/// Por río (nombre ya traducido) conserva el punto medio del tramo más largo:
+/// tal vez quede fuera de algún encuadre, pero nunca dentro de la cola corta.
+Map<String, Offset> _riverLabelAnchors(List<_GeoFeature> features) {
+  final anchors = <String, Offset>{};
+  final lengths = <String, double>{};
+  for (final feature in features) {
+    final es = _riverNameEs[feature.name];
+    if (es == null) continue;
+    final longest = feature.runs.reduce(
+      (a, b) => _chainLength(b) > _chainLength(a) ? b : a,
+    );
+    final length = _chainLength(longest);
+    if (length > (lengths[es] ?? -1)) {
+      lengths[es] = length;
+      anchors[es] = longest[longest.length ~/ 2];
+    }
+  }
+  return anchors;
+}
+
+double _chainLength(List<Offset> chain) {
+  var total = 0.0;
+  for (var i = 1; i < chain.length; i++) {
+    total += (chain[i] - chain[i - 1]).distance;
+  }
+  return total;
+}
+
+class _GeoFeature {
+  const _GeoFeature({required this.name, required this.runs});
+
+  final String? name;
+  final List<List<Offset>> runs;
+
+  static List<_GeoFeature> fromGeoJson(String source) {
+    final json = jsonDecode(source.isEmpty ? '{"features":[]}' : source);
+    if (json is! Map<String, dynamic>) return const [];
+    final out = <_GeoFeature>[];
+    for (final feature
+        in ((json['features'] as List?) ?? const [])
+            .whereType<Map<String, dynamic>>()) {
+      final geometry = feature['geometry'];
+      if (geometry is! Map<String, dynamic>) continue;
+      final coordinates = geometry['coordinates'];
+      final runs = <List<Offset>>[];
+      void addLine(Object? line) {
+        if (line is! List) return;
+        final points = <Offset>[];
+        for (final pair in line) {
+          if (pair is List && pair.length >= 2) {
+            final lon = pair[0];
+            final lat = pair[1];
+            if (lon is num && lat is num) {
+              points.add(Offset(lon.toDouble(), lat.toDouble()));
+            }
+          }
+        }
+        if (points.length >= 2) runs.add(points);
+      }
+
+      switch (geometry['type']) {
+        case 'LineString':
+          addLine(coordinates);
+        case 'MultiLineString':
+          if (coordinates is List) {
+            for (final line in coordinates) {
+              addLine(line);
+            }
+          }
+      }
+      if (runs.isNotEmpty) {
+        out.add(
+          _GeoFeature(
+            name: feature['properties']?['name'] as String?,
+            runs: runs,
+          ),
+        );
+      }
+    }
+    return out;
+  }
+}
+
+/// Convierte un GeoJSON de líneas (LineString/MultiLineString) en cadenas de
+/// (lon, lat). Público para tests.
+List<List<Offset>> geoJsonToChains(String source) => [
+  for (final f in _GeoFeature.fromGeoJson(source)) ...f.runs,
+];
 
 List<List<Offset>> _polygons(String source) {
   final json = jsonDecode(source);
@@ -410,6 +566,36 @@ class BibleMap extends ConsumerWidget {
               ),
             );
           }
+          // Rótulos de ríos con nombre (Jordán, Éufrates…): rellenan huecos
+          // del atlas cuando lo hacen los nombres de lugares. Un rótulo por
+          // cauce, y solo si queda sitio libre tras los chips y sus pastillas.
+          final riverLabels = <_RiverLabelPlacement>[];
+          final drawnRivers = <String>{};
+          for (final entry in geometry.riverLabelAnchors.entries) {
+            if (!drawnRivers.add(entry.key)) continue;
+            final point = projection.project(entry.value.dy, entry.value.dx);
+            if (point.dx < 20 ||
+                point.dx > size.width - 20 ||
+                point.dy < 12 ||
+                point.dy > size.height - 12) {
+              continue;
+            }
+            final painter = TextPainter(
+              text: TextSpan(text: entry.key, style: _riverLabelStyle),
+              textDirection: TextDirection.ltr,
+            )..layout(maxWidth: 180);
+            final rect = Rect.fromCenter(
+              center: point,
+              width: painter.width + 8,
+              height: painter.height + 6,
+            );
+            painter.dispose();
+            if (occupied.any((other) => other.overlaps(rect))) continue;
+            occupied.add(rect);
+            riverLabels.add(
+              _RiverLabelPlacement(name: entry.key, point: point),
+            );
+          }
           final map = SizedBox(
             width: size.width,
             height: size.height,
@@ -425,6 +611,18 @@ class BibleMap extends ConsumerWidget {
                     ),
                   ),
                 ),
+                if (riverLabels.isNotEmpty)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: _RiverLabelPainter(
+                          labels: riverLabels,
+                          textScaler: MediaQuery.textScalerOf(context),
+                          dark: dark,
+                        ),
+                      ),
+                    ),
+                  ),
                 if (block.routes.isNotEmpty)
                   Positioned.fill(
                     child: IgnorePointer(
@@ -505,6 +703,64 @@ const _markerLabelStyle = TextStyle(
   height: 1.1,
   fontWeight: FontWeight.w600,
 );
+
+/// Rótulo de río: itálica pequeña tipo carta antigua, sin chip de fondo.
+const _riverLabelStyle = TextStyle(
+  fontSize: 8.5,
+  height: 1.25,
+  fontStyle: FontStyle.italic,
+  fontWeight: FontWeight.w500,
+  letterSpacing: 0.2,
+);
+
+/// Nombre de río dibujado en el lienzo con su punto ya proyectado.
+class _RiverLabelPlacement {
+  const _RiverLabelPlacement({required this.name, required this.point});
+
+  final String name;
+  final Offset point;
+}
+
+/// Pinta los rótulos de ríos debajo de las rutas, así las líneas de viaje
+/// pasan por encima pero el texto queda legible al saltarse los huecos.
+class _RiverLabelPainter extends CustomPainter {
+  const _RiverLabelPainter({
+    required this.labels,
+    required this.textScaler,
+    required this.dark,
+  });
+
+  final List<_RiverLabelPlacement> labels;
+  final TextScaler textScaler;
+  final bool dark;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (labels.isEmpty) return;
+    final ink = dark
+        ? const Color(0xFF9EC1D0).withValues(alpha: 0.92)
+        : const Color(0xFF47708C).withValues(alpha: 0.95);
+    final style = _riverLabelStyle.copyWith(color: ink);
+    for (final label in labels) {
+      final painter = TextPainter(
+        text: TextSpan(text: label.name, style: style),
+        textDirection: TextDirection.ltr,
+        textScaler: textScaler,
+      )..layout(maxWidth: 180);
+      painter.paint(
+        canvas,
+        label.point - Offset(painter.width / 2, painter.height / 2),
+      );
+      painter.dispose();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RiverLabelPainter oldDelegate) =>
+      oldDelegate.labels != labels ||
+      oldDelegate.dark != dark ||
+      oldDelegate.textScaler != textScaler;
+}
 
 /// Paleta para las rutas del mapa (viajes, itinerarios): tonos sobrios que
 /// se distinguen tanto en claro como en oscuro, con halo para poder seguir
@@ -1057,8 +1313,89 @@ class _MapPainter extends CustomPainter {
     canvas.drawRect(Offset.zero & size, Paint()..color = water);
     _paintGrid(canvas, size, projection);
     _paintRings(canvas, geometry.land, projection, land, coast);
+    // División política discreta (punteados cortos) y cuerpos de agua lineales
+    // de Natural Earth: dan cuerpo al atlas y dejarn repartir rótulos.
+    final border = dark ? const Color(0xFF9AA3AD) : const Color(0xFF8A93A0);
+    _paintChainsDashed(
+      canvas,
+      geometry.boundaries,
+      projection,
+      Paint()
+        ..color = border.withValues(alpha: dark ? 0.28 : 0.38)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.7,
+    );
+    final river = dark ? const Color(0xFF3E6E82) : const Color(0xFF7DA7BD);
+    _paintChains(
+      canvas,
+      geometry.rivers,
+      projection,
+      Paint()
+        ..color = river.withValues(alpha: dark ? 0.95 : 1)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
     _paintRings(canvas, geometry.lakes, projection, lake, coast);
     canvas.restore();
+  }
+
+  void _paintChains(
+    Canvas canvas,
+    List<List<Offset>> chains,
+    _MapProjection projection,
+    Paint paint,
+  ) {
+    for (final chain in chains) {
+      final path = Path();
+      var first = true;
+      for (final point in chain) {
+        final projected = projection.project(point.dy, point.dx);
+        if (first) {
+          path.moveTo(projected.dx, projected.dy);
+          first = false;
+        } else {
+          path.lineTo(projected.dx, projected.dy);
+        }
+      }
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  /// Trazo discontinuo a mano: flutter no expone un PathEffect y así el
+  /// guión queda estable en todas las plataformas. Secuencia 2.8/2.4.
+  void _paintChainsDashed(
+    Canvas canvas,
+    List<List<Offset>> chains,
+    _MapProjection projection,
+    Paint paint,
+  ) {
+    const dashOn = 2.8;
+    const dashOff = 2.4;
+    for (final chain in chains) {
+      if (chain.length < 2) continue;
+      var prev = projection.project(chain.first.dy, chain.first.dx);
+      var on = true;
+      var left = dashOn;
+      for (var i = 1; i < chain.length; i++) {
+        var cur = projection.project(chain[i].dy, chain[i].dx);
+        while (true) {
+          final span = (cur - prev).distance;
+          if (span < left) {
+            if (on) canvas.drawLine(prev, cur, paint);
+            left -= span;
+            prev = cur;
+            break;
+          }
+          final gap = Offset.lerp(prev, cur, left / span)!;
+          if (on) canvas.drawLine(prev, gap, paint);
+          prev = gap;
+          on = !on;
+          left = on ? dashOn : dashOff;
+        }
+      }
+    }
   }
 
   void _paintRings(

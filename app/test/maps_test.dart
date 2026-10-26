@@ -30,6 +30,7 @@ Widget _app({
   ValueChanged<String>? onNavigate,
   bool failGeometry = false,
   MapBlock block = _block,
+  bool expandable = false,
 }) => ProviderScope(
   overrides: [
     mapGeometryProvider.overrideWith(
@@ -46,7 +47,11 @@ Widget _app({
       body: Center(
         child: SizedBox(
           width: 480,
-          child: BibleMap(block: block, onNavigate: onNavigate),
+          child: BibleMap(
+            block: block,
+            onNavigate: onNavigate,
+            expandable: expandable,
+          ),
         ),
       ),
     ),
@@ -75,6 +80,59 @@ void main() {
     expect(block.markers.single.ref, 'LUK.2.4');
   });
 
+  group('geometría de líneas (ríos y límites)', () {
+    const riversGeo =
+        '{"features":['
+        '{"type":"Feature","properties":{"name":"Jordan"},"geometry":'
+        '{"type":"LineString","coordinates":[[35.1,32.5],[35.4,32.9],[35.6,33.1]]}},'
+        '{"type":"Feature","properties":{"name":null},"geometry":'
+        '{"type":"MultiLineString","coordinates":'
+        '[[[36.0,32.8],[36.4,33.0]],[[36.5,33.1],[36.9,33.4]],[[36.95,33.5]]]}},'
+        '{"type":"Feature","properties":{"name":"Dangube"},"geometry":'
+        // La cadena del ráío desconocido solo cuenta como geometría.
+        '{"type":"LineString","coordinates":[[20.0,45.1],[21.0,45.4]]}}]}';
+
+    test('geoJsonToChains aplana LineString y MultiLineString', () {
+      final chains = geoJsonToChains(riversGeo);
+      // 1 + 2 cadenas (la tercera del MultiLineString se descarta por corta)
+      // + 1 del ráío sin traducción; los puntos quedan como (lon, lat).
+      expect(chains.length, 4);
+      expect(chains.first, const [
+        Offset(35.1, 32.5),
+        Offset(35.4, 32.9),
+        Offset(35.6, 33.1),
+      ]);
+      expect(chains.last, const [
+        Offset(20.0, 45.1),
+        Offset(21.0, 45.4),
+      ]);
+    });
+
+    test('mapGeometryFromGeoJson separa ríos de límites', () {
+      expect(
+        mapGeometryFromGeoJson(
+          land: '{"features":[]}',
+          lakes: '{"features":[]}',
+          rivers: riversGeo,
+          boundaries: riversGeo,
+        ).boundaries.length,
+        4,
+      );
+    });
+
+    test('mapGeometryFromGeoJson ancla un rótulo por río traducido', () {
+      final anchors = mapGeometryFromGeoJson(
+        land: '{"features":[]}',
+        lakes: '{"features":[]}',
+        rivers: riversGeo,
+        boundaries: '{"features":[]}',
+      ).riverLabelAnchors;
+      // Solo «Jordan» se traduce; el punto medio de su cadena es el ancla.
+      expect(anchors.keys, ['Jordán']);
+      expect(anchors['Jordán'], const Offset(35.4, 32.9));
+    });
+  });
+
   testWidgets(
     'BibleMap dibuja marcadores y navega al pulsar uno con referencia',
     (tester) async {
@@ -96,6 +154,25 @@ void main() {
       expect(opened, 'JHN.3.1');
     },
   );
+
+  testWidgets('BibleMap abre y cierra el mapa a pantalla completa', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(expandable: true));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('map-full-close')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('map-expand')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('map-full-close')), findsOneWidget);
+
+    // El diálogo reutiliza [BibleMap] sin encabezado duplicado.
+    expect(find.text('Jerusalén y Belén'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('map-full-close')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('map-full-close')), findsNothing);
+  });
 
   testWidgets('BibleMap separa las etiquetas de marcadores cercanos', (
     tester,
