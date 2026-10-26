@@ -74,15 +74,68 @@ void _appendPolygon(List<List<Offset>> rings, Object? polygon) {
   }
 }
 
+/// Diálogo de mapa completo: reutiliza [BibleMap] a casi toda la pantalla,
+/// sin su fila de título (para no duplicar el encabezado) y con un botón de
+/// cierre flotante; cierra también con clic fuera o Escape.
+void _openFullMapDialog(BuildContext context, MapBlock block) {
+  showDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      final size = MediaQuery.of(dialogContext).size;
+      final width = (size.width * 0.92).clamp(480.0, 1700.0);
+      final height = (size.height * 0.86).clamp(360.0, 1000.0);
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(12),
+        child: Stack(
+          children: [
+            SizedBox(
+              width: width,
+              height: height,
+              child: BibleMap(block: block, showHeader: false),
+            ),
+            Positioned(
+              top: 10,
+              right: 16,
+              child: Material(
+                color: Colors.transparent,
+                child: IconButton(
+                  key: const ValueKey('map-full-close'),
+                  tooltip: dialogContext.l10n.close,
+                  icon: Icon(Icons.close, size: 20, color: kTextSecondary),
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 /// Mapa de una sección con marcadores interactivos.
 ///
 /// Si un marcador trae `ref`, al pulsarlo se llama a [onNavigate] con la
 /// referencia canónica; así el mapa funciona como un índice del pasaje.
 class BibleMap extends ConsumerWidget {
-  const BibleMap({super.key, required this.block, this.onNavigate});
+  const BibleMap({
+    super.key,
+    required this.block,
+    this.onNavigate,
+    this.showHeader = true,
+    this.expandable = false,
+  });
 
   final MapBlock block;
   final ValueChanged<String>? onNavigate;
+
+  /// Oculta la fila de título; el modal de mapa completo la usa para no
+  /// duplicar el encabezado.
+  final bool showHeader;
+
+  /// Muestra el botón que abre el mapa completo en un diálogo grande.
+  final bool expandable;
 
   VoidCallback? _openMarker(MapMarker marker) =>
       marker.ref == null || onNavigate == null
@@ -92,261 +145,356 @@ class BibleMap extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final asyncGeometry = ref.watch(mapGeometryProvider);
     final dark = Theme.of(context).brightness == Brightness.dark;
     final aspect =
         (block.lonSpan *
                 math.cos(block.centerLat * math.pi / 180) /
                 block.latSpan)
-            .clamp(0.65, 2.8);
+            .clamp(0.65, 2.8)
+            .toDouble();
 
-    return Container(
-      key: const ValueKey('bible-map'),
-      margin: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: dark ? const Color(0xFF1E2420) : const Color(0xFFFBF9F3),
-        border: Border.all(color: kBorder),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-            child: Row(
-              children: [
-                Icon(Icons.public, size: 15, color: kTextSecondary),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    block.title.isEmpty ? l10n.mapTitle : block.title,
-                    style: const TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    return LayoutBuilder(
+      builder: (context, outer) {
+        // Si el contenedor impone altura (p. ej. el detalle del atlas usa un
+        // Expanded), el mapa encaja exactamente en ese espacio y no genera
+        // scroll; en contextos de scroll libre la altura se calcula desde el
+        // ancho.
+        final bool fitHeight =
+            outer.maxHeight.isFinite && outer.maxHeight > 220.0;
+        return Container(
+          key: const ValueKey('bible-map'),
+          margin: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: dark ? const Color(0xFF1E2420) : const Color(0xFFFBF9F3),
+            border: Border.all(color: kBorder),
+            borderRadius: BorderRadius.circular(8),
           ),
-          if (block.routes.length > 1)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
-              child: Row(
-                key: const ValueKey('map-route-legend'),
-                children: [
-                  for (final withIndex in block.routes.indexed)
-                    if (withIndex.$2.label.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 10,
-                              height: 3,
-                              decoration: BoxDecoration(
-                                color: mapRouteColor(withIndex.$1),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              withIndex.$2.label,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: kTextSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                ],
-              ),
-            ),
-          asyncGeometry.when(
-            loading: () => SizedBox(
-              height: 240,
-              child: Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              ),
-            ),
-            error: (error, _) => SizedBox(
-              height: 160,
-              child: Center(
-                child: Text(
-                  l10n.mapLoadError,
-                  style: TextStyle(fontSize: 12, color: kTextSecondary),
-                ),
-              ),
-            ),
-            data: (geometry) => LayoutBuilder(
-              builder: (context, constraints) {
-                // Tamaño único del lienzo: la proyección, la pintura y el
-                // viewport del zoom usan exactamente el mismo rect, sin
-                // recortes a mitad de mapa ni desbordes. La altura queda
-                // fija entre dos límites cómodos para seguir la ruta; el
-                // zoom y el pan los maneja [_MapPane].
-                final width = constraints.maxWidth.isFinite
-                    ? constraints.maxWidth
-                    : 600.0;
-                final height = (width / aspect).clamp(340.0, 560.0);
-                final size = Size(width, height.toDouble());
-                final projection = _MapProjection(block, size);
-                final markers = <_MarkerPlacement>[];
-                final occupied = <Rect>[];
-                final seenNames = <String>{};
-                for (final marker in block.markers) {
-                  // Evitar duplicados: un mismo nombre no se dibuja dos veces.
-                  if (seenNames.contains(marker.name)) continue;
-                  seenNames.add(marker.name);
-                  final point = projection.project(marker.lat, marker.lon);
-                  if (point.dx < -20 ||
-                      point.dx > size.width + 20 ||
-                      point.dy < -20 ||
-                      point.dy > size.height + 20) {
-                    continue;
-                  }
-                  final labelRect = _placeMarkerLabel(
-                    point: point,
-                    labelSize: _measureMarkerLabel(context, marker.name),
-                    bounds: size,
-                    occupied: occupied,
-                  );
-                  occupied.add(labelRect);
-                  markers.add(
-                    _MarkerPlacement(
-                      marker: marker,
-                      point: point,
-                      labelRect: labelRect,
-                    ),
-                  );
-                }
-                final map = SizedBox(
-                  width: size.width,
-                  height: size.height,
-                  child: Stack(
-                    clipBehavior: Clip.none,
+          clipBehavior: Clip.antiAlias,
+          height: fitHeight ? outer.maxHeight : null,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (showHeader)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 6, 8),
+                  child: Row(
                     children: [
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _MapPainter(
-                            geometry: geometry,
-                            block: block,
-                            dark: dark,
+                      Icon(Icons.public, size: 15, color: kTextSecondary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          block.title.isEmpty ? l10n.mapTitle : block.title,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
-                      if (block.routes.isNotEmpty)
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: CustomPaint(
-                              key: const ValueKey('map-route-layer'),
-                              painter: _RoutePainter(
-                                routes: block.routes,
-                                projection: projection,
-                                dark: dark,
-                              ),
-                            ),
+                      if (expandable)
+                        IconButton(
+                          key: const ValueKey('map-expand'),
+                          tooltip: l10n.mapFullView,
+                          icon: Icon(
+                            Icons.fullscreen,
+                            size: 22,
+                            color: kTextSecondary,
                           ),
-                        ),
-                      if (markers.isNotEmpty)
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: CustomPaint(
-                              painter: _MarkerLinePainter(
-                                lines: [
-                                  for (final entry in markers)
-                                    _MarkerLine(
-                                      start: entry.point,
-                                      end: _nearestPoint(
-                                        entry.labelRect,
-                                        entry.point,
-                                      ),
-                                    ),
-                                ],
-                                color: Theme.of(context).colorScheme.primary
-                                    .withValues(alpha: 0.32),
-                              ),
-                            ),
+                          padding: const EdgeInsets.all(4),
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
                           ),
-                        ),
-                      for (final entry in markers)
-                        Positioned(
-                          left: entry.point.dx - 4.5,
-                          top: entry.point.dy - 4.5,
-                          child: _MarkerDot(
-                            key: ValueKey(
-                              'map-marker-dot-${entry.marker.name}',
-                            ),
-                            marker: entry.marker,
-                            dark: dark,
-                            onTap: _openMarker(entry.marker),
-                          ),
-                        ),
-                      for (final entry in markers)
-                        Positioned(
-                          left: entry.labelRect.left,
-                          top: entry.labelRect.top,
-                          width: entry.labelRect.width,
-                          height: entry.labelRect.height,
-                          child: _MarkerChip(
-                            key: ValueKey('map-marker-${entry.marker.name}'),
-                            marker: entry.marker,
-                            dark: dark,
-                            onTap: _openMarker(entry.marker),
-                          ),
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => _openFullMapDialog(context, block),
                         ),
                     ],
                   ),
-                );
-                return Semantics(
-                  image: true,
-                  label: [
-                    block.title.isEmpty ? l10n.mapTitle : block.title,
-                    ...block.markers.map((marker) => marker.name),
-                  ].join('. '),
-                  child: _MapPane(size: size, child: map),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 2, 12, 9),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (block.caption != null && block.caption!.isNotEmpty) ...[
-                  Text(
-                    block.caption!,
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      height: 1.35,
-                      color: kTextSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                ],
-                Text(
-                  l10n.mapAttribution,
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    height: 1.3,
-                    color: kTextSecondary,
+                ),
+              if (block.routes.length > 1)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+                  child: Row(
+                    key: const ValueKey('map-route-legend'),
+                    children: [
+                      for (final withIndex in block.routes.indexed)
+                        if (withIndex.$2.label.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 10,
+                                  height: 3,
+                                  decoration: BoxDecoration(
+                                    color: mapRouteColor(withIndex.$1),
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  withIndex.$2.label,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: kTextSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                    ],
                   ),
                 ),
-              ],
+              if (fitHeight)
+                Expanded(
+                  child: _mapContent(
+                    context: context,
+                    ref: ref,
+                    l10n: l10n,
+                    dark: dark,
+                    aspect: aspect,
+                  ),
+                )
+              else
+                _mapContent(
+                  context: context,
+                  ref: ref,
+                  l10n: l10n,
+                  dark: dark,
+                  aspect: aspect,
+                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 2, 12, 9),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (block.caption != null && block.caption!.isNotEmpty) ...[
+                      Text(
+                        block.caption!,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          height: 1.35,
+                          color: kTextSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    Text(
+                      l10n.mapAttribution,
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        height: 1.3,
+                        color: kTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Contenido del mapa (carga, error y lienzo), compartido por los dos
+  /// modos de altura del build: encajado en la altura del panel o de
+  /// altura libre calculada desde el ancho.
+  Widget _mapContent({
+    required BuildContext context,
+    required WidgetRef ref,
+    required AppLocalizations l10n,
+    required bool dark,
+    required double aspect,
+  }) {
+    final asyncGeometry = ref.watch(mapGeometryProvider);
+    return asyncGeometry.when(
+      loading: () => SizedBox(
+        height: 240,
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
-        ],
+        ),
+      ),
+      error: (error, _) => SizedBox(
+        height: 160,
+        child: Center(
+          child: Text(
+            l10n.mapLoadError,
+            style: TextStyle(fontSize: 12, color: kTextSecondary),
+          ),
+        ),
+      ),
+      data: (geometry) => LayoutBuilder(
+        builder: (context, constraints) {
+          // Tamaño único del lienzo: la proyección, la pintura y el viewport
+          // del zoom usan exactamente el mismo rect, sin recortes a mitad de
+          // mapa ni desbordes. Si el contenedor impone altura (el detalle
+          // del atlas usa un Expanded), el mapa encaja ahí sin generar
+          // scroll; si el eje vertical es libre, la altura se calcula desde
+          // el ancho entre límites cómodos. El zoom y el pan los maneja
+          // [_MapPane].
+          final width = constraints.maxWidth.isFinite
+              ? constraints.maxWidth
+              : 600.0;
+          final height = constraints.maxHeight.isFinite
+              ? constraints.maxHeight
+              : (width / aspect).clamp(340.0, 560.0).toDouble();
+          final size = Size(width, height);
+          final projection = _MapProjection(block, size);
+          final markers = <_MarkerPlacement>[];
+          final occupied = <Rect>[];
+          // Reservar TODAS las pastillas de paradas (incluidas las apiladas
+          // cuando una ruta repite punto, p. ej. al volver a Jerusalén):
+          // los chips colocados después no pueden tapar ningún número.
+          for (final route in block.routes) {
+            final seenPoints = <String, int>{};
+            for (final stop in route.stops) {
+              final point = projection.project(stop.lat, stop.lon);
+              final key =
+                  '${point.dx.toStringAsFixed(1)},'
+                  '${point.dy.toStringAsFixed(1)}';
+              final ordinal = seenPoints[key] ?? 0;
+              seenPoints[key] = ordinal + 1;
+              occupied.add(
+                Rect.fromCircle(
+                  center:
+                      point +
+                      const Offset(-9.5, -9.5) +
+                      Offset(13.0 * ordinal, -13.0 * ordinal),
+                  radius: 8,
+                ),
+              );
+            }
+          }
+          final seenNames = <String>{};
+          for (final marker in block.markers) {
+            // Evitar duplicados: un mismo nombre no se dibuja dos veces.
+            if (seenNames.contains(marker.name)) continue;
+            seenNames.add(marker.name);
+            final point = projection.project(marker.lat, marker.lon);
+            if (point.dx < -20 ||
+                point.dx > size.width + 20 ||
+                point.dy < -20 ||
+                point.dy > size.height + 20) {
+              continue;
+            }
+            final labelRect = _placeMarkerLabel(
+              point: point,
+              labelSize: _measureMarkerLabel(context, marker.name),
+              bounds: size,
+              occupied: occupied,
+            );
+            occupied.add(labelRect);
+            // Reservar también el punto y el badge del marcador: las
+            // etiquetas colocadas después no deben tapar los números ni
+            // la pastilla del nombre.
+            occupied.add(Rect.fromCircle(center: point, radius: 9));
+            occupied.add(
+              Rect.fromCircle(
+                center: point + const Offset(-9.5, -9.5),
+                radius: 8,
+              ),
+            );
+            markers.add(
+              _MarkerPlacement(
+                marker: marker,
+                point: point,
+                labelRect: labelRect,
+              ),
+            );
+          }
+          final map = SizedBox(
+            width: size.width,
+            height: size.height,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _MapPainter(
+                      geometry: geometry,
+                      block: block,
+                      dark: dark,
+                    ),
+                  ),
+                ),
+                if (block.routes.isNotEmpty)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        key: const ValueKey('map-route-layer'),
+                        painter: _RoutePainter(
+                          routes: block.routes,
+                          projection: projection,
+                          dark: dark,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (markers.isNotEmpty)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: _MarkerLinePainter(
+                          lines: [
+                            for (final entry in markers)
+                              _MarkerLine(
+                                start: entry.point,
+                                end: _nearestPoint(
+                                  entry.labelRect,
+                                  entry.point,
+                                ),
+                              ),
+                          ],
+                          color: Theme.of(context).colorScheme.primary
+                              .withValues(alpha: 0.32),
+                        ),
+                      ),
+                    ),
+                  ),
+                for (final entry in markers)
+                  Positioned(
+                    left: entry.point.dx - 4.5,
+                    top: entry.point.dy - 4.5,
+                    child: _MarkerDot(
+                      key: ValueKey('map-marker-dot-${entry.marker.name}'),
+                      marker: entry.marker,
+                      dark: dark,
+                      onTap: _openMarker(entry.marker),
+                    ),
+                  ),
+                for (final entry in markers)
+                  Positioned(
+                    left: entry.labelRect.left,
+                    top: entry.labelRect.top,
+                    width: entry.labelRect.width,
+                    height: entry.labelRect.height,
+                    child: _MarkerChip(
+                      key: ValueKey('map-marker-${entry.marker.name}'),
+                      marker: entry.marker,
+                      dark: dark,
+                      onTap: _openMarker(entry.marker),
+                    ),
+                  ),
+              ],
+            ),
+          );
+          return Semantics(
+            image: true,
+            label: [
+              block.title.isEmpty ? l10n.mapTitle : block.title,
+              ...block.markers.map((marker) => marker.name),
+            ].join('. '),
+            child: _MapPane(size: size, child: map),
+          );
+        },
       ),
     );
   }
@@ -371,20 +519,20 @@ const List<Color> mapRouteColors = [
 
 Color mapRouteColor(int index) => mapRouteColors[index % mapRouteColors.length];
 
-/// Triángulo de la flecha de dirección de un tramo `from → to`.
+/// Chevron sencillo de la flecha de dirección de un tramo `from → to`.
 ///
-/// La flecha se ancla a lo largo del tramo según [anchor] (0.5 = punto
-/// medio): la punta señala la dirección del avance y la base queda detrás,
-/// apartada perpendicularmente. Devuelve null si el tramo es demasiado
-/// corto para dibujar una flecha legible.
+/// Se ancla a lo largo del tramo según [anchor] (0.5 = punto medio):
+/// la punta señala la dirección del avance y las dos alas quedan detrás,
+/// apartadas perpendicularmente. Devuelve [tip, ala1, ala2] (path de dos
+/// segmentos, sin relleno) o null si el tramo es demasiado corto.
 @visibleForTesting
-List<Offset>? routeArrowTriangle(
+List<Offset>? routeArrowChevron(
   Offset from,
   Offset to, {
   double anchor = 0.5,
-  double length = 16,
-  double halfHeight = 6.5,
-  double minLeg = 26,
+  double leg = 5,
+  double halfHeight = 4,
+  double minLeg = 18,
 }) {
   final delta = to - from;
   final distance = delta.distance;
@@ -392,13 +540,13 @@ List<Offset>? routeArrowTriangle(
   final unit = delta / distance;
   // Anclada al medio del tramo para que no la tapen el punto de destino ni
   // la parada numerada; en tramos largos [_RoutePainter] pinta varias.
-  final mid = from + delta * anchor;
-  final tip = mid + unit * (length / 2);
+  final tip = from + delta * anchor;
   final perpendicular = Offset(-unit.dy, unit.dx);
+  final behind = tip - unit * leg;
   return [
     tip,
-    tip - unit * length + perpendicular * halfHeight,
-    tip - unit * length - perpendicular * halfHeight,
+    behind + perpendicular * halfHeight,
+    behind - perpendicular * halfHeight,
   ];
 }
 
@@ -430,21 +578,33 @@ Rect _placeMarkerLabel({
 }) {
   final width = labelSize.width;
   final height = labelSize.height;
+  // Elección de la posición del chip, en orden de preferencia:
+  // 1. posición que no choca con nada; 2. posición que solo roza el punto
+  // del propio marcador (la línea de guía igual lo une); 3. la menos mala.
+  // El número (badge) propio nunca debe quedar tapado ni por el propio
+  // chip ni por otro, y los chips no deben taparse entre sí (Seleucia,
+  // Perge y Atalía en el primer viaje de Pablo).
+  final ownBadgeRect = Rect.fromCircle(
+    center: point + const Offset(-9.5, -9.5),
+    radius: 8,
+  );
+  final ownDotRect = Rect.fromCircle(center: point, radius: 7);
   final candidates = [
     Offset(-width / 2, 7), // debajo
     Offset(-width / 2, -height - 7), // encima
     Offset(7, -height / 2), // derecha
     Offset(-width - 7, -height / 2), // izquierda
-    Offset(5, 7),
-    Offset(-width - 5, 7),
-    Offset(5, -height - 6),
-    Offset(-width - 5, -height - 6),
-    Offset(-width / 2, 22),
-    Offset(-width / 2, -height - 22),
-    Offset(20, -height / 2),
-    Offset(-width - 20, -height / 2),
+    Offset(5, 7), // debajo, pegado a la derecha
+    Offset(-width - 5, 7), // debajo, pegado a la izquierda
+    Offset(5, -height - 6), // arriba, pegado a la derecha
+    Offset(-width - 5, -height - 6), // arriba, pegado a la izquierda
+    Offset(-width / 2, 22), // más abajo
+    Offset(-width / 2, -height - 22), // más arriba
+    Offset(20, -height / 2), // más a la derecha
+    Offset(-width - 20, -height / 2), // más a la izquierda
   ];
-  Rect? fallback;
+  Rect? acceptable;
+  Rect? anyRect;
   for (final offset in candidates) {
     final rect = Rect.fromLTWH(
       point.dx + offset.dx,
@@ -458,19 +618,34 @@ Rect _placeMarkerLabel({
         rect.bottom > bounds.height - 2) {
       continue;
     }
-    fallback ??= rect;
-    if (!occupied.any((other) => other.inflate(1.5).overlaps(rect))) {
-      return rect;
+    anyRect ??= rect;
+    // Nada de tapar otros chips/dots/badges ni el número propio.
+    if (occupied.any((other) => other.inflate(1.5).overlaps(rect))) {
+      continue;
     }
+    if (ownBadgeRect.inflate(1.5).overlaps(rect)) {
+      continue;
+    }
+    if (ownDotRect.inflate(1.5).overlaps(rect)) {
+      // Solo roza su propio punto: respaldo negociable.
+      acceptable ??= rect;
+      continue;
+    }
+    return rect;
   }
-  if (fallback != null) return fallback;
-  final left = (point.dx - width / 2)
-      .clamp(2.0, math.max(2.0, bounds.width - width - 2))
-      .toDouble();
-  final top = (point.dy - height / 2)
-      .clamp(2.0, math.max(2.0, bounds.height - height - 2))
-      .toDouble();
-  return Rect.fromLTWH(left, top, width, height);
+  final Rect chosen =
+      acceptable ??
+      anyRect ??
+      (() {
+        final left = (point.dx - width / 2)
+            .clamp(2.0, math.max(2.0, bounds.width - width - 2))
+            .toDouble();
+        final top = (point.dy - height / 2)
+            .clamp(2.0, math.max(2.0, bounds.height - height - 2))
+            .toDouble();
+        return Rect.fromLTWH(left, top, width, height);
+      })();
+  return chosen;
 }
 
 Offset _nearestPoint(Rect rect, Offset point) => Offset(
@@ -517,6 +692,10 @@ class _RoutePainter extends CustomPainter {
       // Tramos de regreso que reutilizan el camino de ida: se apartan unos
       // píxeles perpendicularmente para que ida y vuelta no se superpongan.
       final shifted = List.of(points);
+      // Qué tramos reutilizan camino ya pintado (sentido contrario): sus
+      // chevrons se omiten para no apiñar dos flechas sobre la misma senda
+      // (el sentido de la vuelta lo cuentan los números de parada).
+      final isReturnLeg = List<bool>.filled(points.length - 1, false);
       final used = <String>{};
       var i = 0;
       while (i + 1 < points.length) {
@@ -533,6 +712,9 @@ class _RoutePainter extends CustomPainter {
           used.add(_segmentKey(points[end], points[end + 1]));
           end++;
         }
+        for (var k = i; k < end; k++) {
+          isReturnLeg[k] = true;
+        }
         final leg = points[i + 1] - points[i];
         if (leg.distance > 0.5) {
           final perp = Offset(-leg.dy, leg.dx) * (5.0 / leg.distance);
@@ -543,43 +725,60 @@ class _RoutePainter extends CustomPainter {
         i = end + 1;
       }
 
-      // Halo bajo la línea para separarla de la geografía.
-      _paintPolyline(
-        canvas,
-        shifted,
-        dark
-            ? Colors.black.withValues(alpha: 0.55)
-            : Colors.white.withValues(alpha: 0.85),
-        3.6,
-      );
-      _paintPolyline(canvas, shifted, color.withValues(alpha: 0.88), 2.0);
-      _paintArrows(canvas, shifted, color);
+      // Línea de puntitos con chevrons discretos: menos peso visual que la
+      // cinta continua con flechas grandes (antes se amontonaba); la
+      // dirección la refuerzan los números de parada.
+      _paintDottedLine(canvas, shifted, color.withValues(alpha: 0.85));
+      _paintArrows(canvas, shifted, color, skip: isReturnLeg);
       _paintStopBadges(canvas, points, color, size);
     }
     canvas.restore();
   }
 
-  void _paintPolyline(
-    Canvas canvas,
-    List<Offset> points,
-    Color color,
-    double width,
-  ) {
+  /// Sendita de puntitos: dibuja círculos pequeños a intervalos fijos a lo
+  /// largo de la polilínea (Flutter no expone `PathEffect`, se reparte a
+  /// mano por longitud de arco, respetando las esquinas del trazado).
+  void _paintDottedLine(Canvas canvas, List<Offset> points, Color color) {
+    const dotRadius = 1.3;
+    const spacing = 6.4;
     final paint = Paint()
       ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..strokeWidth = width;
-    final path = Path()..moveTo(points.first.dx, points.first.dy);
-    for (final point in points.skip(1)) {
-      path.lineTo(point.dx, point.dy);
+      ..style = PaintingStyle.fill;
+    var emitted = 0.0; // longitud de arco consumida hasta aquí
+    var dotAt = 0.0; // longitud de arco donde cae el próximo puntito
+    for (var i = 0; i < points.length - 1; i++) {
+      final from = points[i];
+      final to = points[i + 1];
+      final leg = (to - from).distance;
+      if (leg < 0.001) continue;
+      while (dotAt <= emitted + leg) {
+        if (dotAt >= emitted) {
+          final t = dotAt - emitted;
+          final point = Offset.lerp(from, to, t / leg)!;
+          canvas.drawCircle(point, dotRadius, paint);
+        }
+        dotAt += spacing;
+      }
+      emitted += leg;
     }
-    canvas.drawPath(path, paint);
   }
 
-  void _paintArrows(Canvas canvas, List<Offset> points, Color color) {
+  void _paintArrows(
+    Canvas canvas,
+    List<Offset> points,
+    Color color, {
+    List<bool> skip = const <bool>[],
+  }) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.butt
+      // Punta redondeada: el miter en el vértice del chevron clava una
+      // púa del doble del grosor y arruina la forma sencilla.
+      ..strokeJoin = StrokeJoin.round
+      ..strokeWidth = 1.6;
     for (var i = 0; i < points.length - 1; i++) {
+      if (i < skip.length && skip[i]) continue;
       final from = points[i];
       final to = points[i + 1];
       final distance = (to - from).distance;
@@ -587,23 +786,13 @@ class _RoutePainter extends CustomPainter {
       // leyéndose más allá del punto medio; tramos normales, una al medio.
       final anchors = distance > 240 ? const [0.33, 0.72] : const [0.5];
       for (final t in anchors) {
-        final triangle = routeArrowTriangle(from, to, anchor: t);
-        if (triangle == null) continue;
+        final chevron = routeArrowChevron(from, to, anchor: t);
+        if (chevron == null) continue;
         final path = Path()
-          ..moveTo(triangle[0].dx, triangle[0].dy)
-          ..lineTo(triangle[1].dx, triangle[1].dy)
-          ..lineTo(triangle[2].dx, triangle[2].dy)
-          ..close();
-        // Halo para separar la flecha de la línea y del terreno.
-        canvas.drawPath(
-          path,
-          Paint()
-            ..color = dark ? const Color(0xFF101410) : Colors.white
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2.4
-            ..strokeJoin = StrokeJoin.round,
-        );
-        canvas.drawPath(path, Paint()..color = color);
+          ..moveTo(chevron[1].dx, chevron[1].dy)
+          ..lineTo(chevron[0].dx, chevron[0].dy)
+          ..lineTo(chevron[2].dx, chevron[2].dy);
+        canvas.drawPath(path, paint);
       }
     }
   }
@@ -620,16 +809,42 @@ class _RoutePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
     final textPaint = TextPainter(textDirection: TextDirection.ltr);
+    // ¿Qué número corresponde a cada parada cuando comparten punto? Una
+    // revisita (p. ej. volver a Jerusalén) ancla su badge al mismo punto,
+    // así que se apilan en diagonal para que todos los números queden
+    // legibles: antes el dedup los ocultaba y en pantalla faltaba un número.
+    final ordinals = <int>[];
+    final seenPoints = <String, int>{};
+    for (var i = 0; i < points.length; i++) {
+      final key =
+          '${points[i].dx.toStringAsFixed(1)},'
+          '${points[i].dy.toStringAsFixed(1)}';
+      final ordinal = seenPoints[key] ?? 0;
+      seenPoints[key] = ordinal + 1;
+      ordinals.add(ordinal);
+    }
     final drawn = <Offset>[];
     for (var i = 0; i < points.length; i++) {
-      final badgeCenter = points[i] + const Offset(-9.5, -9.5);
+      var extra = 0; // empujones diagonales cuando el punto queda tomado
+      final delta = Offset(13.0 * ordinals[i], -13.0 * ordinals[i]);
+      var badgeCenter = points[i] + const Offset(-9.5, -9.5) + delta;
+      // Además del apilado por revisita, dos puntos distintos muy cercanos
+      // en pantalla (p. ej. Neapolis y Filipos) pueden pisar sus badges:
+      // se empuja el nuevo en la misma diagonal hasta quedar legible.
+      while (extra < 8 &&
+          drawn.any((other) => (other - badgeCenter).distance < 13.5)) {
+        extra++;
+        badgeCenter =
+            points[i] +
+            const Offset(-9.5, -9.5) +
+            delta +
+            Offset(13.0 * extra, -13.0 * extra);
+      }
+      if (extra >= 8) continue;
       if (badgeCenter.dx < 6 ||
           badgeCenter.dy < 6 ||
           badgeCenter.dx > bounds.width - 6 ||
           badgeCenter.dy > bounds.height - 6) {
-        continue;
-      }
-      if (drawn.any((other) => (other - badgeCenter).distance < 5)) {
         continue;
       }
       drawn.add(badgeCenter);
@@ -1024,9 +1239,11 @@ class _MapPaneState extends State<_MapPane> {
             ),
           ),
         ),
+        // Controles de zoom abajo a la derecha: arriba está la fila del
+        // título (y en el modal la X de cierre), así no chocan con nada.
         Positioned(
           right: 6,
-          top: 6,
+          bottom: 10,
           child: Material(
             color: dark ? const Color(0xDD202620) : const Color(0xEEFFFFFF),
             shape: RoundedRectangleBorder(

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../catalog/document_models.dart';
+
 import 'package:aletheia/catalog/sections_repository.dart';
 import 'package:aletheia/core/localization.dart';
 import 'package:aletheia/core/theme.dart';
@@ -18,6 +19,7 @@ import 'package:aletheia/favorites/favorites_models.dart';
 import 'package:aletheia/panels/section_view.dart';
 import 'package:aletheia/references/reference_parser.dart';
 import 'package:aletheia/workspace/models.dart';
+
 import '../workspace/workspace_controller.dart';
 import 'bible_map.dart';
 import 'visual_sections.dart';
@@ -334,7 +336,10 @@ class _VisualLibraryPanelState extends ConsumerState<VisualLibraryPanel> {
             ),
             data: (catalog) {
               final entries = _isAtlas
-                  ? [...catalog.journeys.map((journey) => journey.entry), ...catalog.maps]
+                  ? [
+                      ...catalog.journeys.map((journey) => journey.entry),
+                      ...catalog.maps,
+                    ]
                   : catalog.media;
               final visible = _visible(entries);
               final selected = _selected(entries);
@@ -698,18 +703,12 @@ class _VisualLibraryPanelState extends ConsumerState<VisualLibraryPanel> {
                           ),
                         ),
                       ),
-                    BibleMap(block: map, onNavigate: _openReference),
+                    BibleMap(
+                      block: map,
+                      onNavigate: _openReference,
+                      expandable: true,
+                    ),
                   ],
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.mapAttribution,
-                    style: TextStyle(fontSize: 10.5, color: kTextSecondary),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    l10n.atlasAttribution,
-                    style: TextStyle(fontSize: 10.5, color: kTextSecondary),
-                  ),
                 ],
               );
             },
@@ -726,7 +725,9 @@ class _VisualLibraryPanelState extends ConsumerState<VisualLibraryPanel> {
     VisualSectionCatalog catalog,
     AppLocalizations l10n,
   ) {
-    final journey = catalog.journeys.where((j) => j.id == entry.section).firstOrNull;
+    final journey = catalog.journeys
+        .where((j) => j.id == entry.section)
+        .firstOrNull;
     final block = journey?.toMapBlock();
     if (journey == null || block == null) {
       return SectionEmptyState(
@@ -735,7 +736,9 @@ class _VisualLibraryPanelState extends ConsumerState<VisualLibraryPanel> {
         detail: entry.title,
       );
     }
-    final mapSaved = ref.watch(favoritesProvider).any(
+    final mapSaved = ref
+        .watch(favoritesProvider)
+        .any(
           (favorite) =>
               favorite.kind == FavoriteKind.map &&
               favorite.reference == entry.section &&
@@ -794,59 +797,124 @@ class _VisualLibraryPanelState extends ConsumerState<VisualLibraryPanel> {
     MapBlock block,
     AppLocalizations l10n,
   ) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-      children: [
-        if (journey.caption != null && journey.caption!.trim().isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Text(
-              journey.caption!,
-              style: TextStyle(
-                fontSize: 12.5,
-                height: 1.4,
-                color: kTextSecondary,
-              ),
-            ),
-          ),
-        if (journey.refs.isNotEmpty) ...[
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final ref in journey.refs)
-                OutlinedButton(
-                  key: ValueKey('journey-ref-$ref'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 2,
+    // Con alto disponible suficiente (el detalle del mapa ya viene dentro de
+    // un Expanded) el mapa encaja completo sin scroll: caption y referencias
+    // arriba, el mapa ocupando el resto del panel y las atribuciones abajo.
+    // En ventanas muy chicas se conserva la lista desplazable de siempre.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool fitsPanel =
+            constraints.maxHeight.isFinite && constraints.maxHeight > 420.0;
+        if (fitsPanel) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (journey.caption != null &&
+                    journey.caption!.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      journey.caption!,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        height: 1.4,
+                        color: kTextSecondary,
+                      ),
                     ),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  onPressed: () => _openReference(ref),
-                  child: Text(
-                    displayFromCanonical(ref, lang: context.l10nLang),
-                    style: const TextStyle(fontSize: 12),
+                if (journey.refs.isNotEmpty) ...[
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final ref in journey.refs)
+                        OutlinedButton(
+                          key: ValueKey('journey-ref-$ref'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 2,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          onPressed: () => _openReference(ref),
+                          child: Text(
+                            displayFromCanonical(ref, lang: context.l10nLang),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                const SizedBox(height: 10),
+                // El mapa aprovecha todo el alto libre del panel: al dejar
+                // una sola atribución interna sobraba espacio vacío abajo y
+                // se veía raro. El detalle completo adicional vive en el
+                // modal de mapa completo.
+                Expanded(
+                  child: BibleMap(
+                    block: block,
+                    onNavigate: _openReference,
+                    expandable: true,
                   ),
                 ),
+              ],
+            ),
+          );
+        }
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+          children: [
+            if (journey.caption != null && journey.caption!.trim().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  journey.caption!,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.4,
+                    color: kTextSecondary,
+                  ),
+                ),
+              ),
+            if (journey.refs.isNotEmpty) ...[
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final ref in journey.refs)
+                    OutlinedButton(
+                      key: ValueKey('journey-ref-$ref'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 2,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => _openReference(ref),
+                      child: Text(
+                        displayFromCanonical(ref, lang: context.l10nLang),
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
             ],
-          ),
-          const SizedBox(height: 10),
-        ],
-        BibleMap(block: block, onNavigate: _openReference),
-        const SizedBox(height: 8),
-        Text(
-          l10n.mapAttribution,
-          style: TextStyle(fontSize: 10.5, color: kTextSecondary),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          l10n.atlasAttribution,
-          style: TextStyle(fontSize: 10.5, color: kTextSecondary),
-        ),
-      ],
+            BibleMap(
+              block: block,
+              onNavigate: _openReference,
+              expandable: true,
+            ),
+          ],
+        );
+      },
     );
   }
 }

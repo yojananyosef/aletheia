@@ -108,45 +108,47 @@ void main() {
   });
 
   group('flechas de dirección', () {
-    test('flecha anclada al medio del tramo, punta en la dirección del avance', () {
+    test('chevron anclado al medio del tramo, punta en la dirección del avance', () {
       final from = const Offset(20, 100);
       final to = const Offset(120, 100);
-      final triangle = routeArrowTriangle(from, to)!;
+      final chevron = routeArrowChevron(from, to)!;
       // Anclada al punto medio del tramo (t = 0.5); la punta apunta hacia `to`.
-      expect(triangle[0].dy, closeTo(100, 0.01));
-      expect(triangle[0].dx, closeTo(78, 0.01));
-      // Base detrás de la punta, separada perpendicularmente.
-      expect(triangle[1].dx, closeTo(62, 0.01));
-      expect(triangle[1].dy, closeTo(106.5, 0.01));
-      expect(triangle[2].dx, closeTo(62, 0.01));
-      expect(triangle[2].dy, closeTo(93.5, 0.01));
+      expect(chevron[0].dy, closeTo(100, 0.01));
+      expect(chevron[0].dx, closeTo(70, 0.01));
+      // Alas detrás de la punta, separadas perpendicularmente.
+      expect(chevron[1].dx, closeTo(65, 0.01));
+      expect(chevron[1].dy, closeTo(104, 0.01));
+      expect(chevron[2].dx, closeTo(65, 0.01));
+      expect(chevron[2].dy, closeTo(96, 0.01));
+      // La punta queda por delante de las alas (dirección de avance).
+      expect(chevron[0].dx, greaterThan(chevron[1].dx));
       // El ancla se puede mover a lo largo del tramo (tramos largos llevan
       // dos flechas).
-      final lateArrow = routeArrowTriangle(from, to, anchor: 0.72)!;
-      expect(lateArrow[0].dx, closeTo(100, 0.01));
+      final lateArrow = routeArrowChevron(from, to, anchor: 0.72)!;
+      expect(lateArrow[0].dx, closeTo(92, 0.01));
     });
 
     test('tramo corto o degenerado no dibuja flecha', () {
       expect(
-        routeArrowTriangle(const Offset(10, 10), const Offset(14, 10)),
+        routeArrowChevron(const Offset(10, 10), const Offset(14, 10)),
         isNull,
       );
       expect(
-        routeArrowTriangle(const Offset(10, 10), const Offset(10, 10)),
+        routeArrowChevron(const Offset(10, 10), const Offset(10, 10)),
         isNull,
       );
     });
 
     test('orientación: apunta en el sentido del tramo', () {
-      final down = routeArrowTriangle(
+      final down = routeArrowChevron(
         const Offset(50, 20),
         const Offset(50, 130),
       )!;
-      final up = routeArrowTriangle(
+      final up = routeArrowChevron(
         const Offset(50, 130),
         const Offset(50, 20),
       )!;
-      // En ambos casos las dos bases quedan al otro lado del tramo.
+      // En ambos casos las dos alas quedan al otro lado del eje del tramo.
       expect(down[1].dx, lessThan(50));
       expect(up[1].dx, greaterThan(50));
     });

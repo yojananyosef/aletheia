@@ -2243,6 +2243,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapZoomReset => 'Fit the whole map';
 
   @override
+  String get mapFullView => 'Open full map';
+
+  @override
   String get mapAttribution =>
       'Geometry: Natural Earth (public domain) · Places: OpenBible.info (CC BY 4.0)';
 

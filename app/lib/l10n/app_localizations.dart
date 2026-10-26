@@ -4070,6 +4070,12 @@ abstract class AppLocalizations {
   /// **'Ver el mapa completo'**
   String get mapZoomReset;
 
+  /// No description provided for @mapFullView.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir el mapa completo'**
+  String get mapFullView;
+
   /// No description provided for @mapAttribution.
   ///
   /// In es, this message translates to:

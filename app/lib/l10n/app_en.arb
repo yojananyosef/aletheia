@@ -845,6 +845,7 @@
   "mapZoomIn": "Zoom in the map",
   "mapZoomOut": "Zoom out of the map",
   "mapZoomReset": "Fit the whole map",
+  "mapFullView": "Open full map",
   "mapAttribution": "Geometry: Natural Earth (public domain) · Places: OpenBible.info (CC BY 4.0)",
   "panelTitleAtlas": "Atlas",
   "panelTitleCourses": "Courses",
