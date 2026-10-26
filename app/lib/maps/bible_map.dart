@@ -192,7 +192,11 @@ class BibleMap extends ConsumerWidget {
                   final projection = _MapProjection(block, size);
                   final markers = <_MarkerPlacement>[];
                   final occupied = <Rect>[];
+                  final seenNames = <String>{};
                   for (final marker in block.markers) {
+                    // Evitar duplicados: un mismo nombre no se dibuja dos veces.
+                    if (seenNames.contains(marker.name)) continue;
+                    seenNames.add(marker.name);
                     final point = projection.project(marker.lat, marker.lon);
                     if (point.dx < -20 ||
                         point.dx > size.width + 20 ||
@@ -381,10 +385,10 @@ Color mapRouteColor(int index) =>
 List<Offset>? routeArrowTriangle(
   Offset from,
   Offset to, {
-  double inset = 8,
-  double halfHeight = 4.5,
-  double length = 10,
-  double minLeg = 17,
+  double inset = 10,
+  double halfHeight = 5.5,
+  double length = 12,
+  double minLeg = 20,
 }) {
   final delta = to - from;
   final distance = delta.distance;
