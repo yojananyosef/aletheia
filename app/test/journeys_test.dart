@@ -53,18 +53,13 @@ void main() {
       for (final journey in _repoJourneys()) {
         for (final stop in journey.stops) {
           expect(stop.ref, isNotNull, reason: stop.name);
-          final match = RegExp(
-            r'^([1-3]?[A-Z]{2,3})\.(\d+)(?:\.(\d+))?$',
-          ).firstMatch(stop.ref!);
+          final match = RegExp(r'^([1-3]?[A-Z]{2,3})\.(\d+)(?:\.(\d+))?$')
+              .firstMatch(stop.ref!);
           expect(match, isNotNull, reason: stop.ref);
           expect(bookCodeForInput(match!.group(1)!), isNotNull);
         }
         for (final ref in journey.refs) {
-          expect(
-            RegExp(r'^ACT\.\d+\.\d+$').hasMatch(ref),
-            isTrue,
-            reason: ref,
-          );
+          expect(RegExp(r'^ACT\.\d+\.\d+$').hasMatch(ref), isTrue, reason: ref);
         }
         expect(journey.toMapBlock(), isNotNull);
       }
@@ -86,8 +81,14 @@ void main() {
         block.centerLon,
         closeTo((lons.reduce(math.min) + lons.reduce(math.max)) / 2, 0.01),
       );
-      expect(block.latSpan, greaterThan(lats.reduce(math.max) - lats.reduce(math.min)));
-      expect(block.lonSpan, greaterThan(lons.reduce(math.max) - lons.reduce(math.min)));
+      expect(
+        block.latSpan,
+        greaterThan(lats.reduce(math.max) - lats.reduce(math.min)),
+      );
+      expect(
+        block.lonSpan,
+        greaterThan(lons.reduce(math.max) - lons.reduce(math.min)),
+      );
       expect(block.markers, hasLength(second.stops.length));
       expect(block.routes, hasLength(1));
       expect(block.routes.single.stops, second.stops);
@@ -102,36 +103,49 @@ void main() {
         stops: [MapMarker(name: 'A', lat: 10, lon: 10)],
       );
       expect(short.toMapBlock(), isNull);
-      expect(
-        short.entry.resource,
-        'atlas',
-      );
+      expect(short.entry.resource, 'atlas');
     });
   });
 
   group('flechas de dirección', () {
-    test('punta sobre la línea, al final del tramo', () {
+    test('flecha anclada al medio del tramo, punta en la dirección del avance', () {
       final from = const Offset(20, 100);
       final to = const Offset(120, 100);
       final triangle = routeArrowTriangle(from, to)!;
-      expect((triangle[0] - to).distance, closeTo(8, 0.01));
-      // Sobre la horizontal: la punta queda en y = 100.
+      // Anclada al punto medio del tramo (t = 0.5); la punta apunta hacia `to`.
       expect(triangle[0].dy, closeTo(100, 0.01));
-      expect(triangle[0].dx, closeTo(112, 0.01));
-      // Base apartada perpendicular y a favor de la dirección.
-      expect(triangle[1].dy, closeTo(104.5, 0.01));
-      expect(triangle[2].dy, closeTo(95.5, 0.01));
-      expect(triangle[1].dx, closeTo(122, 0.01));
+      expect(triangle[0].dx, closeTo(78, 0.01));
+      // Base detrás de la punta, separada perpendicularmente.
+      expect(triangle[1].dx, closeTo(62, 0.01));
+      expect(triangle[1].dy, closeTo(106.5, 0.01));
+      expect(triangle[2].dx, closeTo(62, 0.01));
+      expect(triangle[2].dy, closeTo(93.5, 0.01));
+      // El ancla se puede mover a lo largo del tramo (tramos largos llevan
+      // dos flechas).
+      final lateArrow = routeArrowTriangle(from, to, anchor: 0.72)!;
+      expect(lateArrow[0].dx, closeTo(100, 0.01));
     });
 
     test('tramo corto o degenerado no dibuja flecha', () {
-      expect(routeArrowTriangle(const Offset(10, 10), const Offset(14, 10)), isNull);
-      expect(routeArrowTriangle(const Offset(10, 10), const Offset(10, 10)), isNull);
+      expect(
+        routeArrowTriangle(const Offset(10, 10), const Offset(14, 10)),
+        isNull,
+      );
+      expect(
+        routeArrowTriangle(const Offset(10, 10), const Offset(10, 10)),
+        isNull,
+      );
     });
 
     test('orientación: apunta en el sentido del tramo', () {
-      final down = routeArrowTriangle(const Offset(50, 20), const Offset(50, 130))!;
-      final up = routeArrowTriangle(const Offset(50, 130), const Offset(50, 20))!;
+      final down = routeArrowTriangle(
+        const Offset(50, 20),
+        const Offset(50, 130),
+      )!;
+      final up = routeArrowTriangle(
+        const Offset(50, 130),
+        const Offset(50, 20),
+      )!;
       // En ambos casos las dos bases quedan al otro lado del tramo.
       expect(down[1].dx, lessThan(50));
       expect(up[1].dx, greaterThan(50));
@@ -186,25 +200,22 @@ void main() {
 }
 
 Widget _mapApp(MapBlock block) => ProviderScope(
-      overrides: [
-        mapGeometryProvider.overrideWith(
-          (ref) => const MapGeometry(land: [], lakes: []),
-        ),
-      ],
-      child: MaterialApp(
-        locale: const Locale('es'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: 480,
-              child: BibleMap(
-                block: block,
-                onNavigate: (_) {},
-              ),
-            ),
-          ),
+  overrides: [
+    mapGeometryProvider.overrideWith(
+      (ref) => const MapGeometry(land: [], lakes: []),
+    ),
+  ],
+  child: MaterialApp(
+    locale: const Locale('es'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(
+      body: Center(
+        child: SizedBox(
+          width: 480,
+          child: BibleMap(block: block, onNavigate: (_) {}),
         ),
       ),
-    );
+    ),
+  ),
+);

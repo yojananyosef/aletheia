@@ -8,6 +8,7 @@ library;
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -164,10 +165,10 @@ class BibleMap extends ConsumerWidget {
                 ],
               ),
             ),
-          AspectRatio(
-            aspectRatio: aspect,
-            child: asyncGeometry.when(
-              loading: () => Center(
+          asyncGeometry.when(
+            loading: () => SizedBox(
+              height: 240,
+              child: Center(
                 child: SizedBox(
                   width: 20,
                   height: 20,
@@ -177,150 +178,145 @@ class BibleMap extends ConsumerWidget {
                   ),
                 ),
               ),
-              error: (error, _) => Center(
+            ),
+            error: (error, _) => SizedBox(
+              height: 160,
+              child: Center(
                 child: Text(
                   l10n.mapLoadError,
                   style: TextStyle(fontSize: 12, color: kTextSecondary),
                 ),
               ),
-              data: (geometry) => LayoutBuilder(
-                builder: (context, constraints) {
-                  final size = Size(
-                    constraints.maxWidth,
-                    constraints.maxHeight,
-                  );
-                  final projection = _MapProjection(block, size);
-                  final markers = <_MarkerPlacement>[];
-                  final occupied = <Rect>[];
-                  final seenNames = <String>{};
-                  for (final marker in block.markers) {
-                    // Evitar duplicados: un mismo nombre no se dibuja dos veces.
-                    if (seenNames.contains(marker.name)) continue;
-                    seenNames.add(marker.name);
-                    final point = projection.project(marker.lat, marker.lon);
-                    if (point.dx < -20 ||
-                        point.dx > size.width + 20 ||
-                        point.dy < -20 ||
-                        point.dy > size.height + 20) {
-                      continue;
-                    }
-                    final labelRect = _placeMarkerLabel(
-                      point: point,
-                      labelSize: _measureMarkerLabel(context, marker.name),
-                      bounds: size,
-                      occupied: occupied,
-                    );
-                    occupied.add(labelRect);
-                    markers.add(
-                      _MarkerPlacement(
-                        marker: marker,
-                        point: point,
-                        labelRect: labelRect,
-                      ),
-                    );
+            ),
+            data: (geometry) => LayoutBuilder(
+              builder: (context, constraints) {
+                // Tamaño único del lienzo: la proyección, la pintura y el
+                // viewport del zoom usan exactamente el mismo rect, sin
+                // recortes a mitad de mapa ni desbordes. La altura queda
+                // fija entre dos límites cómodos para seguir la ruta; el
+                // zoom y el pan los maneja [_MapPane].
+                final width = constraints.maxWidth.isFinite
+                    ? constraints.maxWidth
+                    : 600.0;
+                final height = (width / aspect).clamp(340.0, 560.0);
+                final size = Size(width, height.toDouble());
+                final projection = _MapProjection(block, size);
+                final markers = <_MarkerPlacement>[];
+                final occupied = <Rect>[];
+                final seenNames = <String>{};
+                for (final marker in block.markers) {
+                  // Evitar duplicados: un mismo nombre no se dibuja dos veces.
+                  if (seenNames.contains(marker.name)) continue;
+                  seenNames.add(marker.name);
+                  final point = projection.project(marker.lat, marker.lon);
+                  if (point.dx < -20 ||
+                      point.dx > size.width + 20 ||
+                      point.dy < -20 ||
+                      point.dy > size.height + 20) {
+                    continue;
                   }
-                  final map = SizedBox(
-                    width: size.width,
-                    height: size.height,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned.fill(
-                          child: CustomPaint(
-                            painter: _MapPainter(
-                              geometry: geometry,
-                              block: block,
-                              dark: dark,
-                            ),
-                          ),
-                        ),
-                        if (block.routes.isNotEmpty)
-                          Positioned.fill(
-                            child: IgnorePointer(
-                              child: CustomPaint(
-                                key: const ValueKey('map-route-layer'),
-                                painter: _RoutePainter(
-                                  routes: block.routes,
-                                  projection: projection,
-                                  dark: dark,
-                                ),
-                              ),
-                            ),
-                          ),
-                        if (markers.isNotEmpty)
-                          Positioned.fill(
-                            child: IgnorePointer(
-                              child: CustomPaint(
-                                painter: _MarkerLinePainter(
-                                  lines: [
-                                    for (final entry in markers)
-                                      _MarkerLine(
-                                        start: entry.point,
-                                        end: _nearestPoint(
-                                          entry.labelRect,
-                                          entry.point,
-                                        ),
-                                      ),
-                                  ],
-                                  color: Theme.of(context).colorScheme.primary
-                                      .withValues(alpha: 0.32),
-                                ),
-                              ),
-                            ),
-                          ),
-                        for (final entry in markers)
-                          Positioned(
-                            left: entry.point.dx - 4.5,
-                            top: entry.point.dy - 4.5,
-                            child: _MarkerDot(
-                              key: ValueKey(
-                                'map-marker-dot-${entry.marker.name}',
-                              ),
-                              marker: entry.marker,
-                              dark: dark,
-                              onTap: _openMarker(entry.marker),
-                            ),
-                          ),
-                        for (final entry in markers)
-                          Positioned(
-                            left: entry.labelRect.left,
-                            top: entry.labelRect.top,
-                            width: entry.labelRect.width,
-                            height: entry.labelRect.height,
-                            child: _MarkerChip(
-                              key: ValueKey('map-marker-${entry.marker.name}'),
-                              marker: entry.marker,
-                              dark: dark,
-                              onTap: _openMarker(entry.marker),
-                            ),
-                          ),
-                      ],
+                  final labelRect = _placeMarkerLabel(
+                    point: point,
+                    labelSize: _measureMarkerLabel(context, marker.name),
+                    bounds: size,
+                    occupied: occupied,
+                  );
+                  occupied.add(labelRect);
+                  markers.add(
+                    _MarkerPlacement(
+                      marker: marker,
+                      point: point,
+                      labelRect: labelRect,
                     ),
                   );
-                  return Semantics(
-                    image: true,
-                    label: [
-                      block.title.isEmpty ? l10n.mapTitle : block.title,
-                      ...block.markers.map((marker) => marker.name),
-                    ].join('. '),
-                    child: ClipRect(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxHeight: 520,
-                          maxWidth: 900,
-                        ),
-                        child: InteractiveViewer(
-                          minScale: 1,
-                          maxScale: 4,
-                          panEnabled: true,
-                          scaleEnabled: true,
-                          child: map,
+                }
+                final map = SizedBox(
+                  width: size.width,
+                  height: size.height,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: _MapPainter(
+                            geometry: geometry,
+                            block: block,
+                            dark: dark,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
+                      if (block.routes.isNotEmpty)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: CustomPaint(
+                              key: const ValueKey('map-route-layer'),
+                              painter: _RoutePainter(
+                                routes: block.routes,
+                                projection: projection,
+                                dark: dark,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (markers.isNotEmpty)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: CustomPaint(
+                              painter: _MarkerLinePainter(
+                                lines: [
+                                  for (final entry in markers)
+                                    _MarkerLine(
+                                      start: entry.point,
+                                      end: _nearestPoint(
+                                        entry.labelRect,
+                                        entry.point,
+                                      ),
+                                    ),
+                                ],
+                                color: Theme.of(context).colorScheme.primary
+                                    .withValues(alpha: 0.32),
+                              ),
+                            ),
+                          ),
+                        ),
+                      for (final entry in markers)
+                        Positioned(
+                          left: entry.point.dx - 4.5,
+                          top: entry.point.dy - 4.5,
+                          child: _MarkerDot(
+                            key: ValueKey(
+                              'map-marker-dot-${entry.marker.name}',
+                            ),
+                            marker: entry.marker,
+                            dark: dark,
+                            onTap: _openMarker(entry.marker),
+                          ),
+                        ),
+                      for (final entry in markers)
+                        Positioned(
+                          left: entry.labelRect.left,
+                          top: entry.labelRect.top,
+                          width: entry.labelRect.width,
+                          height: entry.labelRect.height,
+                          child: _MarkerChip(
+                            key: ValueKey('map-marker-${entry.marker.name}'),
+                            marker: entry.marker,
+                            dark: dark,
+                            onTap: _openMarker(entry.marker),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+                return Semantics(
+                  image: true,
+                  label: [
+                    block.title.isEmpty ? l10n.mapTitle : block.title,
+                    ...block.markers.map((marker) => marker.name),
+                  ].join('. '),
+                  child: _MapPane(size: size, child: map),
+                );
+              },
             ),
           ),
           Padding(
@@ -373,35 +369,44 @@ const List<Color> mapRouteColors = [
   Color(0xFF5B51A5), // índigo
 ];
 
-Color mapRouteColor(int index) =>
-    mapRouteColors[index % mapRouteColors.length];
+Color mapRouteColor(int index) => mapRouteColors[index % mapRouteColors.length];
 
 /// Triángulo de la flecha de dirección de un tramo `from → to`.
 ///
-/// La punta se coloca [inset] píxeles antes de `to`, sobre la línea; los
-/// otros dos puntos se apartan perpendicular a la dirección. Devuelve null
-/// si el tramo es demasiado corto para dibujar una flecha legible.
+/// La flecha se ancla a lo largo del tramo según [anchor] (0.5 = punto
+/// medio): la punta señala la dirección del avance y la base queda detrás,
+/// apartada perpendicularmente. Devuelve null si el tramo es demasiado
+/// corto para dibujar una flecha legible.
 @visibleForTesting
 List<Offset>? routeArrowTriangle(
   Offset from,
   Offset to, {
-  double inset = 10,
-  double halfHeight = 5.5,
-  double length = 12,
-  double minLeg = 20,
+  double anchor = 0.5,
+  double length = 16,
+  double halfHeight = 6.5,
+  double minLeg = 26,
 }) {
   final delta = to - from;
   final distance = delta.distance;
   if (distance < minLeg) return null;
   final unit = delta / distance;
-  final tip = to - unit * inset;
+  // Anclada al medio del tramo para que no la tapen el punto de destino ni
+  // la parada numerada; en tramos largos [_RoutePainter] pinta varias.
+  final mid = from + delta * anchor;
+  final tip = mid + unit * (length / 2);
   final perpendicular = Offset(-unit.dy, unit.dx);
   return [
     tip,
-    tip + unit * length + perpendicular * halfHeight,
-    tip + unit * length - perpendicular * halfHeight,
+    tip - unit * length + perpendicular * halfHeight,
+    tip - unit * length - perpendicular * halfHeight,
   ];
 }
+
+/// Clave estable de un tramo proyectado (tolerancia de medio píxel) para
+/// detectar ida y vuelta por el mismo camino.
+String _segmentKey(Offset a, Offset b) =>
+    '${((a.dx * 2).round())},${(a.dy * 2).round()}-'
+    '${((b.dx * 2).round())},${(b.dy * 2).round()}';
 
 Size _measureMarkerLabel(BuildContext context, String name) {
   final painter = TextPainter(
@@ -509,18 +514,57 @@ class _RoutePainter extends CustomPainter {
         for (final stop in stops) projection.project(stop.lat, stop.lon),
       ];
 
+      // Tramos de regreso que reutilizan el camino de ida: se apartan unos
+      // píxeles perpendicularmente para que ida y vuelta no se superpongan.
+      final shifted = List.of(points);
+      final used = <String>{};
+      var i = 0;
+      while (i + 1 < points.length) {
+        if (!used.contains(_segmentKey(points[i + 1], points[i]))) {
+          used.add(_segmentKey(points[i], points[i + 1]));
+          i++;
+          continue;
+        }
+        // Cadena de regreso: tramos consecutivos que reutilizan tramos ya
+        // dibujados; se aparta completa (rígida) para conservar continuidad.
+        var end = i;
+        while (end + 1 < points.length &&
+            used.contains(_segmentKey(points[end + 1], points[end]))) {
+          used.add(_segmentKey(points[end], points[end + 1]));
+          end++;
+        }
+        final leg = points[i + 1] - points[i];
+        if (leg.distance > 0.5) {
+          final perp = Offset(-leg.dy, leg.dx) * (5.0 / leg.distance);
+          for (var k = i; k <= end + 1 && k < shifted.length; k++) {
+            shifted[k] = shifted[k] + perp;
+          }
+        }
+        i = end + 1;
+      }
+
       // Halo bajo la línea para separarla de la geografía.
-      _paintPolyline(canvas, points, dark
-          ? Colors.black.withValues(alpha: 0.55)
-          : Colors.white.withValues(alpha: 0.85), 3.6);
-      _paintPolyline(canvas, points, color.withValues(alpha: 0.88), 2.0);
-      _paintArrows(canvas, points, color);
+      _paintPolyline(
+        canvas,
+        shifted,
+        dark
+            ? Colors.black.withValues(alpha: 0.55)
+            : Colors.white.withValues(alpha: 0.85),
+        3.6,
+      );
+      _paintPolyline(canvas, shifted, color.withValues(alpha: 0.88), 2.0);
+      _paintArrows(canvas, shifted, color);
       _paintStopBadges(canvas, points, color, size);
     }
     canvas.restore();
   }
 
-  void _paintPolyline(Canvas canvas, List<Offset> points, Color color, double width) {
+  void _paintPolyline(
+    Canvas canvas,
+    List<Offset> points,
+    Color color,
+    double width,
+  ) {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
@@ -535,16 +579,32 @@ class _RoutePainter extends CustomPainter {
   }
 
   void _paintArrows(Canvas canvas, List<Offset> points, Color color) {
-    final paint = Paint()..color = color.withValues(alpha: 0.92);
     for (var i = 0; i < points.length - 1; i++) {
-      final triangle = routeArrowTriangle(points[i], points[i + 1]);
-      if (triangle == null) continue;
-      final path = Path()
-        ..moveTo(triangle[0].dx, triangle[0].dy)
-        ..lineTo(triangle[1].dx, triangle[1].dy)
-        ..lineTo(triangle[2].dx, triangle[2].dy)
-        ..close();
-      canvas.drawPath(path, paint);
+      final from = points[i];
+      final to = points[i + 1];
+      final distance = (to - from).distance;
+      // Tramos largos llevan dos flechas para que la dirección siga
+      // leyéndose más allá del punto medio; tramos normales, una al medio.
+      final anchors = distance > 240 ? const [0.33, 0.72] : const [0.5];
+      for (final t in anchors) {
+        final triangle = routeArrowTriangle(from, to, anchor: t);
+        if (triangle == null) continue;
+        final path = Path()
+          ..moveTo(triangle[0].dx, triangle[0].dy)
+          ..lineTo(triangle[1].dx, triangle[1].dy)
+          ..lineTo(triangle[2].dx, triangle[2].dy)
+          ..close();
+        // Halo para separar la flecha de la línea y del terreno.
+        canvas.drawPath(
+          path,
+          Paint()
+            ..color = dark ? const Color(0xFF101410) : Colors.white
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.4
+            ..strokeJoin = StrokeJoin.round,
+        );
+        canvas.drawPath(path, Paint()..color = color);
+      }
     }
   }
 
@@ -559,9 +619,7 @@ class _RoutePainter extends CustomPainter {
       ..color = dark ? const Color(0xFF101410) : Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
-    final textPaint = TextPainter(
-      textDirection: TextDirection.ltr,
-    );
+    final textPaint = TextPainter(textDirection: TextDirection.ltr);
     final drawn = <Offset>[];
     for (var i = 0; i < points.length; i++) {
       final badgeCenter = points[i] + const Offset(-9.5, -9.5);
@@ -571,9 +629,7 @@ class _RoutePainter extends CustomPainter {
           badgeCenter.dy > bounds.height - 6) {
         continue;
       }
-      if (drawn.any(
-        (other) => (other - badgeCenter).distance < 5,
-      )) {
+      if (drawn.any((other) => (other - badgeCenter).distance < 5)) {
         continue;
       }
       drawn.add(badgeCenter);
@@ -849,4 +905,164 @@ class _MapPainter extends CustomPainter {
       oldDelegate.geometry != geometry ||
       oldDelegate.block != block ||
       oldDelegate.dark != dark;
+}
+
+/// Visor interactivo del mapa: la rueda encara y aleja anclando donde está el
+/// cursor (y la señal queda para el mapa, no para el desplazamiento de la
+/// página), y expone botones de zoom y de encuadre completo.
+class _MapPane extends StatefulWidget {
+  const _MapPane({required this.size, required this.child});
+
+  /// Tamaño del viewport del mapa; coincide con el lienzo pintado, así el
+  /// zoom 1.0 muestra siempre el mapa completo sin recortes.
+  final Size size;
+
+  final Widget child;
+
+  @override
+  State<_MapPane> createState() => _MapPaneState();
+}
+
+class _MapPaneState extends State<_MapPane> {
+  static const double _minScale = 1.0;
+  static const double _maxScale = 4.0;
+  static const double _zoomInFactor = 1.35;
+  static const double _zoomOutFactor = 0.74;
+
+  final TransformationController _transform = TransformationController();
+
+  @override
+  void dispose() {
+    _transform.dispose();
+    super.dispose();
+  }
+
+  void _onPointerSignal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent) return;
+    // El mapa decide qué hacer con la rueda (como un visor de mapas): la
+    // señal se registra en el resolver y no sigue hacia los scrollables de
+    // la página.
+    GestureBinding.instance.pointerSignalResolver.register(event, (resolved) {
+      if (resolved is! PointerScrollEvent) return;
+      _zoomAt(
+        resolved.scrollDelta.dy > 0 ? _zoomOutFactor : _zoomInFactor,
+        resolved.localPosition,
+      );
+    });
+  }
+
+  void _zoomAt(double factor, Offset anchor) {
+    final oldValue = _transform.value;
+    final oldScale = oldValue.getMaxScaleOnAxis();
+    final nextScale = (oldScale * factor)
+        .clamp(_minScale, _maxScale)
+        .toDouble();
+    if ((nextScale - oldScale).abs() < 0.0005) return;
+    // El punto del contenido que está bajo el ancla permanece en pantalla:
+    // el zoom se hace alrededor del cursor (o del centro con los botones).
+    final contentPoint =
+        (anchor - Offset(oldValue.storage[12], oldValue.storage[13])) /
+        oldScale;
+    final translation = anchor - contentPoint * nextScale;
+    _transform.value = Matrix4(
+      nextScale,
+      0,
+      0,
+      0,
+      0,
+      nextScale,
+      0,
+      0,
+      0,
+      0,
+      nextScale,
+      0,
+      translation.dx,
+      translation.dy,
+      0,
+      1,
+    );
+  }
+
+  void _zoomStep(double factor) {
+    final viewport = context.size;
+    _zoomAt(
+      factor,
+      viewport == null
+          ? Offset(widget.size.width / 2, widget.size.height / 2)
+          : Offset(viewport.width / 2, viewport.height / 2),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
+    final controls = <(IconData, String, VoidCallback)>[
+      (Icons.add, l10n.mapZoomIn, () => _zoomStep(_zoomInFactor)),
+      (Icons.remove, l10n.mapZoomOut, () => _zoomStep(_zoomOutFactor)),
+      (
+        Icons.center_focus_weak,
+        l10n.mapZoomReset,
+        () => _transform.value = Matrix4.identity(),
+      ),
+    ];
+    return Stack(
+      children: [
+        SizedBox(
+          width: widget.size.width,
+          height: widget.size.height,
+          child: Listener(
+            onPointerSignal: _onPointerSignal,
+            child: InteractiveViewer(
+              transformationController: _transform,
+              minScale: _minScale,
+              maxScale: _maxScale,
+              panEnabled: true,
+              scaleEnabled: true,
+              child: widget.child,
+            ),
+          ),
+        ),
+        Positioned(
+          right: 6,
+          top: 6,
+          child: Material(
+            color: dark ? const Color(0xDD202620) : const Color(0xEEFFFFFF),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+              side: BorderSide(color: kBorder),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: IconTheme(
+              data: IconThemeData(
+                size: 15,
+                color: dark ? const Color(0xFFD9DED9) : const Color(0xFF2A2A2A),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final (icon, tooltip, onPressed) in controls)
+                    Tooltip(
+                      message: tooltip,
+                      child: IconButton(
+                        tooltip: tooltip,
+                        icon: Icon(icon),
+                        iconSize: 15,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints.tightFor(
+                          width: 30,
+                          height: 30,
+                        ),
+                        onPressed: onPressed,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

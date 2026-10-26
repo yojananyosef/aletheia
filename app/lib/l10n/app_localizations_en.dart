@@ -2234,6 +2234,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapLoadError => 'The map could not be loaded.';
 
   @override
+  String get mapZoomIn => 'Zoom in the map';
+
+  @override
+  String get mapZoomOut => 'Zoom out of the map';
+
+  @override
+  String get mapZoomReset => 'Fit the whole map';
+
+  @override
   String get mapAttribution =>
       'Geometry: Natural Earth (public domain) · Places: OpenBible.info (CC BY 4.0)';
 

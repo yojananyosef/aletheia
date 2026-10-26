@@ -2241,6 +2241,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mapLoadError => 'No se pudo cargar el mapa.';
 
   @override
+  String get mapZoomIn => 'Acercar el mapa';
+
+  @override
+  String get mapZoomOut => 'Alejar el mapa';
+
+  @override
+  String get mapZoomReset => 'Ver el mapa completo';
+
+  @override
   String get mapAttribution =>
       'Geometría: Natural Earth (dominio público) · Lugares: OpenBible.info (CC BY 4.0)';
 

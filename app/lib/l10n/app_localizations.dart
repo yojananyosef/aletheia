@@ -4052,6 +4052,24 @@ abstract class AppLocalizations {
   /// **'No se pudo cargar el mapa.'**
   String get mapLoadError;
 
+  /// No description provided for @mapZoomIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Acercar el mapa'**
+  String get mapZoomIn;
+
+  /// No description provided for @mapZoomOut.
+  ///
+  /// In es, this message translates to:
+  /// **'Alejar el mapa'**
+  String get mapZoomOut;
+
+  /// No description provided for @mapZoomReset.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver el mapa completo'**
+  String get mapZoomReset;
+
   /// No description provided for @mapAttribution.
   ///
   /// In es, this message translates to:
